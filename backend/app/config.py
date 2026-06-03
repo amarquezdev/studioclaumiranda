@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     GOOGLE_PLACES_API_KEY: str = ""
     PLACE_ID: str = ""
     SERPAPI_KEY: str = ""
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
