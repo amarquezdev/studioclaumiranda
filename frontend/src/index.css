@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Sage color tokens (public site) ─────────────────────────────────────── */
+:root {
+  --background:            #F7F2EC;
+  --foreground:            #2A2420;
+  --card:                  #FFFFFF;
+  --card-foreground:       #2A2420;
+  --primary:               #6E8060;
+  --primary-foreground:    #FFFFFF;
+  --secondary:             #EDE8E0;
+  --secondary-foreground:  #2A2420;
+  --muted:                 #EDE8E0;
+  --muted-foreground:      #8A8480;
+  --border:                #E0D9D2;
+  --input:                 #FFFFFF;
+  --ring:                  #6E8060;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: #F7F2EC;
+    color: #2A2420;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+}
+
+@layer components {
+  /* ── Shared button styles (public + admin) ─────────────────────────────── */
+  .btn-gold {
+    @apply bg-gold text-white font-medium px-6 py-3 rounded-sm
+           hover:bg-gold-dark transition-colors duration-200 tracking-wide text-sm;
+  }
+  .btn-outline {
+    @apply border border-gold text-gold font-medium px-6 py-3 rounded-sm
+           hover:bg-gold hover:text-white transition-colors duration-200 tracking-wide text-sm;
+  }
+  .section-title {
+    @apply text-3xl md:text-4xl font-light tracking-wide mb-2;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: #2A2420;
+  }
+  .section-subtitle {
+    @apply text-sm tracking-widest uppercase mb-10;
+    color: #8A8480;
+  }
+  .card-dark {
+    @apply bg-dark-card border border-dark-border rounded-sm p-5
+           hover:border-gold transition-colors duration-200 cursor-pointer;
+  }
+  .card-selected {
+    @apply border-gold bg-gold/5;
+  }
+}
+
+/* ── Admin Sage theme — remap Tailwind built-in utilities to warm palette ── */
+.sage-admin {
+  color: #2A2420;
+}
+.sage-admin h1,
+.sage-admin h2,
+.sage-admin h3,
+.sage-admin h4 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  color: #2A2420;
+}
+
+/* Text color remaps */
+.sage-admin .text-white          { color: #2A2420 !important; }
+.sage-admin .text-gray-100       { color: #2A2420 !important; }
+.sage-admin .text-gray-200       { color: #3A3430 !important; }
+.sage-admin .text-gray-300       { color: #4A4440 !important; }
+.sage-admin .text-gray-400       { color: #6A6460 !important; }
+.sage-admin .text-gray-500       { color: #8A8480 !important; }
+.sage-admin .text-gray-600       { color: #9A918C !important; }
+.sage-admin .text-gray-700       { color: #B0A8A4 !important; }
+
+/* Hover text remaps */
+.sage-admin .hover\:text-white:hover    { color: #2A2420 !important; }
+.sage-admin .hover\:text-gold:hover     { color: #6E8060 !important; }
+
+/* Status badge text — darker on light backgrounds */
+.sage-admin .text-yellow-400     { color: #92400E !important; }
+.sage-admin .text-green-400      { color: #166534 !important; }
+.sage-admin .text-blue-400       { color: #1E40AF !important; }
+.sage-admin .text-blue-300       { color: #1E40AF !important; }
+.sage-admin .text-red-400        { color: #991B1B !important; }
+
+/* Table row hover */
+.sage-admin tbody tr:hover       { background-color: rgba(110, 128, 96, 0.06) !important; }
+
+/* Select option colors */
+.sage-admin select option        { background-color: #FFFFFF; color: #2A2420; }
+
+/* Sidebar active link background */
+.sage-admin .bg-gold\/5          { background-color: rgba(110, 128, 96, 0.08) !important; }
