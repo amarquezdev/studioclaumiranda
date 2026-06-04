@@ -101,6 +101,14 @@ class BusinessHours(Base):
     is_open: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
+class ReviewsCache(Base):
+    __tablename__ = "reviews_cache"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)   # siempre id=1
+    fetched_at: Mapped[float] = mapped_column(Float, nullable=False)
+    data: Mapped[str] = mapped_column(Text, nullable=False)       # JSON serializado
+
+
 class Appointment(Base):
     __tablename__ = "appointments"
 

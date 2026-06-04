@@ -1,24 +1,25 @@
 import json
 import time
-from pathlib import Path
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.database import get_db
+from app.models import ReviewsCache
 
 router = APIRouter()
 
 SERPAPI   = "https://serpapi.com/search"
 CACHE_TTL = 86400  # 24 horas
-CACHE_FILE = Path(__file__).parent.parent.parent / "reviews_cache.json"
 
-# data_id no cambia nunca — lo guardamos hardcoded tras resolverlo la primera vez
 _data_id: str | None = None
 
 
-# ── Schemas ──────────────────────────────────────────────────────────────────
+# ── Schemas ───────────────────────────────────────────────────────────────────
 
 class ReviewOut(BaseModel):
     author_name: str
@@ -35,30 +36,34 @@ class ReviewsResponse(BaseModel):
     reviews: list[ReviewOut]
 
 
-# ── Caché en archivo ──────────────────────────────────────────────────────────
+# ── Caché en base de datos ────────────────────────────────────────────────────
 
-def _load_cache() -> ReviewsResponse | None:
-    """Lee el caché del disco. Retorna None si no existe o expiró."""
-    if not CACHE_FILE.exists():
+async def _load_cache_db(db: AsyncSession) -> ReviewsResponse | None:
+    row = await db.scalar(select(ReviewsCache).where(ReviewsCache.id == 1))
+    if row is None:
         return None
-    try:
-        raw = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-        if time.time() - raw.get("fetched_at", 0) > CACHE_TTL:
-            return None
-        return ReviewsResponse(**raw["data"])
-    except Exception:
+    if time.time() - row.fetched_at > CACHE_TTL:
         return None
+    return ReviewsResponse(**json.loads(row.data))
 
 
-def _save_cache(result: ReviewsResponse) -> None:
-    payload = {"fetched_at": time.time(), "data": result.model_dump()}
-    CACHE_FILE.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+async def _save_cache_db(db: AsyncSession, result: ReviewsResponse) -> None:
+    row = await db.scalar(select(ReviewsCache).where(ReviewsCache.id == 1))
+    if row:
+        row.fetched_at = time.time()
+        row.data = json.dumps(result.model_dump(), ensure_ascii=False)
+    else:
+        db.add(ReviewsCache(
+            id=1,
+            fetched_at=time.time(),
+            data=json.dumps(result.model_dump(), ensure_ascii=False),
+        ))
+    await db.commit()
 
 
 # ── Helpers de SerpAPI ────────────────────────────────────────────────────────
 
 async def _resolve_data_id(client: httpx.AsyncClient) -> str:
-    """Convierte el Place ID de Google → data_id que necesita SerpAPI (1 request)."""
     r = await client.get(SERPAPI, params={
         "engine":   "google_maps",
         "place_id": settings.PLACE_ID,
@@ -116,17 +121,17 @@ async def _fetch_from_serpapi() -> ReviewsResponse:
     )
 
 
-# ── Endpoint ─────────────────────────────────────────────────────────────────
+# ── Endpoint ──────────────────────────────────────────────────────────────────
 
 @router.get("/", response_model=ReviewsResponse)
-async def get_reviews():
+async def get_reviews(db: AsyncSession = Depends(get_db)):
     if not settings.SERPAPI_KEY:
         raise HTTPException(503, "SERPAPI_KEY no configurado en .env")
 
-    cached = _load_cache()
+    cached = await _load_cache_db(db)
     if cached:
         return cached
 
     result = await _fetch_from_serpapi()
-    _save_cache(result)
+    await _save_cache_db(db, result)
     return result
