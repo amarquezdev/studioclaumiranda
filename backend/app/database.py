@@ -3,9 +3,12 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
 
+_is_postgres = settings.DATABASE_URL.startswith("postgresql")
+
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
+    connect_args={"ssl": "require"} if _is_postgres else {},
 )
 
 AsyncSessionLocal = async_sessionmaker(
