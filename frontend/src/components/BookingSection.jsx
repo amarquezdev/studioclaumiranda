@@ -15,19 +15,17 @@ function formatTime(iso) {
 }
 
 // ── Step indicator ─────────────────────────────────────────────────────────
-// Steps are: 1=Servicio, 1.5=Opciones (conditional), 2=Estilista, 3=Fecha, 4=Hora, 5=Tus datos
-// We display visual steps without the conditional one to keep indicator clean.
+// Steps are: 1=Servicio, 1.5=Opciones (conditional), 3=Fecha, 4=Hora, 5=Tus datos
 
 function Steps({ current, hasOptions }) {
-  // Visual labels; step 1.5 is shown as step 2 when has_options is true
   const steps = hasOptions
-    ? ['Servicio', 'Opciones', 'Estilista', 'Fecha', 'Hora', 'Tus datos']
-    : ['Servicio', 'Estilista', 'Fecha', 'Hora', 'Tus datos']
+    ? ['Servicio', 'Opciones', 'Fecha', 'Hora', 'Tus datos']
+    : ['Servicio', 'Fecha', 'Hora', 'Tus datos']
 
-  // Map internal step numbers to visual index
+  // Map internal step numbers (skip 2) to visual index
   const visualCurrent = hasOptions
-    ? current <= 1 ? 1 : current === 1.5 ? 2 : current + 1
-    : current
+    ? current <= 1 ? 1 : current === 1.5 ? 2 : current - 1
+    : current <= 1 ? 1 : current - 2
 
   return (
     <div className="flex items-center justify-center gap-0 mb-12">
@@ -186,7 +184,14 @@ export default function BookingSection() {
 
   useEffect(() => {
     Promise.all([getServices(), getBarbers(), getBusinessHours()])
-      .then(([s, b, h]) => { setServices(s.data); setBarbers(b.data); setBusinessHours(h.data) })
+      .then(([s, b, h]) => {
+        setServices(s.data)
+        setBarbers(b.data)
+        setBusinessHours(h.data)
+        // Auto-seleccionar la única estilista activa
+        const active = b.data.find(x => x.is_active) ?? b.data[0]
+        if (active) setSelectedBarber(active)
+      })
       .catch(() => setError('No se pudo conectar con el servidor.'))
   }, [])
 
@@ -245,7 +250,6 @@ export default function BookingSection() {
           </p>
           <p className="text-muted-foreground mb-1">
             <span className="text-primary">{selectedService?.name}</span>
-            {' '}con <span className="text-primary">{selectedBarber?.name}</span>
           </p>
           {selectedOptions.length > 0 && (
             <p className="text-muted-foreground text-sm mb-1">
@@ -303,7 +307,7 @@ export default function BookingSection() {
                 <button key={s.id} onClick={() => {
                   setSelectedService(s)
                   setSelectedOptions([])
-                  setStep(s.has_options ? 1.5 : 2)
+                  setStep(s.has_options ? 1.5 : 3)
                 }}
                   className={cn(
                     'bg-card border p-6 text-left transition-all duration-200 hover:border-primary/60 group',
@@ -377,7 +381,7 @@ export default function BookingSection() {
             )}
 
             <button
-              onClick={() => { if (selectedOptions.length > 0) setStep(2) }}
+              onClick={() => { if (selectedOptions.length > 0) setStep(3) }}
               disabled={selectedOptions.length === 0}
               className={cn(
                 'mt-6 w-full py-3 text-sm tracking-wider uppercase transition-all duration-200',
@@ -395,34 +399,6 @@ export default function BookingSection() {
           </div>
         )}
 
-        {/* ── Paso 2: Estilista ── */}
-        {step === 2 && (
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-8">
-              Elige tu estilista
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {barbers.map(b => (
-                <button key={b.id} onClick={() => { setSelectedBarber(b); setStep(3) }}
-                  className={cn(
-                    'bg-card border p-6 text-center transition-all duration-200 hover:border-primary/60',
-                    selectedBarber?.id === b.id ? 'border-primary' : 'border-border'
-                  )}>
-                  <div className="w-16 h-16 bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-2xl font-light mx-auto mb-4">
-                    {b.name.charAt(0)}
-                  </div>
-                  <h4 className="text-foreground font-light tracking-wide">{b.name}</h4>
-                  {b.bio && <p className="text-muted-foreground text-xs leading-relaxed mt-2">{b.bio}</p>}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setStep(selectedService?.has_options ? 1.5 : 1)}
-              className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
-              <ChevronLeft className="w-3 h-3" /> Volver
-            </button>
-          </div>
-        )}
-
         {/* ── Paso 3: Fecha ── */}
         {step === 3 && (
           <div>
@@ -431,7 +407,7 @@ export default function BookingSection() {
             </p>
             <Calendar businessHours={businessHours} selected={selectedDate}
               onSelect={date => { setSelectedDate(date); setStep(4) }} />
-            <button onClick={() => setStep(2)}
+            <button onClick={() => setStep(selectedService?.has_options ? 1.5 : 1)}
               className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
               <ChevronLeft className="w-3 h-3" /> Volver
             </button>
@@ -485,7 +461,7 @@ export default function BookingSection() {
               Tus datos
             </p>
             <p className="text-primary text-xs text-center mb-2 tracking-wider">
-              {selectedService?.name} · {selectedBarber?.name} · {selectedDate}
+              {selectedService?.name} · {selectedDate}
               {selectedSlot && ` · ${formatTime(selectedSlot.start)}`}
             </p>
             {selectedOptions.length > 0 && (

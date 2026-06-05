@@ -4,7 +4,6 @@ import AdminLogin from './components/AdminLogin'
 import AdminLayout from './components/AdminLayout'
 import Dashboard from './pages/Dashboard'
 import Services from './pages/Services'
-import Barbers from './pages/Barbers'
 import BusinessHours from './pages/BusinessHours'
 import Appointments from './pages/Appointments'
 import Users from './pages/Users'
@@ -33,7 +32,6 @@ function AdminRoutes() {
       <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
         <Route path="dashboard"    element={<Dashboard />} />
         <Route path="services"     element={<Services />} />
-        <Route path="barbers"      element={<Barbers />} />
         <Route path="hours"        element={<BusinessHours />} />
         <Route path="appointments" element={<Appointments />} />
         <Route path="users"        element={<Users />} />
