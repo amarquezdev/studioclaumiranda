@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -10,6 +10,7 @@ from app.dependencies import get_current_active_user, require_admin
 from app.models import Appointment, AppointmentStatus, Barber, Service, ServiceOption, User
 from app.auth import get_password_hash
 from app.schemas import AppointmentCreate, AppointmentRead, AppointmentStatusUpdate, GuestAppointmentCreate
+from app.email import send_confirmation_email
 
 router = APIRouter()
 
@@ -33,6 +34,7 @@ async def _load_appointment(db: AsyncSession, appointment_id: int) -> Appointmen
 @router.post("/", response_model=AppointmentRead, status_code=status.HTTP_201_CREATED)
 async def create_appointment(
     payload: AppointmentCreate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -67,12 +69,15 @@ async def create_appointment(
     )
     db.add(appt)
     await db.flush()
-    return await _load_appointment(db, appt.id)
+    loaded = await _load_appointment(db, appt.id)
+    background_tasks.add_task(send_confirmation_email, loaded)
+    return loaded
 
 
 @router.post("/guest", response_model=AppointmentRead, status_code=status.HTTP_201_CREATED)
 async def create_guest_appointment(
     payload: GuestAppointmentCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     """Crea una cita sin requerir autenticación. Crea el usuario si no existe."""
@@ -127,7 +132,9 @@ async def create_guest_appointment(
     )
     db.add(appt)
     await db.flush()
-    return await _load_appointment(db, appt.id)
+    loaded = await _load_appointment(db, appt.id)
+    background_tasks.add_task(send_confirmation_email, loaded)
+    return loaded
 
 
 @router.get("/me", response_model=list[AppointmentRead])
