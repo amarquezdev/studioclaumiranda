@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { adminGetServices, adminGetBarbers, adminGetAppointments } from '../../api/client'
+import { adminGetServices, adminGetAppointments } from '../../api/client'
 
 function StatCard({ icon, label, value, sub, accent }) {
   return (
@@ -24,12 +24,11 @@ const STATUS_LABELS = { pending:'Pendiente', confirmed:'Confirmada', cancelled:'
 
 export default function Dashboard() {
   const [services, setServices]         = useState([])
-  const [barbers, setBarbers]           = useState([])
   const [appointments, setAppointments] = useState([])
 
   useEffect(() => {
-    Promise.all([adminGetServices(), adminGetBarbers(), adminGetAppointments()])
-      .then(([s, b, a]) => { setServices(s.data); setBarbers(b.data); setAppointments(a.data) })
+    Promise.all([adminGetServices(), adminGetAppointments()])
+      .then(([s, a]) => { setServices(s.data); setAppointments(a.data) })
       .catch(() => {})
   }, [])
 
@@ -72,9 +71,8 @@ export default function Dashboard() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
         <StatCard icon="✂"  label="Servicios activos"  value={services.filter(s => s.is_active).length} sub={`${services.length} total`} />
-        <StatCard icon="👤" label="Estilistas activos"   value={barbers.filter(b => b.is_active).length}  sub={`${barbers.length} total`} />
         <StatCard icon="📅" label="Citas hoy"          value={todayAppts.length}   sub="agendadas hoy" />
         <StatCard icon="⏳" label="Sin confirmar"      value={pendingAppts.length} sub="pendientes" />
         <StatCard icon="💰" label="Ingreso hoy"        value={fmt(revenueToday)}   sub="estimado" accent />
