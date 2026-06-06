@@ -1,18 +1,22 @@
-import type { Metadata } from 'next'
-import { Cormorant_Garamond } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import type { Metadata } from 'next'
+import { Jost, Cormorant_Garamond } from 'next/font/google'
 import './globals.css'
 
-const cormorant = Cormorant_Garamond({ 
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-serif"
-});
+const jost = Jost({
+  variable: '--font-sans',
+  subsets: ['latin'],
+})
+const cormorant = Cormorant_Garamond({
+  variable: '--font-serif',
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
-  title: 'Lumière Beauty Salon',
-  description: 'Luxury beauty treatments in the heart of the city',
-  generator: 'v0.app',
+  title: 'Studio Clau Miranda — Good Hair Days Just Got Better',
+  description: 'Salón de belleza en San Vicente de Tagua Tagua. Reserva tu cita hoy.',
   icons: {
     icon: [
       {
@@ -38,8 +42,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
-      <body className={`${cormorant.variable} font-serif antialiased`}>
+    <html lang="es" className={`${jost.variable} ${cormorant.variable}`}>
+      <body className="font-sans antialiased bg-background">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

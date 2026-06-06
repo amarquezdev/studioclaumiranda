@@ -1,23 +1,21 @@
-import { Header } from "@/components/header"
-import { HeroSection } from "@/components/hero-section"
-import { ServicesSection } from "@/components/services-section"
-import { AboutSection } from "@/components/about-section"
-import { BookingSection } from "@/components/booking-section"
-import { ReviewsSection } from "@/components/reviews-section"
-import { Footer } from "@/components/footer"
+import { SiteHeader } from "@/components/site-header"
+import { Hero } from "@/components/hero"
+import { Testimonial } from "@/components/testimonial"
+import { Booking } from "@/components/booking"
+import { BrandSlider } from "@/components/brand-slider"
+import { Gallery } from "@/components/gallery"
+import { SiteFooter } from "@/components/site-footer"
 
-export default function Home() {
+export default function Page() {
   return (
-    <main className="min-h-screen bg-background">
-      <Header />
-      <HeroSection />
-      <ServicesSection />
-      <AboutSection />
-      <div id="booking">
-        <BookingSection />
-      </div>
-      <ReviewsSection />
-      <Footer />
+    <main className="bg-background">
+      <SiteHeader />
+      <Hero />
+      <Testimonial />
+      <Booking />
+      <BrandSlider />
+      <Gallery />
+      <SiteFooter />
     </main>
   )
 }
