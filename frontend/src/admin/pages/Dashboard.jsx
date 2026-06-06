@@ -3,13 +3,13 @@ import { adminGetServices, adminGetAppointments } from '../../api/client'
 
 function StatCard({ icon, label, value, sub, accent }) {
   return (
-    <div className="bg-dark-card border border-dark-border rounded-sm p-5">
+    <div className="bg-card border border-border rounded-sm p-5">
       <div className="flex items-start justify-between mb-3">
         <span className="text-2xl">{icon}</span>
-        <span className={`text-2xl font-bold ${accent ? 'text-gold' : 'text-white'}`}>{value}</span>
+        <span className={`text-2xl font-bold ${accent ? 'text-primary' : 'text-foreground'}`}>{value}</span>
       </div>
-      <p className="text-white font-medium text-sm">{label}</p>
-      {sub && <p className="text-gray-500 text-xs mt-0.5">{sub}</p>}
+      <p className="text-foreground font-medium text-sm">{label}</p>
+      {sub && <p className="text-muted-foreground text-xs mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -51,7 +51,6 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime))
     .slice(0, 8)
 
-  // Revenue calculation (pending + confirmed only)
   const countableStatuses = ['pending', 'confirmed']
 
   const revenueToday = todayAppts
@@ -72,8 +71,8 @@ export default function Dashboard() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           {now.toLocaleDateString('es-CL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
         </p>
       </div>
@@ -89,33 +88,33 @@ export default function Dashboard() {
 
       {/* Upcoming appointments */}
       <div>
-        <h2 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Próximas citas</h2>
+        <h2 className="text-foreground font-semibold mb-4 text-sm uppercase tracking-wider">Próximas citas</h2>
         {upcoming.length === 0
-          ? <p className="text-gray-500 text-sm">No hay citas próximas.</p>
+          ? <p className="text-muted-foreground text-sm">No hay citas próximas.</p>
           : (
-            <div className="bg-dark-card border border-dark-border rounded-sm overflow-x-auto">
+            <div className="bg-card border border-border rounded-sm overflow-x-auto">
               <table className="w-full text-sm min-w-[600px]">
                 <thead>
-                  <tr className="border-b border-dark-border">
+                  <tr className="border-b border-border">
                     {['Fecha y hora', 'Cliente', 'Contacto', 'Estilista', 'Servicio', 'Valor', 'Estado'].map(h => (
-                      <th key={h} className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
+                      <th key={h} className="text-left text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {upcoming.map(a => (
-                    <tr key={a.id} className="border-b border-dark-border/50 hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 text-gray-300 text-xs whitespace-nowrap">
+                    <tr key={a.id} className="border-b border-border/50 hover:bg-foreground/5 transition-colors">
+                      <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                         {fmtDt(a.start_datetime, { dateStyle:'short', timeStyle:'short' })}
                       </td>
-                      <td className="px-4 py-3 text-white font-medium">{a.user?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
+                      <td className="px-4 py-3 text-foreground font-medium">{a.user?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">
                         <p>{a.user?.email ?? '—'}</p>
                         {a.user?.phone && <p>{a.user.phone}</p>}
                       </td>
-                      <td className="px-4 py-3 text-gray-300">{a.barber?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-300">{a.service?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gold text-xs font-medium">
+                      <td className="px-4 py-3 text-muted-foreground">{a.barber?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.service?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-primary text-xs font-medium">
                         {a.service ? `$${a.service.price.toLocaleString()}` : '—'}
                       </td>
                       <td className="px-4 py-3">

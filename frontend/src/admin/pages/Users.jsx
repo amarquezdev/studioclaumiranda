@@ -33,12 +33,10 @@ export default function Users() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setSaving(true); setError('')
     try {
-      // Register user
       const res = await adminRegisterUser({
         name: form.name, email: form.email,
         phone: form.phone || null, password: form.password,
       })
-      // If role is admin, patch it
       if (form.role === 'admin') {
         await adminUpdateUser(res.data.id, { role: 'admin' })
       }
@@ -63,58 +61,58 @@ export default function Users() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Usuarios</h1>
-          <p className="text-gray-500 text-sm mt-1">{users.length} usuarios registrados</p>
+          <h1 className="text-2xl font-bold text-foreground">Usuarios</h1>
+          <p className="text-muted-foreground text-sm mt-1">{users.length} usuarios registrados</p>
         </div>
         <button onClick={openCreate} className="btn-gold">+ Nuevo usuario</button>
       </div>
 
-      <div className="bg-dark-card border border-dark-border rounded-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-dark-border">
+            <tr className="border-b border-border">
               {['Usuario', 'Email', 'Teléfono', 'Rol', 'Registro', 'Acciones'].map(h => (
-                <th key={h} className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
+                <th key={h} className="text-left text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {users.map(u => (
-              <tr key={u.id} className="border-b border-dark-border/50 hover:bg-white/5 transition-colors">
+              <tr key={u.id} className="border-b border-border/50 hover:bg-foreground/5 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center text-gold text-xs font-bold">
+                    <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-bold">
                       {u.name.charAt(0)}
                     </div>
-                    <span className="text-white">{u.name}</span>
-                    {u.id === me?.id && <span className="text-xs text-gold/60">(tú)</span>}
+                    <span className="text-foreground">{u.name}</span>
+                    {u.id === me?.id && <span className="text-xs text-primary/60">(tú)</span>}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-400 text-xs">{u.email}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{u.phone ?? '—'}</td>
+                <td className="px-4 py-3 text-muted-foreground text-xs">{u.email}</td>
+                <td className="px-4 py-3 text-muted-foreground text-xs">{u.phone ?? '—'}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => u.id !== me?.id && handleRoleToggle(u)} disabled={u.id === me?.id}
                     className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
                       u.role === 'admin'
-                        ? 'border-gold/40 text-gold bg-gold/10 hover:bg-gold/20'
-                        : 'border-dark-border text-gray-400 hover:border-gray-500'
+                        ? 'border-primary/40 text-primary bg-primary/10 hover:bg-primary/20'
+                        : 'border-border text-muted-foreground hover:border-foreground/30'
                     } disabled:cursor-not-allowed disabled:opacity-50`}>
                     {u.role === 'admin' ? 'Admin' : 'Cliente'}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">
+                <td className="px-4 py-3 text-muted-foreground text-xs">
                   {new Date(u.created_at).toLocaleDateString('es-CL')}
                 </td>
                 <td className="px-4 py-3">
                   <button disabled={u.id === me?.id} onClick={() => u.id !== me?.id && setConfirm(u.id)}
-                    className="text-gray-400 hover:text-red-400 transition-colors text-xs disabled:opacity-30 disabled:cursor-not-allowed">
+                    className="text-muted-foreground hover:text-red-400 transition-colors text-xs disabled:opacity-30 disabled:cursor-not-allowed">
                     Eliminar
                   </button>
                 </td>
               </tr>
             ))}
             {users.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500 text-sm">No hay usuarios registrados</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay usuarios registrados</td></tr>
             )}
           </tbody>
         </table>

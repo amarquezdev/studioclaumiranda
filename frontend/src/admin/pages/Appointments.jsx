@@ -56,7 +56,6 @@ function NewAppointmentModal({ onClose, onCreated }) {
     )
   }
 
-  // ── Client-side validation ───────────────────────────────────────────────
   const validate = () => {
     const errors = { name: '', email: '', barber_id: '', service_id: '', date: '', slot: '' }
     const labels = []
@@ -154,29 +153,29 @@ function NewAppointmentModal({ onClose, onCreated }) {
   }
 
   const inputCls = (field) =>
-    'w-full bg-dark border px-3 py-2 text-sm rounded-sm focus:outline-none transition-colors ' +
+    'w-full bg-input border px-3 py-2 text-sm rounded-sm focus:outline-none transition-colors text-foreground ' +
     (fieldErrors[field]
       ? 'border-red-500 focus:border-red-400'
-      : 'border-dark-border focus:border-gold')
-  const labelCls = "block text-gray-400 text-xs uppercase tracking-wider mb-1.5"
+      : 'border-border focus:border-primary')
+  const labelCls = "block text-muted-foreground text-xs uppercase tracking-wider mb-1.5"
 
   const today = toISO(new Date())
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-dark-card border border-dark-border rounded-sm w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
-          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#F2EFE9' }}>Nueva cita manual</h3>
-          <button onClick={onClose} className="text-xl leading-none hover:text-gold transition-colors" style={{ color: '#A09890' }}>×</button>
+      <div className="bg-card border border-border rounded-sm w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="font-light text-lg text-foreground">Nueva cita manual</h3>
+          <button onClick={onClose} className="text-xl leading-none text-muted-foreground hover:text-primary transition-colors">×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           {error && <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">{error}</div>}
 
-          <p className="text-gray-500 text-xs uppercase tracking-wider font-medium">Datos del cliente</p>
+          <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Datos del cliente</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Nombre <span className="text-gold">*</span></label>
+              <label className={labelCls}>Nombre <span className="text-primary">*</span></label>
               <input className={inputCls('name')} value={form.name} onChange={e => set('name', e.target.value)} placeholder="Juan Pérez" />
               {fieldErrors.name && <p className="text-red-400 text-xs mt-1">{fieldErrors.name}</p>}
             </div>
@@ -186,15 +185,15 @@ function NewAppointmentModal({ onClose, onCreated }) {
             </div>
           </div>
           <div>
-            <label className={labelCls}>Email <span className="text-gold">*</span></label>
+            <label className={labelCls}>Email <span className="text-primary">*</span></label>
             <input type="email" className={inputCls('email')} value={form.email} onChange={e => set('email', e.target.value)} placeholder="juan@email.com" />
             {fieldErrors.email && <p className="text-red-400 text-xs mt-1">{fieldErrors.email}</p>}
           </div>
 
-          <p className="text-gray-500 text-xs uppercase tracking-wider font-medium pt-2">Cita</p>
+          <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium pt-2">Cita</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Estilista <span className="text-gold">*</span></label>
+              <label className={labelCls}>Estilista <span className="text-primary">*</span></label>
               <select className={inputCls('barber_id')} value={form.barber_id} onChange={e => set('barber_id', e.target.value)}>
                 <option value="">Seleccionar...</option>
                 {barbers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -202,7 +201,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
               {fieldErrors.barber_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.barber_id}</p>}
             </div>
             <div>
-              <label className={labelCls}>Servicio <span className="text-gold">*</span></label>
+              <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
               <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
                 <option value="">Seleccionar...</option>
                 {services.map(s => <option key={s.id} value={s.id}>{s.name} — ${s.price.toLocaleString()}</option>)}
@@ -211,7 +210,6 @@ function NewAppointmentModal({ onClose, onCreated }) {
             </div>
           </div>
 
-          {/* Opciones del servicio */}
           {selectedService?.has_options && activeOptions.length > 0 && (
             <div>
               <label className={labelCls}>Opciones del servicio</label>
@@ -225,8 +223,8 @@ function NewAppointmentModal({ onClose, onCreated }) {
                       onClick={() => toggleOption(opt)}
                       className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
                         checked
-                          ? 'border-gold bg-gold/10 text-gold'
-                          : 'border-dark-border text-gray-400 hover:border-gray-500'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-muted-foreground hover:border-foreground/30'
                       }`}
                     >
                       {opt.name} — ${opt.price.toLocaleString()}
@@ -238,18 +236,17 @@ function NewAppointmentModal({ onClose, onCreated }) {
           )}
 
           <div>
-            <label className={labelCls}>Fecha <span className="text-gold">*</span></label>
+            <label className={labelCls}>Fecha <span className="text-primary">*</span></label>
             <input type="date" className={inputCls('date')} value={form.date} min={today}
               onChange={e => set('date', e.target.value)} />
             {fieldErrors.date && <p className="text-red-400 text-xs mt-1">{fieldErrors.date}</p>}
           </div>
 
-          {/* Time slots */}
           {form.date && form.barber_id && form.service_id && (
             <div>
-              <label className={labelCls}>Hora disponible <span className="text-gold">*</span></label>
-              {loadingSlots && <p className="text-gray-500 text-xs">Cargando horarios...</p>}
-              {!loadingSlots && slots.length === 0 && <p className="text-gray-500 text-xs">No hay horas disponibles para esta fecha.</p>}
+              <label className={labelCls}>Hora disponible <span className="text-primary">*</span></label>
+              {loadingSlots && <p className="text-muted-foreground text-xs">Cargando horarios...</p>}
+              {!loadingSlots && slots.length === 0 && <p className="text-muted-foreground text-xs">No hay horas disponibles para esta fecha.</p>}
               {!loadingSlots && slots.length > 0 && (
                 <div className={`grid grid-cols-4 gap-2 mt-1 rounded-sm transition-colors ${fieldErrors.slot ? 'border border-red-500 p-2' : ''}`}>
                   {slots.map((slot, i) => (
@@ -258,8 +255,9 @@ function NewAppointmentModal({ onClose, onCreated }) {
                       setFieldErrors(f => ({ ...f, slot: '' }))
                     }}
                       className={`py-1.5 text-xs border rounded-sm transition-all ${
-                        form.slot === slot ? 'bg-gold text-black border-gold font-bold'
-                          : 'border-dark-border text-gray-300 hover:border-gold hover:text-gold'}`}>
+                        form.slot === slot
+                          ? 'bg-primary text-primary-foreground border-primary font-bold'
+                          : 'border-border text-muted-foreground hover:border-primary hover:text-primary'}`}>
                       {formatTime(slot.start)}
                     </button>
                   ))}
@@ -277,8 +275,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
 
           <div className="flex gap-3 justify-end pt-1">
             <button type="button" onClick={onClose}
-              className="px-4 py-2 text-sm border border-dark-border rounded-sm transition-colors hover:border-gold"
-              style={{ color: '#A09890' }}>
+              className="px-4 py-2 text-sm border border-border rounded-sm transition-colors hover:border-primary text-muted-foreground">
               Cancelar
             </button>
             <button type="submit" disabled={saving}
@@ -316,51 +313,47 @@ function AppointmentDetailsModal({ appt, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-dark-card border border-dark-border rounded-sm w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
-          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#F2EFE9' }}>Detalle de la cita</h3>
-          <button onClick={onClose} className="text-xl leading-none hover:text-gold transition-colors" style={{ color: '#A09890' }}>×</button>
+      <div className="bg-card border border-border rounded-sm w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="font-light text-lg text-foreground">Detalle de la cita</h3>
+          <button onClick={onClose} className="text-xl leading-none text-muted-foreground hover:text-primary transition-colors">×</button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
-          {/* Cliente */}
           <div>
-            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Cliente</p>
-            <p className="text-white">{appt.user?.name ?? '—'}</p>
-            <p className="text-gray-400 text-xs">{appt.user?.email ?? ''}</p>
-            {appt.user?.phone && <p className="text-gray-500 text-xs">{appt.user.phone}</p>}
+            <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Cliente</p>
+            <p className="text-foreground">{appt.user?.name ?? '—'}</p>
+            <p className="text-muted-foreground text-xs">{appt.user?.email ?? ''}</p>
+            {appt.user?.phone && <p className="text-muted-foreground text-xs">{appt.user.phone}</p>}
           </div>
 
-          {/* Fecha y estilista */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Fecha y hora</p>
-              <p className="text-white text-sm">
+              <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Fecha y hora</p>
+              <p className="text-foreground text-sm">
                 {fmtDt(appt.start_datetime, { dateStyle: 'medium', timeStyle: 'short' })}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Estilista</p>
-              <p className="text-white text-sm">{appt.barber?.name ?? '—'}</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Estilista</p>
+              <p className="text-foreground text-sm">{appt.barber?.name ?? '—'}</p>
             </div>
           </div>
 
-          {/* Servicio */}
           <div>
-            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Servicio</p>
-            <p className="text-white text-sm">{appt.service?.name ?? '—'}</p>
+            <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Servicio</p>
+            <p className="text-foreground text-sm">{appt.service?.name ?? '—'}</p>
             {appt.service && (
-              <p className="text-gray-500 text-xs">{appt.service.duration_minutes} min · precio base ${appt.service.price.toLocaleString()}</p>
+              <p className="text-muted-foreground text-xs">{appt.service.duration_minutes} min · precio base ${appt.service.price.toLocaleString()}</p>
             )}
           </div>
 
-          {/* Opciones seleccionadas */}
           {options.length > 0 && (
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Opciones seleccionadas</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Opciones seleccionadas</p>
               <div className="flex flex-wrap gap-2">
                 {options.map((opt, i) => (
-                  <span key={i} className="text-xs px-3 py-1 bg-gold/10 border border-gold/40 text-gold rounded-sm">
+                  <span key={i} className="text-xs px-3 py-1 bg-primary/10 border border-primary/40 text-primary rounded-sm">
                     {opt}
                   </span>
                 ))}
@@ -368,24 +361,21 @@ function AppointmentDetailsModal({ appt, onClose }) {
             </div>
           )}
 
-          {/* Notas adicionales */}
           {extra && (
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Notas</p>
-              <p className="text-gray-300 text-sm leading-relaxed">{extra}</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Notas</p>
+              <p className="text-foreground text-sm leading-relaxed">{extra}</p>
             </div>
           )}
 
-          {/* Sin notas ni opciones */}
           {options.length === 0 && !extra && (
-            <p className="text-gray-600 text-sm italic">Sin notas adicionales</p>
+            <p className="text-muted-foreground text-sm italic">Sin notas adicionales</p>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-dark-border flex justify-end">
+        <div className="px-6 py-4 border-t border-border flex justify-end">
           <button onClick={onClose}
-            className="px-4 py-2 text-sm border border-dark-border rounded-sm transition-colors hover:border-gold"
-            style={{ color: '#A09890' }}>
+            className="px-4 py-2 text-sm border border-border rounded-sm transition-colors hover:border-primary text-muted-foreground">
             Cerrar
           </button>
         </div>
@@ -422,16 +412,15 @@ export default function Appointments() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Citas</h1>
-          <p className="text-gray-500 text-sm mt-1">{appointments.length} citas en total</p>
+          <h1 className="text-2xl font-bold text-foreground">Citas</h1>
+          <p className="text-muted-foreground text-sm mt-1">{appointments.length} citas en total</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Filters */}
           <div className="flex gap-2">
             {['all', ...STATUS_OPTIONS].map(s => (
               <button key={s} onClick={() => setFilter(s)}
                 className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
-                  filter === s ? 'border-gold text-gold bg-gold/5' : 'border-dark-border text-gray-400 hover:border-gray-500'
+                  filter === s ? 'border-primary text-primary bg-primary/5' : 'border-border text-muted-foreground hover:border-foreground/30'
                 }`}>
                 {s === 'all' ? 'Todas' : STATUS_LABELS[s]}
               </button>
@@ -441,58 +430,58 @@ export default function Appointments() {
         </div>
       </div>
 
-      <div className="bg-dark-card border border-dark-border rounded-sm overflow-x-auto">
+      <div className="bg-card border border-border rounded-sm overflow-x-auto">
         <table className="w-full text-sm min-w-[800px]">
           <thead>
-            <tr className="border-b border-dark-border">
+            <tr className="border-b border-border">
               {['Fecha y hora', 'Cliente', 'Contacto', 'N° Transacción', 'Servicio', 'Valor', 'Estado', 'Acciones'].map(h => (
-                <th key={h} className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
+                <th key={h} className="text-left text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.map(a => (
-              <tr key={a.id} className="border-b border-dark-border/50 hover:bg-white/5 transition-colors">
-                <td className="px-4 py-3 text-gray-300 text-xs whitespace-nowrap">
+              <tr key={a.id} className="border-b border-border/50 hover:bg-foreground/5 transition-colors">
+                <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                   {fmtDt(a.start_datetime, { dateStyle:'short', timeStyle:'short' })}
                 </td>
-                <td className="px-4 py-3 text-white font-medium">{a.user?.name ?? '—'}</td>
+                <td className="px-4 py-3 text-foreground font-medium">{a.user?.name ?? '—'}</td>
                 <td className="px-4 py-3 text-xs">
-                  <p className="text-gray-400">{a.user?.email ?? '—'}</p>
-                  {a.user?.phone && <p className="text-gray-600">{a.user.phone}</p>}
+                  <p className="text-muted-foreground">{a.user?.email ?? '—'}</p>
+                  {a.user?.phone && <p className="text-muted-foreground">{a.user.phone}</p>}
                 </td>
-                <td className="px-4 py-3 text-xs font-mono text-gray-300">
-                  {parseTransferId(a.notes) ?? <span className="text-gray-600 italic not-italic" style={{ fontFamily: 'inherit' }}>Sin comprobante</span>}
+                <td className="px-4 py-3 text-xs font-mono text-muted-foreground">
+                  {parseTransferId(a.notes) ?? <span className="italic" style={{ fontFamily: 'inherit' }}>Sin comprobante</span>}
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-gray-300">{a.service?.name ?? '—'}</p>
+                  <p className="text-muted-foreground">{a.service?.name ?? '—'}</p>
                   {parseNotes(a.notes).options.length > 0 && (
                     <button
                       onClick={() => setDetailAppt(a)}
-                      className="text-gold text-xs hover:underline mt-0.5"
+                      className="text-primary text-xs hover:underline mt-0.5"
                     >
                       Ver detalles
                     </button>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gold text-xs font-medium">
+                <td className="px-4 py-3 text-primary text-xs font-medium">
                   {a.service ? `$${a.service.price.toLocaleString()}` : '—'}
                 </td>
                 <td className="px-4 py-3">
                   <select value={a.status} onChange={e => handleStatus(a.id, e.target.value)}
                     className={`text-xs px-2 py-1 rounded-full border bg-transparent cursor-pointer focus:outline-none ${STATUS_COLORS[a.status]}`}>
                     {STATUS_OPTIONS.map(s => (
-                      <option key={s} value={s} className="bg-white">{STATUS_LABELS[s]}</option>
+                      <option key={s} value={s} className="bg-card text-foreground">{STATUS_LABELS[s]}</option>
                     ))}
                   </select>
                 </td>
                 <td className="px-4 py-3">
-                  <button onClick={() => setConfirm(a.id)} className="text-gray-400 hover:text-red-400 transition-colors text-xs">Eliminar</button>
+                  <button onClick={() => setConfirm(a.id)} className="text-muted-foreground hover:text-red-400 transition-colors text-xs">Eliminar</button>
                 </td>
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500 text-sm">No hay citas</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay citas</td></tr>
             )}
           </tbody>
         </table>
