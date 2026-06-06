@@ -168,7 +168,8 @@ export default function BookingSection() {
   const [selectedSlot,    setSelectedSlot]      = useState(null)
   const [booked,          setBooked]            = useState(false)
 
-  const [guestName,   setGuestName]   = useState('')
+  const [guestFirstName, setGuestFirstName] = useState('')
+  const [guestLastName,  setGuestLastName]  = useState('')
   const [guestEmail,  setGuestEmail]  = useState('')
   const [guestPhone,  setGuestPhone]  = useState('')
   const [guestNotes,  setGuestNotes]  = useState('')
@@ -232,7 +233,7 @@ export default function BookingSection() {
         notes = notes ? `${notes}\n${tLine}` : tLine
       }
       await guestCreateAppointment({
-        name: guestName, email: guestEmail,
+        name: `${guestFirstName.trim()} ${guestLastName.trim()}`, email: guestEmail,
         phone: guestPhone.trim() ? `+56 9 ${guestPhone.trim()}` : null,
         barber_id:  selectedBarber.id,
         service_id: selectedService.id,
@@ -247,11 +248,6 @@ export default function BookingSection() {
 
   const handleStep5 = (e) => {
     e.preventDefault()
-    const parts = guestName.trim().split(/\s+/).filter(Boolean)
-    if (parts.length < 2) {
-      setError('Por favor ingresa tu nombre y apellido completos.')
-      return
-    }
     setError('')
     if (selectedService?.deposit_amount > 0) setStep(6)
     else doConfirm()
@@ -261,7 +257,7 @@ export default function BookingSection() {
     setBooked(false); setStep(1)
     setSelectedService(null); setSelectedOptions([]); setSelectedBarber(null)
     setSelectedDate(null); setSelectedSlot(null)
-    setGuestName(''); setGuestEmail(''); setGuestPhone(''); setGuestNotes(''); setTransferId('')
+    setGuestFirstName(''); setGuestLastName(''); setGuestEmail(''); setGuestPhone(''); setGuestNotes(''); setTransferId('')
   }
 
   // ── Confirmación ──────────────────────────────────────────────────────────
@@ -276,7 +272,7 @@ export default function BookingSection() {
             ¡Cita confirmada!
           </h2>
           <p className="text-muted-foreground mb-1">
-            Hola <span className="text-foreground">{guestName}</span>, tu reserva está lista.
+            Hola <span className="text-foreground">{guestFirstName}</span>, tu reserva está lista.
           </p>
           <p className="text-muted-foreground mb-1">
             <span className="text-primary">{selectedService?.name}</span>
@@ -511,7 +507,10 @@ export default function BookingSection() {
             {selectedOptions.length === 0 && <div className="mb-8" />}
 
             <form onSubmit={handleStep5} className="space-y-4">
-              <Field label="Nombre completo" value={guestName} onChange={setGuestName} required placeholder="Juan Pérez" />
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Nombre" value={guestFirstName} onChange={setGuestFirstName} required placeholder="Juan" />
+                <Field label="Apellido" value={guestLastName} onChange={setGuestLastName} required placeholder="Pérez" />
+              </div>
               <Field label="Email" type="email" value={guestEmail} onChange={setGuestEmail} required placeholder="juan@email.com" />
               <div>
                 <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-2">
