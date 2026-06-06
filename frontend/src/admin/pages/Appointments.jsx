@@ -412,8 +412,8 @@ export default function Appointments() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Citas</h1>
-          <p className="text-muted-foreground text-sm mt-1">{appointments.length} citas en total</p>
+          <h1 className="text-3xl font-light tracking-wide text-foreground">Citas</h1>
+          <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">{appointments.length} citas en total</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-2">

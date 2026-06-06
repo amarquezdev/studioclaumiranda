@@ -23,10 +23,10 @@ export default function AdminLayout() {
         <div className="flex items-center gap-2 px-5 py-5 border-b border-border">
           <span className="text-primary text-xl">✂</span>
           <div>
-            <p className="text-xs font-semibold tracking-widest uppercase leading-none text-foreground" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif' }}>
+            <p className="text-sm font-light tracking-wide text-foreground italic">
               Studio Clau
             </p>
-            <p className="text-[10px] tracking-wider uppercase text-muted-foreground">Admin</p>
+            <p className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">Admin Panel</p>
           </div>
         </div>
 

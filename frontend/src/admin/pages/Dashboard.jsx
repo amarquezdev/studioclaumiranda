@@ -71,8 +71,8 @@ export default function Dashboard() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <h1 className="text-3xl font-light tracking-wide text-foreground">Dashboard</h1>
+        <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">
           {now.toLocaleDateString('es-CL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
         </p>
       </div>
@@ -88,7 +88,7 @@ export default function Dashboard() {
 
       {/* Upcoming appointments */}
       <div>
-        <h2 className="text-foreground font-semibold mb-4 text-sm uppercase tracking-wider">Próximas citas</h2>
+        <h2 className="text-foreground font-light tracking-widest text-xs uppercase mb-4">Próximas citas</h2>
         {upcoming.length === 0
           ? <p className="text-muted-foreground text-sm">No hay citas próximas.</p>
           : (

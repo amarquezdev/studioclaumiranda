@@ -10,34 +10,34 @@ export default {
           light:   '#DFC99E',
           dark:    '#BFA070',
         },
-        // ── Dark editorial surfaces (matches public site) ──────────────────
+        // ── Dark editorial surfaces ──────────────────────────────────────
         dark: {
-          DEFAULT: '#1C1813',   // near-black — main bg
-          card:    '#221E1A',   // dark card surfaces
-          border:  '#3C3830',   // dark borders
+          DEFAULT: '#1C1813',
+          card:    '#221E1A',
+          border:  '#3C3830',
         },
-        // ── v0 semantic tokens (CSS-variable backed) ───────────────────────
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        // ── Semantic tokens — hex values so opacity modifiers work in Tailwind v3
+        background:  '#1C1813',
+        foreground:  '#F2EFE9',
         primary: {
-          DEFAULT:    'var(--primary)',
-          foreground: 'var(--primary-foreground)',
+          DEFAULT:    '#D4B98A',
+          foreground: '#1C1813',
         },
         secondary: {
-          DEFAULT:    'var(--secondary)',
-          foreground: 'var(--secondary-foreground)',
+          DEFAULT:    '#2E2A25',
+          foreground: '#F2EFE9',
         },
         muted: {
-          DEFAULT:    'var(--muted)',
-          foreground: 'var(--muted-foreground)',
+          DEFAULT:    '#2E2A25',
+          foreground: '#A09890',
         },
         card: {
-          DEFAULT:    'var(--card)',
-          foreground: 'var(--card-foreground)',
+          DEFAULT:    '#221E1A',
+          foreground: '#F2EFE9',
         },
-        border:      'var(--border)',
-        input:       'var(--input)',
-        ring:        'var(--ring)',
+        border:  '#3C3830',
+        input:   '#2E2A25',
+        ring:    '#D4B98A',
       },
       fontFamily: {
         serif: ['Cormorant Garamond', 'Georgia', 'serif'],

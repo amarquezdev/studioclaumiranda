@@ -91,8 +91,8 @@ export default function BusinessHours() {
       {/* ── Horarios semanales ────────────────────────────────────── */}
       <div>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Horarios de atención</h1>
-          <p className="text-muted-foreground text-sm mt-1">Configura los días y horas de apertura del negocio</p>
+          <h1 className="text-3xl font-light tracking-wide text-foreground">Horarios de atención</h1>
+          <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">Configura los días y horas de apertura</p>
         </div>
 
         <div className="bg-card border border-border rounded-sm overflow-hidden max-w-2xl">
@@ -141,8 +141,8 @@ export default function BusinessHours() {
       {/* ── Fechas bloqueadas ─────────────────────────────────────── */}
       <div className="max-w-2xl">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-foreground">Fechas bloqueadas</h2>
-          <p className="text-muted-foreground text-sm mt-1">Bloquea rangos de días — aparecerán en rojo en el calendario y no se podrán reservar.</p>
+          <h2 className="text-2xl font-light tracking-wide text-foreground">Fechas bloqueadas</h2>
+          <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">Bloquea rangos de días en el calendario</p>
         </div>
 
         <form onSubmit={handleAddBlock} className="bg-card border border-border rounded-sm p-5 mb-4">

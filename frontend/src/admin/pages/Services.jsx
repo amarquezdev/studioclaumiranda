@@ -290,8 +290,8 @@ export default function Services() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Servicios</h1>
-          <p className="text-muted-foreground text-sm mt-1">{services.length} servicios registrados</p>
+          <h1 className="text-3xl font-light tracking-wide text-foreground">Servicios</h1>
+          <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">{services.length} servicios registrados</p>
         </div>
         <button onClick={openCreate} className="btn-gold">+ Nuevo servicio</button>
       </div>
