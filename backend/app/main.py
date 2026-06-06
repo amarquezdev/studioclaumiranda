@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import appointments, auth, availability, barbers, business_hours, reminders, reviews, services, users
+from app.routers import appointments, auth, availability, barbers, blocked_dates, business_hours, reminders, reviews, services, users
 
 
 @asynccontextmanager
@@ -42,6 +42,7 @@ app.include_router(appointments.router,   prefix="/appointments",   tags=["Citas
 app.include_router(availability.router,   prefix="/availability",   tags=["Disponibilidad"])
 app.include_router(reviews.router,        prefix="/reviews",        tags=["Reseñas"])
 app.include_router(reminders.router,      prefix="/reminders",      tags=["Recordatorios"])
+app.include_router(blocked_dates.router,  prefix="/blocked-dates",  tags=["Bloqueos"])
 
 
 @app.get("/health", tags=["Health"])

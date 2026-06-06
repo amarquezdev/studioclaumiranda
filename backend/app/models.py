@@ -1,8 +1,9 @@
 import enum
-from datetime import datetime, time
+from datetime import date as date_type, datetime, time
 
 from sqlalchemy import (
     Boolean,
+    Date,
     DateTime,
     Enum,
     Float,
@@ -100,6 +101,16 @@ class BusinessHours(Base):
     open_time: Mapped[time] = mapped_column(Time, nullable=False)
     close_time: Mapped[time] = mapped_column(Time, nullable=False)
     is_open: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class BlockedDate(Base):
+    __tablename__ = "blocked_dates"
+
+    id:        Mapped[int]            = mapped_column(Integer, primary_key=True)
+    date_from: Mapped[date_type]      = mapped_column(Date, nullable=False, index=True)
+    date_to:   Mapped[date_type]      = mapped_column(Date, nullable=False)
+    reason:    Mapped[str | None]     = mapped_column(String(200), nullable=True)
+    is_active: Mapped[bool]           = mapped_column(Boolean, default=True, nullable=False)
 
 
 class ReminderLog(Base):

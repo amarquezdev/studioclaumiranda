@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import date, datetime, time
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -163,6 +163,31 @@ class BusinessHoursRead(OrmBase):
     open_time: time
     close_time: time
     is_open: bool
+
+
+# ---------------------------------------------------------------------------
+# BlockedDate
+
+class BlockedDateCreate(BaseModel):
+    date_from: date
+    date_to:   date
+    reason:    str | None = Field(None, max_length=200)
+
+    @field_validator("date_to", mode="after")
+    @classmethod
+    def to_after_from(cls, v, info):
+        d_from = info.data.get("date_from")
+        if d_from and v < d_from:
+            raise ValueError("date_to debe ser igual o posterior a date_from")
+        return v
+
+
+class BlockedDateRead(OrmBase):
+    id:        int
+    date_from: date
+    date_to:   date
+    reason:    str | None
+    is_active: bool
 
 
 # ---------------------------------------------------------------------------

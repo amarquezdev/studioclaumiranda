@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.database import get_db
-from app.models import Appointment, AppointmentStatus, Barber, BusinessHours, Service
+from app.models import Appointment, AppointmentStatus, Barber, BlockedDate, BusinessHours, Service
 from app.schemas import AvailabilityResponse, TimeSlot
 
 router = APIRouter()
@@ -25,6 +25,23 @@ async def get_availability(
     service = await db.get(Service, service_id)
     if not service or not service.is_active:
         raise HTTPException(status_code=404, detail="Servicio no encontrado o inactivo")
+
+    # Verificar si la fecha está bloqueada
+    blocked_result = await db.execute(
+        select(BlockedDate).where(
+            BlockedDate.is_active == True,
+            BlockedDate.date_from <= date,
+            BlockedDate.date_to   >= date,
+        )
+    )
+    if blocked_result.scalar_one_or_none():
+        return AvailabilityResponse(
+            date=str(date),
+            barber_id=barber_id,
+            service_id=service_id,
+            duration_minutes=service.duration_minutes,
+            slots=[],
+        )
 
     # Horario del día de la semana (0=Lun … 6=Dom)
     day_of_week = date.weekday()

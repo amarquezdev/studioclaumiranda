@@ -50,6 +50,11 @@ export const adminDeleteBarber  = (id) => client.delete(`/barbers/${id}`)
 export const adminGetHours    = () => client.get('/business-hours/')
 export const adminUpsertHours = (day, data) => client.put(`/business-hours/${day}`, data)
 
+// ── Blocked dates (public + admin) ───────────────────────────────────────────
+export const getBlockedDates        = () => client.get('/blocked-dates/')
+export const adminCreateBlockedDate = (data) => client.post('/blocked-dates/', data)
+export const adminDeleteBlockedDate = (id)   => client.delete(`/blocked-dates/${id}`)
+
 // ── Guest booking (no auth required) ────────────────────────────────────────
 export const guestCreateAppointment = (data) => client.post('/appointments/guest', data)
 

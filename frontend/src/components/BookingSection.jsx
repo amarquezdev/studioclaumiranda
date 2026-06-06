@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
-import { getServices, getBarbers, getBusinessHours, getAvailability, guestCreateAppointment } from '../api/client'
+import { getServices, getBarbers, getBusinessHours, getAvailability, guestCreateAppointment, getBlockedDates } from '../api/client'
 import { cn } from '../lib/utils'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ function Steps({ current, hasOptions, hasDeposit }) {
 
 // ── Calendar ───────────────────────────────────────────────────────────────
 
-function Calendar({ businessHours, selected, onSelect }) {
+function Calendar({ businessHours, blockedDates, selected, onSelect }) {
   const [month, setMonth] = useState(new Date())
   const today = new Date(); today.setHours(0,0,0,0)
 
@@ -78,12 +78,17 @@ function Calendar({ businessHours, selected, onSelect }) {
   const lastDay  = new Date(year, monthIdx+1, 0).getDate()
 
   const openDows = new Set(businessHours.filter(h => h.is_open).map(h => h.day_of_week))
+
+  const isBlocked = (iso) =>
+    blockedDates.some(b => iso >= b.date_from && iso <= b.date_to)
+
   const cells = []
   for (let i = 0; i < firstDow; i++) cells.push(null)
   for (let d = 1; d <= lastDay; d++) {
     const date = new Date(year, monthIdx, d)
     const dow  = (date.getDay() + 6) % 7
-    cells.push({ date, open: openDows.has(dow), past: date < today })
+    const iso  = toISO(date)
+    cells.push({ date, open: openDows.has(dow), past: date < today, blocked: isBlocked(iso) })
   }
 
   return (
@@ -111,13 +116,17 @@ function Calendar({ businessHours, selected, onSelect }) {
           if (!cell) return <div key={i} />
           const iso        = toISO(cell.date)
           const isSelected = selected === iso
-          const disabled   = cell.past || !cell.open
+          const disabled   = cell.past || !cell.open || cell.blocked
           return (
             <button key={i} disabled={disabled} onClick={() => onSelect(iso)}
               className={cn(
                 'aspect-square text-sm flex items-center justify-center transition-all duration-150',
-                isSelected ? 'bg-primary text-primary-foreground font-medium'
-                  : disabled ? 'text-muted cursor-not-allowed'
+                isSelected
+                  ? 'bg-primary text-primary-foreground font-medium'
+                  : cell.blocked && !cell.past
+                  ? 'bg-red-500/8 border border-red-400/30 text-red-400 cursor-not-allowed'
+                  : disabled
+                  ? 'text-muted cursor-not-allowed'
                   : 'text-foreground hover:bg-card hover:text-primary cursor-pointer border border-border hover:border-primary'
               )}>
               {cell.date.getDate()}
@@ -125,9 +134,15 @@ function Calendar({ businessHours, selected, onSelect }) {
           )
         })}
       </div>
-      <p className="text-muted-foreground text-xs text-center mt-4 tracking-wider">
-        Solo días con atención disponible
-      </p>
+      <div className="flex items-center justify-center gap-5 mt-4">
+        <p className="text-muted-foreground text-xs tracking-wider">
+          Sin atención = gris
+        </p>
+        <p className="text-red-400 text-xs tracking-wider flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+          Bloqueado = rojo
+        </p>
+      </div>
     </div>
   )
 }
@@ -157,9 +172,10 @@ export default function BookingSection() {
   const [services, setServices]           = useState([])
   const [barbers,  setBarbers]            = useState([])
   const [businessHours, setBusinessHours] = useState([])
-  const [slots,    setSlots]              = useState([])
-  const [loading,  setLoading]            = useState(false)
-  const [error,    setError]              = useState('')
+  const [slots,        setSlots]        = useState([])
+  const [blockedDates, setBlockedDates] = useState([])
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState('')
 
   const [selectedService, setSelectedService]   = useState(null)
   const [selectedOptions, setSelectedOptions]   = useState([])   // list of ServiceOption objects
@@ -199,11 +215,12 @@ export default function BookingSection() {
   const optionsPrice = selectedOptions.reduce((sum, o) => sum + o.price, 0)
 
   useEffect(() => {
-    Promise.all([getServices(), getBarbers(), getBusinessHours()])
-      .then(([s, b, h]) => {
+    Promise.all([getServices(), getBarbers(), getBusinessHours(), getBlockedDates()])
+      .then(([s, b, h, bd]) => {
         setServices(s.data)
         setBarbers(b.data)
         setBusinessHours(h.data)
+        setBlockedDates(bd.data)
         // Auto-seleccionar la única estilista activa
         const active = b.data.find(x => x.is_active) ?? b.data[0]
         if (active) setSelectedBarber(active)
@@ -438,7 +455,7 @@ export default function BookingSection() {
             <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-8">
               Elige una fecha
             </p>
-            <Calendar businessHours={businessHours} selected={selectedDate}
+            <Calendar businessHours={businessHours} blockedDates={blockedDates} selected={selectedDate}
               onSelect={date => { setSelectedDate(date); setStep(4) }} />
             <button onClick={() => setStep(selectedService?.has_options ? 1.5 : 1)}
               className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
