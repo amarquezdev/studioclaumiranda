@@ -6,18 +6,23 @@ import { Star, ArrowLeft, ArrowRight } from "lucide-react"
 const reviews = [
   {
     quote:
-      "Desde la primera visita, Studio Clau Miranda transform\u00f3 no solo mi cabello, sino la forma en que me siento. La atenci\u00f3n al detalle, el ambiente calmado y la artistr\u00eda detr\u00e1s de cada corte es como ninguna otra que haya experimentado.",
-    name: "RACHEL",
+      "Es la segunda vez que vamos con mi hija y 100% recomendada. Una mujer muy amable y admirable; sobre todo una excelente profesional, seca en lo que hace.",
+    name: "IRIS FLORES",
   },
   {
     quote:
-      "Nunca me hab\u00eda sentido tan bien atendida. El equipo escucha, aconseja y cumple cada vez. Mi color nunca se ha visto tan natural y luminoso. No le confiar\u00e9 mi cabello a nadie m\u00e1s.",
-    name: "SOFIA",
+      "Quedé más que feliz con mi corte. Con la atención que entrega es amable y es seca como peluquera. 100% la recomiendo. Nunca salí feliz de una peluquería hasta hoy.",
+    name: "SOLANGE CONCHA",
   },
   {
     quote:
-      "Un santuario absoluto. Desde el momento en que entras sientes la calma. El peinado es impecable y dura semanas. Studio Clau Miranda ha cambiado completamente mi relación con mi cabello.",
-    name: "MARTA",
+      "Excelente atención. Hace tiempo que me atiendo con la señora Claudia y es muy linda persona y su trabajo lo hace excelente.",
+    name: "MARÍA ISABEL FUENTES",
+  },
+  {
+    quote:
+      "Excelente. Buena conversación, productos de calidad, una atención 10/10.",
+    name: "CATALINA ASTORGA",
   },
 ]
 
