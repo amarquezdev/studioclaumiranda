@@ -181,7 +181,7 @@ export default function BookingSection() {
       ? Math.round(selectedService.deposit_amount).toLocaleString('es-CL')
       : '0'
     navigator.clipboard.writeText(
-      `Titular: Claudia Miranda Castro\nRUT: 15.390.856-7\nBanco: Banco Estado\nTipo: Cuenta Vista / Cuenta RUT\nN° cuenta: 15390856\nEmail: studioclaumiranda@gmail.com\nMonto: $${amount}`
+      `Claudia Miranda Castro\n 15.390.856-7\nBanco Estado\nCuenta Vista / Cuenta RUT\n15390856\nstudioclaumiranda@gmail.com\n`
     )
     setCopiedAll(true)
     setTimeout(() => setCopiedAll(false), 2000)
@@ -578,8 +578,7 @@ RUT: 15.390.856-7
 Banco: Banco Estado
 Tipo: Cuenta Vista / Cuenta RUT
 N° cuenta: 15390856
-Email: studioclaumiranda@gmail.com
-Monto: $${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}`}
+Email: studioclaumiranda@gmail.com`}
               </pre>
             </div>
 
