@@ -14,6 +14,14 @@ function StatCard({ icon, label, value, sub, accent }) {
   )
 }
 
+// Strip timezone suffix before parsing so the browser treats the stored value
+// as local time, avoiding the UTC→Chile conversion that shifts hours by -4.
+function fmtDt(iso, opts) {
+  if (!iso) return '—'
+  const local = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
+  return new Date(local).toLocaleString('es-CL', opts)
+}
+
 const STATUS_COLORS = {
   pending:   'bg-yellow-500/20 text-yellow-400',
   confirmed: 'bg-green-500/20 text-green-400',
@@ -98,7 +106,7 @@ export default function Dashboard() {
                   {upcoming.map(a => (
                     <tr key={a.id} className="border-b border-dark-border/50 hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3 text-gray-300 text-xs whitespace-nowrap">
-                        {new Date(a.start_datetime).toLocaleString('es-CL', { dateStyle:'short', timeStyle:'short' })}
+                        {fmtDt(a.start_datetime, { dateStyle:'short', timeStyle:'short' })}
                       </td>
                       <td className="px-4 py-3 text-white font-medium">{a.user?.name ?? '—'}</td>
                       <td className="px-4 py-3 text-gray-500 text-xs">

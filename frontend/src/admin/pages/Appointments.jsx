@@ -20,6 +20,13 @@ function toISO(date) {
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hour12:false })
 }
+// Strip timezone suffix before parsing so the browser treats the stored value
+// as local time, avoiding the UTC→Chile conversion that shifts hours by -4.
+function fmtDt(iso, opts) {
+  if (!iso) return '—'
+  const local = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
+  return new Date(local).toLocaleString('es-CL', opts)
+}
 
 // ── New appointment modal ────────────────────────────────────────────────────
 
@@ -329,7 +336,7 @@ function AppointmentDetailsModal({ appt, onClose }) {
             <div>
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Fecha y hora</p>
               <p className="text-white text-sm">
-                {new Date(appt.start_datetime).toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' })}
+                {fmtDt(appt.start_datetime, { dateStyle: 'medium', timeStyle: 'short' })}
               </p>
             </div>
             <div>
@@ -447,7 +454,7 @@ export default function Appointments() {
             {filtered.map(a => (
               <tr key={a.id} className="border-b border-dark-border/50 hover:bg-white/5 transition-colors">
                 <td className="px-4 py-3 text-gray-300 text-xs whitespace-nowrap">
-                  {new Date(a.start_datetime).toLocaleString('es-CL', { dateStyle:'short', timeStyle:'short' })}
+                  {fmtDt(a.start_datetime, { dateStyle:'short', timeStyle:'short' })}
                 </td>
                 <td className="px-4 py-3 text-white font-medium">{a.user?.name ?? '—'}</td>
                 <td className="px-4 py-3 text-xs">
