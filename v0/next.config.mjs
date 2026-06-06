@@ -20,6 +20,10 @@ const nextConfig = {
         source: '/assets/:path*',
         destination: 'https://studio-clau-admin.vercel.app/assets/:path*',
       },
+      {
+        source: '/api/:path*',
+        destination: 'https://studioclaumiranda.onrender.com/:path*',
+      },
     ]
   },
 }
