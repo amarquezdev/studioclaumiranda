@@ -233,7 +233,7 @@ export default function BookingSection() {
       }
       await guestCreateAppointment({
         name: guestName, email: guestEmail,
-        phone: guestPhone || null,
+        phone: guestPhone.trim() ? `+56 9 ${guestPhone.trim()}` : null,
         barber_id:  selectedBarber.id,
         service_id: selectedService.id,
         start_datetime: selectedSlot.start,
@@ -247,6 +247,12 @@ export default function BookingSection() {
 
   const handleStep5 = (e) => {
     e.preventDefault()
+    const parts = guestName.trim().split(/\s+/).filter(Boolean)
+    if (parts.length < 2) {
+      setError('Por favor ingresa tu nombre y apellido completos.')
+      return
+    }
+    setError('')
     if (selectedService?.deposit_amount > 0) setStep(6)
     else doConfirm()
   }
@@ -507,7 +513,27 @@ export default function BookingSection() {
             <form onSubmit={handleStep5} className="space-y-4">
               <Field label="Nombre completo" value={guestName} onChange={setGuestName} required placeholder="Juan Pérez" />
               <Field label="Email" type="email" value={guestEmail} onChange={setGuestEmail} required placeholder="juan@email.com" />
-              <Field label="Teléfono" type="tel" value={guestPhone} onChange={setGuestPhone} placeholder="+56 9 1234 5678" />
+              <div>
+                <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-2">
+                  Teléfono
+                </label>
+                <div className="flex">
+                  <span className="bg-secondary border border-border border-r-0 px-4 py-3 text-sm
+                                   text-muted-foreground select-none whitespace-nowrap">
+                    +56 9
+                  </span>
+                  <input
+                    type="tel"
+                    value={guestPhone}
+                    onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="12345678"
+                    maxLength={8}
+                    className="flex-1 bg-input border border-border text-foreground px-4 py-3 text-sm
+                               focus:outline-none focus:border-primary transition-colors
+                               placeholder:text-muted-foreground"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-2">
                   Notas (opcional)
