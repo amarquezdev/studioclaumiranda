@@ -296,6 +296,12 @@ function parseNotes(notes) {
   return { options, extra }
 }
 
+function parseTransferId(notes) {
+  if (!notes) return null
+  const match = notes.match(/Comprobante transferencia:\s*(.+?)(\n|$)/)
+  return match ? match[1].trim() : null
+}
+
 // ── Appointment details modal ────────────────────────────────────────────────
 
 function AppointmentDetailsModal({ appt, onClose }) {
@@ -432,7 +438,7 @@ export default function Appointments() {
         <table className="w-full text-sm min-w-[800px]">
           <thead>
             <tr className="border-b border-dark-border">
-              {['Fecha y hora', 'Cliente', 'Contacto', 'Estilista', 'Servicio', 'Valor', 'Estado', 'Acciones'].map(h => (
+              {['Fecha y hora', 'Cliente', 'Contacto', 'N° Transacción', 'Servicio', 'Valor', 'Estado', 'Acciones'].map(h => (
                 <th key={h} className="text-left text-gray-500 text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
               ))}
             </tr>
@@ -448,7 +454,9 @@ export default function Appointments() {
                   <p className="text-gray-400">{a.user?.email ?? '—'}</p>
                   {a.user?.phone && <p className="text-gray-600">{a.user.phone}</p>}
                 </td>
-                <td className="px-4 py-3 text-gray-300">{a.barber?.name ?? '—'}</td>
+                <td className="px-4 py-3 text-xs font-mono text-gray-300">
+                  {parseTransferId(a.notes) ?? <span className="text-gray-600 italic not-italic" style={{ fontFamily: 'inherit' }}>Sin comprobante</span>}
+                </td>
                 <td className="px-4 py-3">
                   <p className="text-gray-300">{a.service?.name ?? '—'}</p>
                   {parseNotes(a.notes).options.length > 0 && (
