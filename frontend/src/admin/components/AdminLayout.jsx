@@ -16,17 +16,17 @@ export default function AdminLayout() {
   const handleLogout = () => { logout(); navigate('/admin') }
 
   return (
-    <div className="sage-admin min-h-screen bg-dark flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-dark flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       {/* Sidebar */}
       <aside className="w-56 bg-dark-card border-r border-dark-border flex flex-col fixed top-0 left-0 h-full z-40">
         {/* Brand */}
         <div className="flex items-center gap-2 px-5 py-5 border-b border-dark-border">
           <span className="text-gold text-xl">✂</span>
           <div>
-            <p className="text-xs font-semibold tracking-widest uppercase leading-none" style={{ color: '#2A2420', fontFamily: 'Cormorant Garamond, Georgia, serif' }}>
+            <p className="text-xs font-semibold tracking-widest uppercase leading-none" style={{ color: '#F2EFE9', fontFamily: 'Cormorant Garamond, Georgia, serif' }}>
               Studio Clau
             </p>
-            <p className="text-[10px] tracking-wider uppercase" style={{ color: '#8A8480' }}>Admin</p>
+            <p className="text-[10px] tracking-wider uppercase" style={{ color: '#A09890' }}>Admin</p>
           </div>
         </div>
 
@@ -39,12 +39,12 @@ export default function AdminLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-5 py-3 text-sm transition-all duration-150 ${
                   isActive
-                    ? 'text-gold bg-gold/5 border-r-2 border-gold'
-                    : 'hover:bg-gold/5'
+                    ? 'text-gold bg-gold/10 border-r-2 border-gold'
+                    : 'hover:bg-gold/10'
                 }`
               }
               style={({ isActive }) => ({
-                color: isActive ? '#6E8060' : '#6A6460',
+                color: isActive ? '#D4B98A' : '#A09890',
               })}
             >
               <span className="text-base w-5 text-center">{item.icon}</span>
@@ -55,11 +55,11 @@ export default function AdminLayout() {
 
         {/* User + logout */}
         <div className="border-t border-dark-border px-5 py-4">
-          <p className="text-xs truncate mb-2" style={{ color: '#8A8480' }}>{user?.email}</p>
+          <p className="text-xs truncate mb-2" style={{ color: '#A09890' }}>{user?.email}</p>
           <button
             onClick={handleLogout}
-            className="text-xs transition-colors w-full text-left hover:text-red-600"
-            style={{ color: '#9A918C' }}
+            className="text-xs transition-colors w-full text-left hover:text-red-400"
+            style={{ color: '#A09890' }}
           >
             Cerrar sesión →
           </button>

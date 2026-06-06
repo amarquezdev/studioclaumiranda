@@ -166,12 +166,12 @@ function NewAppointmentModal({ onClose, onCreated }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
       <div className="bg-dark-card border border-dark-border rounded-sm w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
-          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#2A2420' }}>Nueva cita manual</h3>
-          <button onClick={onClose} className="text-xl leading-none hover:text-gold transition-colors" style={{ color: '#8A8480' }}>×</button>
+          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#F2EFE9' }}>Nueva cita manual</h3>
+          <button onClick={onClose} className="text-xl leading-none hover:text-gold transition-colors" style={{ color: '#A09890' }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-sm">{error}</div>}
+          {error && <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">{error}</div>}
 
           <p className="text-gray-500 text-xs uppercase tracking-wider font-medium">Datos del cliente</p>
           <div className="grid grid-cols-2 gap-3">
@@ -278,7 +278,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
           <div className="flex gap-3 justify-end pt-1">
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-sm border border-dark-border rounded-sm transition-colors hover:border-gold"
-              style={{ color: '#6A6460' }}>
+              style={{ color: '#A09890' }}>
               Cancelar
             </button>
             <button type="submit" disabled={saving}
@@ -318,8 +318,8 @@ function AppointmentDetailsModal({ appt, onClose }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
       <div className="bg-dark-card border border-dark-border rounded-sm w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
-          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#2A2420' }}>Detalle de la cita</h3>
-          <button onClick={onClose} className="text-xl leading-none hover:text-gold transition-colors" style={{ color: '#8A8480' }}>×</button>
+          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#F2EFE9' }}>Detalle de la cita</h3>
+          <button onClick={onClose} className="text-xl leading-none hover:text-gold transition-colors" style={{ color: '#A09890' }}>×</button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
@@ -385,7 +385,7 @@ function AppointmentDetailsModal({ appt, onClose }) {
         <div className="px-6 py-4 border-t border-dark-border flex justify-end">
           <button onClick={onClose}
             className="px-4 py-2 text-sm border border-dark-border rounded-sm transition-colors hover:border-gold"
-            style={{ color: '#6A6460' }}>
+            style={{ color: '#A09890' }}>
             Cerrar
           </button>
         </div>

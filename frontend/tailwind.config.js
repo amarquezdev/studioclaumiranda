@@ -4,17 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── Sage green (replaces gold for admin CTAs) ──────────────────────
+        // ── Warm gold (matches public site primary oklch(0.78 0.07 75)) ────
         gold: {
-          DEFAULT: '#6E8060',
-          light:   '#7D9070',
-          dark:    '#5B6B4F',
+          DEFAULT: '#D4B98A',
+          light:   '#DFC99E',
+          dark:    '#BFA070',
         },
-        // ── Admin surfaces (remapped to Sage cream palette) ────────────────
+        // ── Dark editorial surfaces (matches public site) ──────────────────
         dark: {
-          DEFAULT: '#F7F2EC',   // warm cream — main bg
-          card:    '#FFFFFF',   // white — card surfaces
-          border:  '#E0D9D2',   // light cream — borders
+          DEFAULT: '#1C1813',   // near-black — main bg
+          card:    '#221E1A',   // dark card surfaces
+          border:  '#3C3830',   // dark borders
         },
         // ── v0 semantic tokens (CSS-variable backed) ───────────────────────
         background: 'var(--background)',

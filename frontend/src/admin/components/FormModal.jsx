@@ -7,20 +7,20 @@ export default function FormModal({ title, fields, data, onChange, onSubmit, onC
       <div className="bg-dark-card border border-dark-border rounded-sm w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-dark-border">
-          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#2A2420' }}>{title}</h3>
-          <button onClick={onClose} className="transition-colors text-lg leading-none hover:text-gold" style={{ color: '#8A8480' }}>×</button>
+          <h3 className="font-light text-lg" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: '#F2EFE9' }}>{title}</h3>
+          <button onClick={onClose} className="transition-colors text-lg leading-none hover:text-gold" style={{ color: '#A09890' }}>×</button>
         </div>
 
         <form onSubmit={onSubmit} className="px-6 py-5 space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-sm">
+            <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">
               {error}
             </div>
           )}
 
           {fields.map(field => (
             <div key={field.name}>
-              <label className={labelCls} style={{ color: '#8A8480' }}>
+              <label className={labelCls} style={{ color: '#A09890' }}>
                 {field.label}{field.required && <span className="text-gold ml-1">*</span>}
               </label>
 
@@ -32,7 +32,7 @@ export default function FormModal({ title, fields, data, onChange, onSubmit, onC
                   required={field.required}
                   rows={3}
                   className={`${inputCls} resize-none`}
-                  style={{ color: '#2A2420' }}
+                  style={{ color: '#F2EFE9' }}
                   placeholder={field.placeholder}
                 />
               ) : field.type === 'select' ? (
@@ -42,7 +42,7 @@ export default function FormModal({ title, fields, data, onChange, onSubmit, onC
                   onChange={e => onChange(field.name, e.target.value)}
                   required={field.required}
                   className={inputCls}
-                  style={{ color: '#2A2420' }}>
+                  style={{ color: '#F2EFE9' }}>
                   {field.options.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
@@ -55,7 +55,7 @@ export default function FormModal({ title, fields, data, onChange, onSubmit, onC
                     onChange={e => onChange(field.name, e.target.checked)}
                     className="accent-gold w-4 h-4"
                   />
-                  <span className="text-sm" style={{ color: '#4A4440' }}>{field.checkLabel}</span>
+                  <span className="text-sm" style={{ color: '#C0B8B0' }}>{field.checkLabel}</span>
                 </label>
               ) : (
                 <input
@@ -68,7 +68,7 @@ export default function FormModal({ title, fields, data, onChange, onSubmit, onC
                   max={field.max}
                   step={field.step}
                   className={inputCls}
-                  style={{ color: '#2A2420' }}
+                  style={{ color: '#F2EFE9' }}
                   placeholder={field.placeholder}
                 />
               )}
@@ -78,7 +78,7 @@ export default function FormModal({ title, fields, data, onChange, onSubmit, onC
           <div className="flex gap-3 justify-end pt-2">
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-sm border border-dark-border rounded-sm transition-colors hover:border-gold"
-              style={{ color: '#6A6460' }}>
+              style={{ color: '#A09890' }}>
               Cancelar
             </button>
             <button type="submit" disabled={loading}
