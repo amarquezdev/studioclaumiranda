@@ -69,6 +69,7 @@ class Service(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     has_options: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     price_from: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    deposit_amount: Mapped[float] = mapped_column(Float, default=0, nullable=False, server_default='0')
 
     appointments: Mapped[list["Appointment"]] = relationship("Appointment", back_populates="service")
     options: Mapped[list["ServiceOption"]] = relationship(

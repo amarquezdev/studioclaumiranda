@@ -9,7 +9,13 @@ import ConfirmModal from '../components/ConfirmModal'
 
 const EMPTY_FORM = {
   name: '', description: '', duration_minutes: 30,
-  price: 0, is_active: true, has_options: false, price_from: false,
+  price: 0, is_active: true, has_options: false, price_from: false, deposit_amount: 0,
+}
+
+const fmtClp = (n) => (!n || n === 0) ? '' : Math.round(Number(n)).toLocaleString('es-CL')
+const parseClp = (str) => {
+  const clean = str.replace(/\./g, '').replace(/[^\d]/g, '')
+  return clean === '' ? 0 : parseInt(clean, 10)
 }
 const EMPTY_OPTION = { name: '', price: '' }
 
@@ -71,6 +77,7 @@ function ServiceModal({ title, initial, onClose, onSaved }) {
         is_active: form.is_active,
         has_options: form.has_options,
         price_from: form.price_from,
+        deposit_amount: Number(form.deposit_amount) || 0,
       }
 
       let serviceId = form.id
@@ -134,7 +141,7 @@ function ServiceModal({ title, initial, onClose, onSaved }) {
               placeholder="Descripción del servicio" />
           </div>
 
-          {/* Duración + Precio base */}
+          {/* Duración + Precio base + Abono */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Duración (min) *</label>
@@ -148,6 +155,24 @@ function ServiceModal({ title, initial, onClose, onSaved }) {
               <input required type="number" min={0} step={100} value={form.price}
                 onChange={e => set('price', e.target.value)}
                 className="w-full bg-dark border border-dark-border text-white px-3 py-2 text-sm rounded-sm
+                           focus:outline-none focus:border-gold transition-colors" />
+            </div>
+          </div>
+
+          {/* Monto de abono */}
+          <div>
+            <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">
+              Monto de abono CLP
+              <span className="ml-1 normal-case" style={{ color: '#9A918C' }}>(0 = sin abono)</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+              <input
+                type="text"
+                value={fmtClp(form.deposit_amount)}
+                onChange={e => set('deposit_amount', parseClp(e.target.value))}
+                placeholder="0"
+                className="w-full bg-dark border border-dark-border text-white pl-7 pr-3 py-2 text-sm rounded-sm
                            focus:outline-none focus:border-gold transition-colors" />
             </div>
           </div>

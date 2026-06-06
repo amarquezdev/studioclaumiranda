@@ -112,6 +112,7 @@ class ServiceCreate(BaseModel):
     price: float = Field(..., ge=0)
     has_options: bool = False
     price_from: bool = False
+    deposit_amount: float = Field(0, ge=0)
 
 
 class ServiceUpdate(BaseModel):
@@ -122,6 +123,7 @@ class ServiceUpdate(BaseModel):
     is_active: bool | None = None
     has_options: bool | None = None
     price_from: bool | None = None
+    deposit_amount: float | None = Field(None, ge=0)
 
 
 class ServiceRead(OrmBase):
@@ -133,6 +135,7 @@ class ServiceRead(OrmBase):
     is_active: bool
     has_options: bool
     price_from: bool
+    deposit_amount: float = 0.0
     options: list[ServiceOptionRead] = []
 
 

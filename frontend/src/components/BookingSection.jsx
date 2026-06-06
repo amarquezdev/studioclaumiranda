@@ -166,11 +166,19 @@ export default function BookingSection() {
   const [selectedSlot,    setSelectedSlot]      = useState(null)
   const [booked,          setBooked]            = useState(false)
 
-  const [guestName,  setGuestName]  = useState('')
-  const [guestEmail, setGuestEmail] = useState('')
-  const [guestPhone, setGuestPhone] = useState('')
-  const [guestNotes, setGuestNotes] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [guestName,   setGuestName]   = useState('')
+  const [guestEmail,  setGuestEmail]  = useState('')
+  const [guestPhone,  setGuestPhone]  = useState('')
+  const [guestNotes,  setGuestNotes]  = useState('')
+  const [transferId,  setTransferId]  = useState('')
+  const [copiedField, setCopiedField] = useState('')
+  const [submitting,  setSubmitting]  = useState(false)
+
+  const copyToClipboard = (label, value) => {
+    navigator.clipboard.writeText(value)
+    setCopiedField(label)
+    setTimeout(() => setCopiedField(''), 2000)
+  }
 
   const toggleOption = (opt) => {
     setSelectedOptions(prev =>
@@ -206,12 +214,20 @@ export default function BookingSection() {
 
   const handleConfirm = async (e) => {
     e.preventDefault()
+    if (selectedService?.deposit_amount > 0 && !transferId.trim()) {
+      setError('Debes ingresar el número de comprobante de la transferencia.')
+      return
+    }
     setSubmitting(true); setError('')
     try {
       let notes = guestNotes || null
       if (selectedOptions.length > 0) {
         const optLine = `Opciones: ${selectedOptions.map(o => o.name).join(', ')}`
         notes = notes ? `${optLine}\n${notes}` : optLine
+      }
+      if (selectedService?.deposit_amount > 0 && transferId.trim()) {
+        const tLine = `Comprobante transferencia: ${transferId.trim()}`
+        notes = notes ? `${notes}\n${tLine}` : tLine
       }
       await guestCreateAppointment({
         name: guestName, email: guestEmail,
@@ -231,7 +247,7 @@ export default function BookingSection() {
     setBooked(false); setStep(1)
     setSelectedService(null); setSelectedOptions([]); setSelectedBarber(null)
     setSelectedDate(null); setSelectedSlot(null)
-    setGuestName(''); setGuestEmail(''); setGuestPhone(''); setGuestNotes('')
+    setGuestName(''); setGuestEmail(''); setGuestPhone(''); setGuestNotes(''); setTransferId('')
   }
 
   // ── Confirmación ──────────────────────────────────────────────────────────
@@ -259,6 +275,13 @@ export default function BookingSection() {
           <p className="text-muted-foreground mb-8">
             {selectedDate} a las <span className="text-primary">{formatTime(selectedSlot.start)}</span>
           </p>
+          {selectedService?.deposit_amount > 0 && (
+            <p className="text-muted-foreground text-sm mb-1">
+              Abono registrado: <span className="text-primary font-medium">
+                ${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}
+              </span>
+            </p>
+          )}
           <p className="text-muted-foreground text-xs mb-8 tracking-wider">
             Confirmación enviada a {guestEmail}
           </p>
@@ -454,7 +477,7 @@ export default function BookingSection() {
           </div>
         )}
 
-        {/* ── Paso 5: Datos personales ── */}
+        {/* ── Paso 5: Datos personales + Abono ── */}
         {step === 5 && (
           <div className="max-w-md mx-auto">
             <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
@@ -488,9 +511,73 @@ export default function BookingSection() {
                              placeholder:text-muted-foreground" />
               </div>
 
+              {/* ── Sección abono (solo si el servicio lo requiere) ── */}
+              {selectedService?.deposit_amount > 0 && (
+                <div className="space-y-3 pt-2">
+                  {/* Banner monto */}
+                  <div className="flex items-center justify-between px-5 py-4"
+                    style={{ background: 'var(--secondary)', borderLeft: '3px solid var(--primary)' }}>
+                    <div>
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider">Abono requerido</p>
+                      <p className="text-foreground text-xs mt-0.5">Realiza la transferencia antes de confirmar</p>
+                    </div>
+                    <span className="text-primary font-medium text-xl">
+                      ${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}
+                    </span>
+                  </div>
+
+                  {/* Datos bancarios */}
+                  <div className="border border-border">
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 border-b border-border">
+                      Datos para transferencia
+                    </p>
+                    {[
+                      { label: 'Titular',        value: 'Claudia Miranda Castro' },
+                      { label: 'RUT',            value: '15.390.856-7' },
+                      { label: 'Banco',          value: 'Banco Estado' },
+                      { label: 'Tipo de cuenta', value: 'Cuenta Vista / Cuenta RUT' },
+                      { label: 'N° de cuenta',   value: '15390856' },
+                      { label: 'Email',          value: 'studioclaumiranda@gmail.com' },
+                    ].map(({ label, value }) => (
+                      <div key={label}
+                        className="flex items-center justify-between px-4 py-2.5 border-b border-border last:border-0">
+                        <div>
+                          <p className="text-muted-foreground text-xs">{label}</p>
+                          <p className="text-foreground text-sm font-medium">{value}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(label, value)}
+                          className="text-xs px-3 py-1.5 border border-border hover:border-primary
+                                     text-muted-foreground hover:text-primary transition-colors shrink-0 ml-3">
+                          {copiedField === label ? '✓ Copiado' : 'Copiar'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Campo comprobante */}
+                  <div>
+                    <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-2">
+                      N° de comprobante / ID de transferencia <span className="text-primary">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={transferId}
+                      onChange={e => setTransferId(e.target.value)}
+                      placeholder="Ej: 123456789"
+                      className="w-full bg-input border border-border text-foreground px-4 py-3 text-sm
+                                 focus:outline-none focus:border-primary transition-colors
+                                 placeholder:text-muted-foreground"
+                    />
+                  </div>
+                </div>
+              )}
+
               {error && <p className="text-red-400 text-xs">{error}</p>}
 
-              <button type="submit" disabled={submitting}
+              <button type="submit"
+                disabled={submitting || (selectedService?.deposit_amount > 0 && !transferId.trim())}
                 className="w-full bg-foreground text-background py-4 text-sm tracking-wider uppercase
                            hover:bg-primary hover:text-primary-foreground transition-all duration-300
                            disabled:opacity-50 disabled:cursor-not-allowed">
