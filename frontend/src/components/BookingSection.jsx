@@ -15,17 +15,19 @@ function formatTime(iso) {
 }
 
 // ── Step indicator ─────────────────────────────────────────────────────────
-// Steps are: 1=Servicio, 1.5=Opciones (conditional), 3=Fecha, 4=Hora, 5=Tus datos
+// Internal steps: 1=Servicio, 1.5=Opciones (conditional), 3=Fecha, 4=Hora, 5=Datos, 6=Pago (conditional)
 
-function Steps({ current, hasOptions }) {
+function Steps({ current, hasOptions, hasDeposit }) {
   const steps = hasOptions
-    ? ['Servicio', 'Opciones', 'Fecha', 'Hora', 'Tus datos']
-    : ['Servicio', 'Fecha', 'Hora', 'Tus datos']
+    ? ['Servicio', 'Opciones', 'Fecha', 'Hora', 'Tus datos', ...(hasDeposit ? ['Pago'] : [])]
+    : ['Servicio', 'Fecha', 'Hora', 'Tus datos', ...(hasDeposit ? ['Pago'] : [])]
 
-  // Map internal step numbers (skip 2) to visual index
+  // Map internal step numbers to visual index
+  // With options: step numbers already match visual indices (1,1.5→2,3,4,5,6)
+  // Without options: offset by -1 (skip removed barber step 2)
   const visualCurrent = hasOptions
-    ? current <= 1 ? 1 : current === 1.5 ? 2 : current - 1
-    : current <= 1 ? 1 : current - 2
+    ? current <= 1 ? 1 : current === 1.5 ? 2 : current
+    : current <= 1 ? 1 : current - 1
 
   return (
     <div className="flex items-center justify-center gap-0 mb-12">
@@ -170,14 +172,19 @@ export default function BookingSection() {
   const [guestEmail,  setGuestEmail]  = useState('')
   const [guestPhone,  setGuestPhone]  = useState('')
   const [guestNotes,  setGuestNotes]  = useState('')
-  const [transferId,  setTransferId]  = useState('')
-  const [copiedField, setCopiedField] = useState('')
-  const [submitting,  setSubmitting]  = useState(false)
+  const [transferId, setTransferId] = useState('')
+  const [copiedAll,  setCopiedAll]  = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
-  const copyToClipboard = (label, value) => {
-    navigator.clipboard.writeText(value)
-    setCopiedField(label)
-    setTimeout(() => setCopiedField(''), 2000)
+  const copyAllBankData = () => {
+    const amount = selectedService
+      ? Math.round(selectedService.deposit_amount).toLocaleString('es-CL')
+      : '0'
+    navigator.clipboard.writeText(
+      `Titular: Claudia Miranda Castro\nRUT: 15.390.856-7\nBanco: Banco Estado\nTipo: Cuenta Vista / Cuenta RUT\nN° cuenta: 15390856\nEmail: studioclaumiranda@gmail.com\nMonto: $${amount}`
+    )
+    setCopiedAll(true)
+    setTimeout(() => setCopiedAll(false), 2000)
   }
 
   const toggleOption = (opt) => {
@@ -212,12 +219,7 @@ export default function BookingSection() {
       .finally(() => setLoading(false))
   }, [selectedDate, selectedBarber, selectedService])
 
-  const handleConfirm = async (e) => {
-    e.preventDefault()
-    if (selectedService?.deposit_amount > 0 && !transferId.trim()) {
-      setError('Debes ingresar el número de comprobante de la transferencia.')
-      return
-    }
+  const doConfirm = async () => {
     setSubmitting(true); setError('')
     try {
       let notes = guestNotes || null
@@ -241,6 +243,12 @@ export default function BookingSection() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al reservar. Intenta nuevamente.')
     } finally { setSubmitting(false) }
+  }
+
+  const handleStep5 = (e) => {
+    e.preventDefault()
+    if (selectedService?.deposit_amount > 0) setStep(6)
+    else doConfirm()
   }
 
   const reset = () => {
@@ -314,7 +322,7 @@ export default function BookingSection() {
           </div>
         )}
 
-        <Steps current={step} hasOptions={selectedService?.has_options} />
+        <Steps current={step} hasOptions={selectedService?.has_options} hasDeposit={selectedService?.deposit_amount > 0} />
 
         {/* ── Paso 1: Servicio ── */}
         {step === 1 && (
@@ -477,7 +485,7 @@ export default function BookingSection() {
           </div>
         )}
 
-        {/* ── Paso 5: Datos personales + Abono ── */}
+        {/* ── Paso 5: Datos personales ── */}
         {step === 5 && (
           <div className="max-w-md mx-auto">
             <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
@@ -496,7 +504,7 @@ export default function BookingSection() {
             )}
             {selectedOptions.length === 0 && <div className="mb-8" />}
 
-            <form onSubmit={handleConfirm} className="space-y-4">
+            <form onSubmit={handleStep5} className="space-y-4">
               <Field label="Nombre completo" value={guestName} onChange={setGuestName} required placeholder="Juan Pérez" />
               <Field label="Email" type="email" value={guestEmail} onChange={setGuestEmail} required placeholder="juan@email.com" />
               <Field label="Teléfono" type="tel" value={guestPhone} onChange={setGuestPhone} placeholder="+56 9 1234 5678" />
@@ -511,81 +519,98 @@ export default function BookingSection() {
                              placeholder:text-muted-foreground" />
               </div>
 
-              {/* ── Sección abono (solo si el servicio lo requiere) ── */}
-              {selectedService?.deposit_amount > 0 && (
-                <div className="space-y-3 pt-2">
-                  {/* Banner monto */}
-                  <div className="flex items-center justify-between px-5 py-4"
-                    style={{ background: 'var(--secondary)', borderLeft: '3px solid var(--primary)' }}>
-                    <div>
-                      <p className="text-muted-foreground text-xs uppercase tracking-wider">Abono requerido</p>
-                      <p className="text-foreground text-xs mt-0.5">Realiza la transferencia antes de confirmar</p>
-                    </div>
-                    <span className="text-primary font-medium text-xl">
-                      ${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}
-                    </span>
-                  </div>
-
-                  {/* Datos bancarios */}
-                  <div className="border border-border">
-                    <p className="text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 border-b border-border">
-                      Datos para transferencia
-                    </p>
-                    {[
-                      { label: 'Titular',        value: 'Claudia Miranda Castro' },
-                      { label: 'RUT',            value: '15.390.856-7' },
-                      { label: 'Banco',          value: 'Banco Estado' },
-                      { label: 'Tipo de cuenta', value: 'Cuenta Vista / Cuenta RUT' },
-                      { label: 'N° de cuenta',   value: '15390856' },
-                      { label: 'Email',          value: 'studioclaumiranda@gmail.com' },
-                    ].map(({ label, value }) => (
-                      <div key={label}
-                        className="flex items-center justify-between px-4 py-2.5 border-b border-border last:border-0">
-                        <div>
-                          <p className="text-muted-foreground text-xs">{label}</p>
-                          <p className="text-foreground text-sm font-medium">{value}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(label, value)}
-                          className="text-xs px-3 py-1.5 border border-border hover:border-primary
-                                     text-muted-foreground hover:text-primary transition-colors shrink-0 ml-3">
-                          {copiedField === label ? '✓ Copiado' : 'Copiar'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Campo comprobante */}
-                  <div>
-                    <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-2">
-                      N° de comprobante / ID de transferencia <span className="text-primary">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={transferId}
-                      onChange={e => setTransferId(e.target.value)}
-                      placeholder="Ej: 123456789"
-                      className="w-full bg-input border border-border text-foreground px-4 py-3 text-sm
-                                 focus:outline-none focus:border-primary transition-colors
-                                 placeholder:text-muted-foreground"
-                    />
-                  </div>
-                </div>
-              )}
-
               {error && <p className="text-red-400 text-xs">{error}</p>}
 
-              <button type="submit"
-                disabled={submitting || (selectedService?.deposit_amount > 0 && !transferId.trim())}
+              <button type="submit" disabled={submitting}
                 className="w-full bg-foreground text-background py-4 text-sm tracking-wider uppercase
                            hover:bg-primary hover:text-primary-foreground transition-all duration-300
                            disabled:opacity-50 disabled:cursor-not-allowed">
-                {submitting ? 'Confirmando...' : 'Confirmar Reserva'}
+                {submitting ? 'Confirmando...' : selectedService?.deposit_amount > 0 ? 'Siguiente →' : 'Confirmar Reserva'}
               </button>
             </form>
 
             <button onClick={() => setStep(4)}
+              className="mt-6 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
+              <ChevronLeft className="w-3 h-3" /> Volver
+            </button>
+          </div>
+        )}
+
+        {/* ── Paso 6: Pago de abono ── */}
+        {step === 6 && selectedService?.deposit_amount > 0 && (
+          <div className="max-w-md mx-auto">
+            <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
+              Pago de abono
+            </p>
+            <p className="text-primary text-xs text-center mb-8 tracking-wider">
+              {selectedService.name} · {selectedDate}
+              {selectedSlot && ` · ${formatTime(selectedSlot.start)}`}
+            </p>
+
+            {/* Banner monto */}
+            <div className="flex items-center justify-between px-5 py-4 mb-4"
+              style={{ background: 'var(--secondary)', borderLeft: '3px solid var(--primary)' }}>
+              <div>
+                <p className="text-muted-foreground text-xs uppercase tracking-wider">Abono requerido</p>
+                <p className="text-foreground text-xs mt-0.5">Transfiere antes de confirmar la reserva</p>
+              </div>
+              <span className="text-primary font-medium text-xl">
+                ${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}
+              </span>
+            </div>
+
+            {/* Bloque de datos bancarios + botón copiar */}
+            <div className="border border-border mb-4">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <p className="text-muted-foreground text-xs uppercase tracking-wider">Datos para transferencia</p>
+                <button
+                  type="button"
+                  onClick={copyAllBankData}
+                  className="text-xs px-3 py-1.5 border border-border hover:border-primary
+                             text-muted-foreground hover:text-primary transition-colors">
+                  {copiedAll ? '✓ Copiado' : 'Copiar datos'}
+                </button>
+              </div>
+              <pre className="text-sm px-4 py-4 text-foreground whitespace-pre-wrap leading-relaxed"
+                style={{ fontFamily: 'inherit' }}>
+{`Titular: Claudia Miranda Castro
+RUT: 15.390.856-7
+Banco: Banco Estado
+Tipo: Cuenta Vista / Cuenta RUT
+N° cuenta: 15390856
+Email: studioclaumiranda@gmail.com
+Monto: $${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}`}
+              </pre>
+            </div>
+
+            {/* Campo comprobante */}
+            <div className="mb-4">
+              <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-2">
+                N° de comprobante / ID de transferencia <span className="text-primary">*</span>
+              </label>
+              <input
+                type="text"
+                value={transferId}
+                onChange={e => setTransferId(e.target.value)}
+                placeholder="Ej: 123456789"
+                className="w-full bg-input border border-border text-foreground px-4 py-3 text-sm
+                           focus:outline-none focus:border-primary transition-colors
+                           placeholder:text-muted-foreground"
+              />
+            </div>
+
+            {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
+
+            <button
+              onClick={doConfirm}
+              disabled={submitting || !transferId.trim()}
+              className="w-full bg-foreground text-background py-4 text-sm tracking-wider uppercase
+                         hover:bg-primary hover:text-primary-foreground transition-all duration-300
+                         disabled:opacity-50 disabled:cursor-not-allowed">
+              {submitting ? 'Confirmando...' : 'Confirmar Reserva'}
+            </button>
+
+            <button onClick={() => setStep(5)}
               className="mt-6 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
               <ChevronLeft className="w-3 h-3" /> Volver
             </button>
