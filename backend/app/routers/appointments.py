@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.dependencies import get_current_active_user, require_admin
-from app.models import Appointment, AppointmentStatus, Barber, Service, ServiceOption, User
+from app.models import Appointment, AppointmentService, AppointmentStatus, Barber, Service, ServiceOption, User
 from app.auth import get_password_hash
 from app.schemas import AppointmentCreate, AppointmentRead, AppointmentStatusUpdate, GuestAppointmentCreate
 from app.email import send_confirmation_email
@@ -22,6 +22,7 @@ async def _load_appointment(db: AsyncSession, appointment_id: int) -> Appointmen
             selectinload(Appointment.user),
             selectinload(Appointment.barber),
             selectinload(Appointment.service).selectinload(Service.options),
+            selectinload(Appointment.appointment_services).selectinload(AppointmentService.service).selectinload(Service.options),
         )
         .where(Appointment.id == appointment_id)
     )
@@ -42,11 +43,15 @@ async def create_appointment(
     if not barber or not barber.is_active:
         raise HTTPException(status_code=404, detail="Barbero no encontrado o inactivo")
 
-    service = await db.get(Service, payload.service_id)
-    if not service or not service.is_active:
-        raise HTTPException(status_code=404, detail="Servicio no encontrado o inactivo")
+    services_list: list[Service] = []
+    for sid in payload.service_ids:
+        svc = await db.get(Service, sid)
+        if not svc or not svc.is_active:
+            raise HTTPException(status_code=404, detail=f"Servicio {sid} no encontrado o inactivo")
+        services_list.append(svc)
 
-    end_dt = payload.start_datetime + timedelta(minutes=service.duration_minutes)
+    total_duration = sum(s.duration_minutes for s in services_list)
+    end_dt = payload.start_datetime + timedelta(minutes=total_duration)
 
     conflict = await db.execute(
         select(Appointment).where(
@@ -62,12 +67,15 @@ async def create_appointment(
     appt = Appointment(
         user_id=current_user.id,
         barber_id=payload.barber_id,
-        service_id=payload.service_id,
+        service_id=services_list[0].id,
         start_datetime=payload.start_datetime,
         end_datetime=end_dt,
         notes=payload.notes,
     )
     db.add(appt)
+    await db.flush()
+    for svc in services_list:
+        db.add(AppointmentService(appointment_id=appt.id, service_id=svc.id))
     await db.flush()
     loaded = await _load_appointment(db, appt.id)
     background_tasks.add_task(send_confirmation_email, loaded)
@@ -105,11 +113,15 @@ async def create_guest_appointment(
     if not barber or not barber.is_active:
         raise HTTPException(status_code=404, detail="Barbero no encontrado o inactivo")
 
-    service = await db.get(Service, payload.service_id)
-    if not service or not service.is_active:
-        raise HTTPException(status_code=404, detail="Servicio no encontrado o inactivo")
+    services_list: list[Service] = []
+    for sid in payload.service_ids:
+        svc = await db.get(Service, sid)
+        if not svc or not svc.is_active:
+            raise HTTPException(status_code=404, detail=f"Servicio {sid} no encontrado o inactivo")
+        services_list.append(svc)
 
-    end_dt = payload.start_datetime + timedelta(minutes=service.duration_minutes)
+    total_duration = sum(s.duration_minutes for s in services_list)
+    end_dt = payload.start_datetime + timedelta(minutes=total_duration)
 
     conflict = await db.execute(
         select(Appointment).where(
@@ -125,12 +137,15 @@ async def create_guest_appointment(
     appt = Appointment(
         user_id=user.id,
         barber_id=payload.barber_id,
-        service_id=payload.service_id,
+        service_id=services_list[0].id,
         start_datetime=payload.start_datetime,
         end_datetime=end_dt,
         notes=payload.notes,
     )
     db.add(appt)
+    await db.flush()
+    for svc in services_list:
+        db.add(AppointmentService(appointment_id=appt.id, service_id=svc.id))
     await db.flush()
     loaded = await _load_appointment(db, appt.id)
     background_tasks.add_task(send_confirmation_email, loaded)

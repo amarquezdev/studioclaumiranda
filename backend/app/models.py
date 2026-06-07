@@ -162,3 +162,22 @@ class Appointment(Base):
     user: Mapped["User"] = relationship("User", back_populates="appointments")
     barber: Mapped["Barber"] = relationship("Barber", back_populates="appointments")
     service: Mapped["Service"] = relationship("Service", back_populates="appointments")
+    appointment_services: Mapped[list["AppointmentService"]] = relationship(
+        "AppointmentService", back_populates="appointment", cascade="all, delete-orphan"
+    )
+
+
+class AppointmentService(Base):
+    """Junction table: services included in a single appointment."""
+    __tablename__ = "appointment_services"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    appointment_id: Mapped[int] = mapped_column(
+        ForeignKey("appointments.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    service_id: Mapped[int] = mapped_column(
+        ForeignKey("services.id", ondelete="CASCADE"), nullable=False
+    )
+
+    appointment: Mapped["Appointment"] = relationship("Appointment", back_populates="appointment_services")
+    service: Mapped["Service"] = relationship("Service")

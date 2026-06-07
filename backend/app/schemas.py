@@ -1,6 +1,6 @@
 from datetime import date, datetime, time
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models import AppointmentStatus, UserRole
 
@@ -223,8 +223,15 @@ class BlockedDateRead(OrmBase):
 class AppointmentCreate(BaseModel):
     barber_id: int
     service_id: int
+    service_ids: list[int] | None = None
     start_datetime: datetime
     notes: str | None = None
+
+    @model_validator(mode='after')
+    def resolve_services(self):
+        if not self.service_ids:
+            self.service_ids = [self.service_id]
+        return self
 
 
 class AppointmentStatusUpdate(BaseModel):
@@ -236,9 +243,26 @@ class GuestAppointmentCreate(BaseModel):
     email: EmailStr
     phone: str | None = Field(None, max_length=30)
     barber_id: int
-    service_id: int
+    service_id: int | None = None
+    service_ids: list[int] | None = None
     start_datetime: datetime
     notes: str | None = None
+
+    @model_validator(mode='after')
+    def resolve_services(self):
+        if self.service_ids:
+            if not self.service_id:
+                self.service_id = self.service_ids[0]
+        elif self.service_id:
+            self.service_ids = [self.service_id]
+        else:
+            raise ValueError("Se requiere service_id o service_ids")
+        return self
+
+
+class AppointmentServiceRead(OrmBase):
+    service_id: int
+    service: ServiceRead | None = None
 
 
 class AppointmentRead(OrmBase):
@@ -254,6 +278,7 @@ class AppointmentRead(OrmBase):
     user: UserRead | None = None
     barber: BarberRead | None = None
     service: ServiceRead | None = None
+    appointment_services: list[AppointmentServiceRead] = []
 
 
 # ---------------------------------------------------------------------------

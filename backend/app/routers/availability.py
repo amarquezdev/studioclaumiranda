@@ -15,35 +15,47 @@ router = APIRouter()
 async def get_availability(
     date: date = Query(..., description="Fecha a consultar, ej: 2025-07-15"),
     barber_id: int = Query(...),
-    service_id: int = Query(...),
+    service_id: int | None = Query(None),
+    service_ids: str | None = Query(None, description="IDs separados por coma: 1,2,3"),
     db: AsyncSession = Depends(get_db),
 ):
+    # Resolve which service IDs to use
+    ids: list[int] = []
+    if service_ids:
+        ids = [int(x.strip()) for x in service_ids.split(",") if x.strip()]
+    elif service_id:
+        ids = [service_id]
+    else:
+        raise HTTPException(status_code=422, detail="Se requiere service_id o service_ids")
+
     barber = await db.get(Barber, barber_id)
     if not barber or not barber.is_active:
         raise HTTPException(status_code=404, detail="Barbero no encontrado o inactivo")
 
-    service = await db.get(Service, service_id)
-    if not service or not service.is_active:
-        raise HTTPException(status_code=404, detail="Servicio no encontrado o inactivo")
+    services_list: list[Service] = []
+    for sid in ids:
+        svc = await db.get(Service, sid)
+        if not svc or not svc.is_active:
+            raise HTTPException(status_code=404, detail=f"Servicio {sid} no encontrado o inactivo")
+        services_list.append(svc)
+
+    total_duration = sum(s.duration_minutes for s in services_list)
+    primary_id = ids[0]
 
     # Verificar si la fecha está bloqueada
     blocked_result = await db.execute(
         select(BlockedDate).where(
-            BlockedDate.is_active == True,
+            BlockedDate.is_active == True,  # noqa: E712
             BlockedDate.date_from <= date,
             BlockedDate.date_to   >= date,
         )
     )
     if blocked_result.scalar_one_or_none():
         return AvailabilityResponse(
-            date=str(date),
-            barber_id=barber_id,
-            service_id=service_id,
-            duration_minutes=service.duration_minutes,
-            slots=[],
+            date=str(date), barber_id=barber_id,
+            service_id=primary_id, duration_minutes=total_duration, slots=[],
         )
 
-    # Horario del día de la semana (0=Lun … 6=Dom)
     day_of_week = date.weekday()
     bh_result = await db.execute(
         select(BusinessHours).where(BusinessHours.day_of_week == day_of_week)
@@ -51,19 +63,14 @@ async def get_availability(
     bh = bh_result.scalar_one_or_none()
     if not bh or not bh.is_open:
         return AvailabilityResponse(
-            date=str(date),
-            barber_id=barber_id,
-            service_id=service_id,
-            duration_minutes=service.duration_minutes,
-            slots=[],
+            date=str(date), barber_id=barber_id,
+            service_id=primary_id, duration_minutes=total_duration, slots=[],
         )
 
-    # Use naive datetimes — stored times and generated slots are all local (no timezone)
     day_open  = datetime.combine(date, bh.open_time)
     day_close = datetime.combine(date, bh.close_time)
-    duration  = timedelta(minutes=service.duration_minutes)
+    duration  = timedelta(minutes=total_duration)
 
-    # Citas existentes del barbero ese día (naive comparison)
     existing_result = await db.execute(
         select(Appointment).where(
             Appointment.barber_id == barber_id,
@@ -74,18 +81,15 @@ async def get_availability(
     )
     bookings = existing_result.scalars().all()
 
-    # Strip timezone info from stored datetimes if present, for consistent comparison
     def naive(dt: datetime) -> datetime:
         return dt.replace(tzinfo=None) if dt.tzinfo else dt
 
     booked_ranges = [(naive(a.start_datetime), naive(a.end_datetime)) for a in bookings]
 
-    # Generar slots libres en intervalos de 30 min
-    # Para cada slot se verifica que el servicio cabe completo y no hay conflicto
     STEP   = timedelta(minutes=30)
     slots: list[TimeSlot] = []
     cursor = day_open
-    now    = datetime.now()  # naive local time
+    now    = datetime.now()
 
     while cursor + duration <= day_close:
         slot_end = cursor + duration
@@ -99,9 +103,6 @@ async def get_availability(
         cursor += STEP
 
     return AvailabilityResponse(
-        date=str(date),
-        barber_id=barber_id,
-        service_id=service_id,
-        duration_minutes=service.duration_minutes,
-        slots=slots,
+        date=str(date), barber_id=barber_id,
+        service_id=primary_id, duration_minutes=total_duration, slots=slots,
     )

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Scissors, Sparkles, Palette, Droplets, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { Scissors, Sparkles, Palette, Droplets, ChevronLeft, ChevronRight, Check, X } from 'lucide-react'
 import { getServices, getBarbers, getBusinessHours, getAvailability, guestCreateAppointment, getBlockedDates, getServiceTypes } from '../api/client'
 import { cn } from '../lib/utils'
 
@@ -17,21 +17,14 @@ function formatTime(iso) {
 
 // ── Step indicator ─────────────────────────────────────────────────────────
 
-function Steps({ current, hasOptions, hasDeposit }) {
-  const steps = hasOptions
-    ? ['Servicio', 'Opciones', 'Fecha', 'Hora', 'Tus datos', ...(hasDeposit ? ['Pago'] : [])]
-    : ['Servicio', 'Fecha', 'Hora', 'Tus datos', ...(hasDeposit ? ['Pago'] : [])]
-
-  const visualCurrent = hasOptions
-    ? current <= 1 ? 1 : current === 1.5 ? 2 : current
-    : current <= 1 ? 1 : current - 1
-
+function Steps({ current, hasDeposit }) {
+  const steps = ['Servicios', 'Fecha', 'Hora', 'Tus datos', ...(hasDeposit ? ['Pago'] : [])]
   return (
     <div className="flex items-center justify-center gap-0 mb-12">
       {steps.map((label, i) => {
         const n = i + 1
-        const done = n < visualCurrent
-        const active = n === visualCurrent
+        const done   = n < current
+        const active = n === current
         return (
           <div key={n} className="flex items-center">
             <div className="flex flex-col items-center">
@@ -59,6 +52,79 @@ function Steps({ current, hasOptions, hasDeposit }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// ── Options modal ──────────────────────────────────────────────────────────
+
+function OptionsModal({ service, onAdd, onCancel }) {
+  const [selected, setSelected] = useState([])
+  const activeOpts = service.options?.filter(o => o.is_active) ?? []
+
+  const toggle = (opt) =>
+    setSelected(prev => prev.find(o => o.id === opt.id) ? prev.filter(o => o.id !== opt.id) : [...prev, opt])
+
+  const optTotal = selected.reduce((s, o) => s + o.price, 0)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+      <div className="bg-card border border-border rounded-sm w-full max-w-md max-h-[85vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
+          <div>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-0.5">Opciones del servicio</p>
+            <h3 className="font-serif text-lg text-foreground">{service.name}</h3>
+          </div>
+          <button onClick={onCancel} className="text-muted-foreground hover:text-primary transition-colors text-xl leading-none">&times;</button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
+          {activeOpts.map(opt => {
+            const checked = !!selected.find(o => o.id === opt.id)
+            return (
+              <button key={opt.id} type="button" onClick={() => toggle(opt)}
+                className={cn(
+                  'w-full flex items-center justify-between px-5 py-4 border text-left transition-all duration-150',
+                  checked ? 'bg-primary/10 border-primary' : 'bg-card border-border hover:border-primary/60'
+                )}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    'w-4 h-4 border flex items-center justify-center shrink-0 transition-colors',
+                    checked ? 'bg-primary border-primary' : 'border-border'
+                  )}>
+                    {checked && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                  </div>
+                  <span className={cn('text-sm tracking-wide', checked ? 'text-foreground' : 'text-muted-foreground')}>
+                    {opt.name}
+                  </span>
+                </div>
+                <span className="text-primary font-medium text-sm">
+                  {opt.price_from && <span className="text-xs font-normal mr-0.5">desde </span>}
+                  ${opt.price.toLocaleString()}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {selected.length > 0 && (
+          <div className="px-6 py-3 border-t border-border/50 flex justify-between items-center">
+            <span className="text-muted-foreground text-xs uppercase tracking-wider">Total opciones</span>
+            <span className="text-primary font-medium">${optTotal.toLocaleString()}</span>
+          </div>
+        )}
+
+        <div className="px-6 py-4 border-t border-border flex justify-end gap-3 shrink-0">
+          <button onClick={onCancel}
+            className="px-4 py-2 text-sm border border-border rounded-sm text-muted-foreground hover:border-primary transition-colors">
+            Cancelar
+          </button>
+          <button onClick={() => onAdd(selected)}
+            className="btn-gold">
+            {selected.length === 0 ? 'Agregar sin opciones' : `Agregar (${selected.length} opciones)`}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -173,12 +239,13 @@ export function Booking() {
   const [loadingSlots, setLoadingSlots]     = useState(false)
   const [error, setError]                   = useState('')
 
-  const [selectedService, setSelectedService] = useState(null)
-  const [selectedOptions, setSelectedOptions] = useState([])
-  const [selectedBarber, setSelectedBarber]   = useState(null)
-  const [selectedDate, setSelectedDate]       = useState(null)
-  const [selectedSlot, setSelectedSlot]       = useState(null)
-  const [booked, setBooked]                   = useState(false)
+  // Cart: [{ service, options: [] }]
+  const [cart, setCart]                         = useState([])
+  const [configuringService, setConfiguringService] = useState(null)
+  const [selectedBarber, setSelectedBarber]     = useState(null)
+  const [selectedDate, setSelectedDate]         = useState(null)
+  const [selectedSlot, setSelectedSlot]         = useState(null)
+  const [booked, setBooked]                     = useState(false)
 
   const [guestFirstName, setGuestFirstName] = useState('')
   const [guestLastName,  setGuestLastName]  = useState('')
@@ -188,6 +255,30 @@ export function Booking() {
   const [transferId,  setTransferId]   = useState('')
   const [copiedAll,   setCopiedAll]    = useState(false)
   const [submitting,  setSubmitting]   = useState(false)
+
+  // ── Cart helpers ───────────────────────────────────────────────────────────
+
+  const cartHasService = (id) => cart.some(item => item.service.id === id)
+  const removeFromCart = (id) => setCart(c => c.filter(item => item.service.id !== id))
+  const addToCart      = (service, options = []) => setCart(c => [...c, { service, options }])
+
+  const totalDuration = cart.reduce((s, item) => s + item.service.duration_minutes, 0)
+  const totalPrice    = cart.reduce((s, item) => {
+    const optPrice = item.options.reduce((a, o) => a + o.price, 0)
+    return s + (item.options.length > 0 ? optPrice : item.service.price)
+  }, 0)
+  const totalDeposit  = cart.reduce((s, item) => s + (item.service.deposit_amount || 0), 0)
+
+  const handleServiceClick = (service) => {
+    if (cartHasService(service.id)) { removeFromCart(service.id); return }
+    if (service.has_options && service.options?.some(o => o.is_active)) {
+      setConfiguringService(service)
+    } else {
+      addToCart(service)
+    }
+  }
+
+  // ── Data loading ───────────────────────────────────────────────────────────
 
   useEffect(() => {
     Promise.all([getServices(), getBarbers(), getBusinessHours(), getBlockedDates(), getServiceTypes()])
@@ -206,21 +297,15 @@ export function Booking() {
   }, [])
 
   useEffect(() => {
-    if (!selectedDate || !selectedService || !selectedBarber) return
+    if (!selectedDate || cart.length === 0 || !selectedBarber) return
     setLoadingSlots(true); setSlots([])
-    getAvailability(selectedDate, selectedBarber.id, selectedService.id)
+    getAvailability(selectedDate, selectedBarber.id, cart.map(item => item.service.id))
       .then(r => setSlots(r.data.slots))
       .catch(() => setSlots([]))
       .finally(() => setLoadingSlots(false))
-  }, [selectedDate, selectedBarber, selectedService])
+  }, [selectedDate, selectedBarber, cart])
 
-  const toggleOption = (opt) => {
-    setSelectedOptions(prev =>
-      prev.find(o => o.id === opt.id) ? prev.filter(o => o.id !== opt.id) : [...prev, opt]
-    )
-  }
-
-  const optionsPrice = selectedOptions.reduce((sum, o) => sum + o.price, 0)
+  // ── Actions ────────────────────────────────────────────────────────────────
 
   const copyAllBankData = () => {
     navigator.clipboard.writeText(
@@ -233,12 +318,13 @@ export function Booking() {
   const doConfirm = async () => {
     setSubmitting(true); setError('')
     try {
-      let notes = guestNotes || null
-      if (selectedOptions.length > 0) {
-        const optLine = `Opciones: ${selectedOptions.map(o => o.name).join(', ')}`
-        notes = notes ? `${optLine}\n${notes}` : optLine
-      }
-      if (selectedService?.deposit_amount > 0 && transferId.trim()) {
+      const serviceIds = cart.map(item => item.service.id)
+      const optLines = cart
+        .filter(item => item.options.length > 0)
+        .map(item => `${item.service.name}: ${item.options.map(o => o.name).join(', ')}`)
+      let notes = optLines.length > 0 ? optLines.join('\n') : null
+      if (guestNotes.trim()) notes = notes ? `${notes}\n${guestNotes.trim()}` : guestNotes.trim()
+      if (totalDeposit > 0 && transferId.trim()) {
         const tLine = `Comprobante transferencia: ${transferId.trim()}`
         notes = notes ? `${notes}\n${tLine}` : tLine
       }
@@ -247,7 +333,7 @@ export function Booking() {
         email: guestEmail,
         phone: guestPhone.trim() ? `+56 9 ${guestPhone.trim()}` : null,
         barber_id: selectedBarber.id,
-        service_id: selectedService.id,
+        service_ids: serviceIds,
         start_datetime: selectedSlot.start,
         notes,
       })
@@ -257,17 +343,16 @@ export function Booking() {
     } finally { setSubmitting(false) }
   }
 
-  const handleStep5 = (e) => {
+  const handleStep4 = (e) => {
     e.preventDefault()
     setError('')
-    if (selectedService?.deposit_amount > 0) setStep(6)
+    if (totalDeposit > 0) setStep(5)
     else doConfirm()
   }
 
   const reset = () => {
     setBooked(false); setStep(1)
-    setSelectedService(null); setSelectedOptions([])
-    setSelectedDate(null); setSelectedSlot(null)
+    setCart([]); setSelectedDate(null); setSelectedSlot(null)
     setGuestFirstName(''); setGuestLastName('')
     setGuestEmail(''); setGuestPhone(''); setGuestNotes(''); setTransferId('')
     setError('')
@@ -282,24 +367,29 @@ export function Booking() {
             <Check className="w-8 h-8" />
           </div>
           <h2 className="font-serif text-3xl italic text-foreground mb-3">¡Cita confirmada!</h2>
-          <p className="text-muted-foreground mb-1">
+          <p className="text-muted-foreground mb-4">
             Hola <span className="text-foreground">{guestFirstName}</span>, tu reserva está lista.
           </p>
+          <div className="space-y-1 mb-4">
+            {cart.map(item => (
+              <p key={item.service.id} className="text-muted-foreground">
+                <span className="text-primary">{item.service.name}</span>
+                {item.options.length > 0 && (
+                  <span className="text-muted-foreground text-sm"> · {item.options.map(o => o.name).join(', ')}</span>
+                )}
+              </p>
+            ))}
+          </div>
           <p className="text-muted-foreground mb-1">
-            <span className="text-primary">{selectedService?.name}</span>
-          </p>
-          {selectedOptions.length > 0 && (
-            <p className="text-muted-foreground text-sm mb-1">{selectedOptions.map(o => o.name).join(', ')}</p>
-          )}
-          <p className="text-muted-foreground mb-8">
             {selectedDate} a las <span className="text-primary">{formatTime(selectedSlot.start)}</span>
           </p>
-          {selectedService?.deposit_amount > 0 && (
+          <p className="text-muted-foreground text-sm mb-1">
+            Duración total: <span className="text-foreground">{totalDuration} min</span>
+          </p>
+          {totalDeposit > 0 && (
             <p className="text-muted-foreground text-sm mb-1">
               Abono registrado:{' '}
-              <span className="text-primary font-medium">
-                ${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}
-              </span>
+              <span className="text-primary font-medium">${Math.round(totalDeposit).toLocaleString('es-CL')}</span>
             </p>
           )}
           <p className="text-muted-foreground text-xs mb-8 tracking-wider">
@@ -316,21 +406,29 @@ export function Booking() {
 
   return (
     <section id="book" className="bg-background">
+      {/* Options modal */}
+      {configuringService && (
+        <OptionsModal
+          service={configuringService}
+          onAdd={(options) => { addToCart(configuringService, options); setConfiguringService(null) }}
+          onCancel={() => setConfiguringService(null)}
+        />
+      )}
+
       <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
 
-        {/* ── Paso 1: encabezado Evnia + tarjetas ── */}
+        {/* ── Paso 1: selección de servicios con carrito ── */}
         {step === 1 && (
           <>
             <div className="mb-14 text-center">
               <p className="text-[11px] tracking-[0.3em] text-foreground/50">RESERVA</p>
               <h2 className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl text-balance">
-                Elige tu Servicio
+                Elige tus Servicios
               </h2>
+              <p className="mt-3 text-muted-foreground text-sm">Puedes seleccionar uno o varios</p>
             </div>
 
-            {error && (
-              <p className="text-red-400 text-sm text-center mb-8">{error}</p>
-            )}
+            {error && <p className="text-red-400 text-sm text-center mb-8">{error}</p>}
 
             {/* Filtro por tipo */}
             {!loadingInit && serviceTypes.length > 0 && (
@@ -342,27 +440,44 @@ export function Booking() {
                     activeType === null
                       ? 'bg-primary border-primary text-primary-foreground'
                       : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
-                  )}
-                >
+                  )}>
                   Todos
                 </button>
                 {serviceTypes.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveType(t.id)}
+                  <button key={t.id} onClick={() => setActiveType(t.id)}
                     className={cn(
                       'px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
                       activeType === t.id
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
-                    )}
-                  >
+                    )}>
                     {t.name}
                   </button>
                 ))}
               </div>
             )}
 
+            {/* Carrito resumen */}
+            {cart.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-8 px-4 py-3 bg-card border border-primary/30">
+                <span className="text-muted-foreground text-[11px] uppercase tracking-wider mr-1">Seleccionados:</span>
+                {cart.map(item => (
+                  <span key={item.service.id} className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary border border-primary/30 px-3 py-1.5">
+                    {item.service.name}
+                    {item.options.length > 0 && <span className="opacity-70">+{item.options.length}</span>}
+                    <button onClick={() => removeFromCart(item.service.id)}
+                      className="ml-0.5 hover:text-red-400 transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                <span className="ml-auto text-xs text-muted-foreground whitespace-nowrap">
+                  {totalDuration} min · ${totalPrice.toLocaleString('es-CL')}
+                </span>
+              </div>
+            )}
+
+            {/* Grid de servicios */}
             {loadingInit ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -382,19 +497,26 @@ export function Booking() {
                 {services
                   .filter(s => activeType === null || s.service_type_id === activeType)
                   .map((s, i) => {
-                    const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                    const Icon    = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                    const inCart  = cartHasService(s.id)
                     return (
-                      <button
-                        key={s.id}
-                        onClick={() => {
-                          setSelectedService(s)
-                          setSelectedOptions([])
-                          setStep(s.has_options ? 1.5 : 3)
-                        }}
-                        className="group flex flex-col border border-border bg-card px-8 py-12 text-left transition-colors hover:bg-accent hover:border-primary/60"
-                      >
-                        <Icon className="size-7 text-foreground/80" strokeWidth={1.25} />
-                        <h3 className="mt-6 font-serif text-2xl text-foreground group-hover:text-primary transition-colors">
+                      <button key={s.id} onClick={() => handleServiceClick(s)}
+                        className={cn(
+                          'group flex flex-col border bg-card px-8 py-12 text-left transition-colors relative',
+                          inCart
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:bg-accent hover:border-primary/60'
+                        )}>
+                        {inCart && (
+                          <div className="absolute top-3 right-3 w-6 h-6 bg-primary flex items-center justify-center">
+                            <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                          </div>
+                        )}
+                        <Icon className={cn('size-7', inCart ? 'text-primary' : 'text-foreground/80')} strokeWidth={1.25} />
+                        <h3 className={cn(
+                          'mt-6 font-serif text-2xl transition-colors',
+                          inCart ? 'text-primary' : 'text-foreground group-hover:text-primary'
+                        )}>
                           {s.name}
                         </h3>
                         <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
@@ -410,11 +532,21 @@ export function Booking() {
                   })}
               </div>
             )}
+
+            {/* Botón continuar */}
+            {cart.length > 0 && (
+              <div className="mt-12 text-center">
+                <button onClick={() => setStep(2)}
+                  className="bg-primary text-primary-foreground px-12 py-4 text-[11px] tracking-[0.2em] uppercase hover:opacity-90 transition-opacity">
+                  Continuar con {cart.length} servicio{cart.length > 1 ? 's' : ''} · {totalDuration} min
+                </button>
+              </div>
+            )}
           </>
         )}
 
         {/* ── Pasos 2+: indicador + contenido ── */}
-        {step !== 1 && (
+        {step > 1 && (
           <div className="max-w-4xl mx-auto">
             <div className="mb-14 text-center">
               <p className="text-[11px] tracking-[0.3em] text-foreground/50">RESERVA</p>
@@ -429,92 +561,32 @@ export function Booking() {
               </div>
             )}
 
-            <Steps
-              current={step}
-              hasOptions={selectedService?.has_options}
-              hasDeposit={selectedService?.deposit_amount > 0}
-            />
+            <Steps current={step - 1} hasDeposit={totalDeposit > 0} />
 
-            {/* Paso 1.5: Opciones */}
-            {step === 1.5 && selectedService && (
-              <div className="max-w-lg mx-auto">
-                <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
-                  Personaliza tu servicio
-                </p>
-                <p className="text-primary text-sm text-center mb-8 tracking-wider">{selectedService.name}</p>
-                <div className="space-y-3">
-                  {selectedService.options?.filter(o => o.is_active).map(opt => {
-                    const checked = !!selectedOptions.find(o => o.id === opt.id)
-                    return (
-                      <button key={opt.id} type="button" onClick={() => toggleOption(opt)}
-                        className={cn(
-                          'w-full flex items-center justify-between px-5 py-4 border text-left transition-all duration-150',
-                          checked ? 'bg-primary/10 border-primary' : 'bg-card border-border hover:border-primary/60'
-                        )}>
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            'w-4 h-4 border flex items-center justify-center shrink-0 transition-colors',
-                            checked ? 'bg-primary border-primary' : 'border-border'
-                          )}>
-                            {checked && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                          </div>
-                          <span className={cn('text-sm tracking-wide', checked ? 'text-foreground' : 'text-muted-foreground')}>
-                            {opt.name}
-                          </span>
-                        </div>
-                        <span className="text-primary font-medium text-sm">
-                          {opt.price_from && <span className="text-xs font-normal mr-0.5">desde </span>}
-                          ${opt.price.toLocaleString()}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {selectedOptions.length > 0 && (
-                  <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
-                    <span className="text-muted-foreground text-xs uppercase tracking-wider">Total opciones</span>
-                    <span className="text-primary font-medium">${optionsPrice.toLocaleString()}</span>
-                  </div>
-                )}
-                <button
-                  onClick={() => { if (selectedOptions.length > 0) setStep(3) }}
-                  disabled={selectedOptions.length === 0}
-                  className={cn(
-                    'mt-6 w-full py-3 text-[11px] tracking-[0.2em] uppercase transition-all duration-200',
-                    selectedOptions.length > 0
-                      ? 'bg-primary text-primary-foreground hover:opacity-90 cursor-pointer'
-                      : 'bg-card text-muted-foreground border border-border cursor-not-allowed'
-                  )}>
-                  {selectedOptions.length === 0 ? 'Selecciona al menos una opción' : 'Continuar'}
-                </button>
-                <button onClick={() => { setSelectedService(null); setStep(1) }}
-                  className="mt-4 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
-                  <ChevronLeft className="w-3 h-3" /> Volver
-                </button>
-              </div>
-            )}
-
-            {/* Paso 3: Fecha */}
-            {step === 3 && (
+            {/* Paso 2: Fecha */}
+            {step === 2 && (
               <div>
-                <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-8">
+                <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
                   Elige una fecha
+                </p>
+                <p className="text-primary text-xs text-center mb-8 tracking-wider">
+                  {cart.map(item => item.service.name).join(' · ')} · {totalDuration} min
                 </p>
                 <Calendar
                   businessHours={businessHours}
                   blockedDates={blockedDates}
                   selected={selectedDate}
-                  onSelect={date => { setSelectedDate(date); setStep(4) }}
+                  onSelect={date => { setSelectedDate(date); setStep(3) }}
                 />
-                <button onClick={() => setStep(selectedService?.has_options ? 1.5 : 1)}
+                <button onClick={() => setStep(1)}
                   className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
                   <ChevronLeft className="w-3 h-3" /> Volver
                 </button>
               </div>
             )}
 
-            {/* Paso 4: Hora */}
-            {step === 4 && (
+            {/* Paso 3: Hora */}
+            {step === 3 && (
               <div>
                 <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
                   Elige una hora
@@ -526,7 +598,7 @@ export function Booking() {
                 {!loadingSlots && slots.length === 0 && (
                   <p className="text-muted-foreground text-sm text-center py-6">
                     No hay horas disponibles para esta fecha.{' '}
-                    <button onClick={() => setStep(3)} className="text-primary hover:underline">
+                    <button onClick={() => setStep(2)} className="text-primary hover:underline">
                       Elige otra fecha
                     </button>
                   </p>
@@ -534,7 +606,7 @@ export function Booking() {
                 {!loadingSlots && slots.length > 0 && (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-md mx-auto">
                     {slots.map((slot, i) => (
-                      <button key={i} onClick={() => { setSelectedSlot(slot); setStep(5) }}
+                      <button key={i} onClick={() => { setSelectedSlot(slot); setStep(4) }}
                         className={cn(
                           'py-2.5 text-sm border transition-all duration-150 tracking-wider',
                           selectedSlot === slot
@@ -546,33 +618,32 @@ export function Booking() {
                     ))}
                   </div>
                 )}
-                <button onClick={() => setStep(3)}
+                <button onClick={() => setStep(2)}
                   className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
                   <ChevronLeft className="w-3 h-3" /> Volver
                 </button>
               </div>
             )}
 
-            {/* Paso 5: Datos personales */}
-            {step === 5 && (
+            {/* Paso 4: Datos personales */}
+            {step === 4 && (
               <div className="max-w-md mx-auto">
                 <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
                   Tus datos
                 </p>
-                <p className="text-primary text-xs text-center mb-2 tracking-wider">
-                  {selectedService?.name} · {selectedDate}
-                  {selectedSlot && ` · ${formatTime(selectedSlot.start)}`}
-                </p>
-                {selectedOptions.length > 0 && (
-                  <p className="text-muted-foreground text-xs text-center mb-8 tracking-wider">
-                    {selectedOptions.map(o => o.name).join(' · ')}
-                    {' — '}
-                    <span className="text-primary">${optionsPrice.toLocaleString()}</span>
-                  </p>
-                )}
-                {selectedOptions.length === 0 && <div className="mb-8" />}
+                <div className="text-center mb-6 space-y-0.5">
+                  {cart.map(item => (
+                    <p key={item.service.id} className="text-xs tracking-wider">
+                      <span className="text-primary">{item.service.name}</span>
+                      {item.options.length > 0 && (
+                        <span className="text-muted-foreground"> · {item.options.map(o => o.name).join(', ')}</span>
+                      )}
+                    </p>
+                  ))}
+                  <p className="text-muted-foreground text-xs mt-1">{selectedDate}{selectedSlot && ` · ${formatTime(selectedSlot.start)}`} · {totalDuration} min</p>
+                </div>
 
-                <form onSubmit={handleStep5} className="space-y-4">
+                <form onSubmit={handleStep4} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Nombre" value={guestFirstName} onChange={setGuestFirstName} required placeholder="Juan" />
                     <Field label="Apellido" value={guestLastName} onChange={setGuestLastName} required placeholder="Pérez" />
@@ -609,24 +680,24 @@ export function Booking() {
                   <button type="submit" disabled={submitting}
                     className="w-full bg-primary text-primary-foreground py-4 text-[11px] tracking-[0.2em] uppercase
                                hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
-                    {submitting ? 'Confirmando...' : selectedService?.deposit_amount > 0 ? 'Siguiente →' : 'Confirmar Reserva'}
+                    {submitting ? 'Confirmando...' : totalDeposit > 0 ? 'Siguiente →' : 'Confirmar Reserva'}
                   </button>
                 </form>
-                <button onClick={() => setStep(4)}
+                <button onClick={() => setStep(3)}
                   className="mt-6 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
                   <ChevronLeft className="w-3 h-3" /> Volver
                 </button>
               </div>
             )}
 
-            {/* Paso 6: Pago de abono */}
-            {step === 6 && selectedService?.deposit_amount > 0 && (
+            {/* Paso 5: Pago de abono */}
+            {step === 5 && totalDeposit > 0 && (
               <div className="max-w-md mx-auto">
                 <p className="text-muted-foreground text-xs uppercase tracking-[0.2em] text-center mb-2">
                   Pago de abono
                 </p>
                 <p className="text-primary text-xs text-center mb-8 tracking-wider">
-                  {selectedService.name} · {selectedDate}
+                  {cart.map(item => item.service.name).join(' · ')} · {selectedDate}
                   {selectedSlot && ` · ${formatTime(selectedSlot.start)}`}
                 </p>
 
@@ -636,7 +707,7 @@ export function Booking() {
                     <p className="text-foreground text-xs mt-0.5">Transfiere antes de confirmar</p>
                   </div>
                   <span className="text-primary font-medium text-xl">
-                    ${Math.round(selectedService.deposit_amount).toLocaleString('es-CL')}
+                    ${Math.round(totalDeposit).toLocaleString('es-CL')}
                   </span>
                 </div>
 
@@ -680,7 +751,7 @@ Email: studioclaumiranda@gmail.com`}
                   {submitting ? 'Confirmando...' : 'Confirmar Reserva'}
                 </button>
 
-                <button onClick={() => setStep(5)}
+                <button onClick={() => setStep(4)}
                   className="mt-6 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
                   <ChevronLeft className="w-3 h-3" /> Volver
                 </button>

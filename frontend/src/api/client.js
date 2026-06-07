@@ -16,8 +16,10 @@ client.interceptors.request.use((config) => {
 export const getServices      = () => client.get('/services/')
 export const getBarbers       = () => client.get('/barbers/')
 export const getBusinessHours = () => client.get('/business-hours/')
-export const getAvailability  = (date, barberId, serviceId) =>
-  client.get('/availability/', { params: { date, barber_id: barberId, service_id: serviceId } })
+export const getAvailability  = (date, barberId, serviceIds) => {
+  const ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds]
+  return client.get('/availability/', { params: { date, barber_id: barberId, service_ids: ids.join(',') } })
+}
 export const getReviews       = () => client.get('/reviews/')
 
 // ── Auth ────────────────────────────────────────────────────────────────────
