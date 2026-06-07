@@ -80,6 +80,28 @@ class BarberRead(OrmBase):
 
 
 # ---------------------------------------------------------------------------
+# ServiceType
+# ---------------------------------------------------------------------------
+
+class ServiceTypeCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=120)
+    description: str | None = None
+
+
+class ServiceTypeUpdate(BaseModel):
+    name: str | None = Field(None, min_length=2, max_length=120)
+    description: str | None = None
+    is_active: bool | None = None
+
+
+class ServiceTypeRead(OrmBase):
+    id: int
+    name: str
+    description: str | None
+    is_active: bool
+
+
+# ---------------------------------------------------------------------------
 # Service
 # ---------------------------------------------------------------------------
 
@@ -113,6 +135,7 @@ class ServiceCreate(BaseModel):
     has_options: bool = False
     price_from: bool = False
     deposit_amount: float = Field(0, ge=0)
+    service_type_id: int | None = None
 
 
 class ServiceUpdate(BaseModel):
@@ -124,6 +147,7 @@ class ServiceUpdate(BaseModel):
     has_options: bool | None = None
     price_from: bool | None = None
     deposit_amount: float | None = Field(None, ge=0)
+    service_type_id: int | None = None
 
 
 class ServiceRead(OrmBase):
@@ -136,6 +160,8 @@ class ServiceRead(OrmBase):
     has_options: bool
     price_from: bool
     deposit_amount: float = 0.0
+    service_type_id: int | None = None
+    service_type: ServiceTypeRead | None = None
     options: list[ServiceOptionRead] = []
 
 

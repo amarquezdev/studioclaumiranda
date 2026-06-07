@@ -26,6 +26,12 @@ export const login  = (email, password) => client.post('/auth/login',
   { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
 export const getMe  = () => client.get('/auth/me')
 
+// ── Service Types (public + admin) ──────────────────────────────────────────
+export const getServiceTypes          = () => client.get('/service-types/')
+export const adminCreateServiceType   = (data) => client.post('/service-types/', data)
+export const adminUpdateServiceType   = (id, data) => client.patch(`/service-types/${id}`, data)
+export const adminDeleteServiceType   = (id) => client.delete(`/service-types/${id}`)
+
 // ── Admin: Services ─────────────────────────────────────────────────────────
 export const adminGetServices    = () => client.get('/services/?active_only=false')
 export const adminCreateService  = (data) => client.post('/services', data)

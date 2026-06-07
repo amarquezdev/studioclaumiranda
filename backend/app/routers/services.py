@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.dependencies import require_admin
-from app.models import Service, ServiceOption
+from app.models import Service, ServiceOption, ServiceType
 from app.schemas import (
     ServiceCreate, ServiceRead, ServiceUpdate,
     ServiceOptionCreate, ServiceOptionRead, ServiceOptionUpdate,
@@ -17,8 +17,11 @@ router = APIRouter()
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _service_query():
-    """SELECT with options eagerly loaded."""
-    return select(Service).options(selectinload(Service.options))
+    """SELECT with options and service_type eagerly loaded."""
+    return select(Service).options(
+        selectinload(Service.options),
+        selectinload(Service.service_type),
+    )
 
 
 # ── Services ──────────────────────────────────────────────────────────────────

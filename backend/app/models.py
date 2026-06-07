@@ -59,6 +59,17 @@ class Barber(Base):
     appointments: Mapped[list["Appointment"]] = relationship("Appointment", back_populates="barber")
 
 
+class ServiceType(Base):
+    __tablename__ = "service_types"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    services: Mapped[list["Service"]] = relationship("Service", back_populates="service_type")
+
+
 class Service(Base):
     __tablename__ = "services"
 
@@ -71,11 +82,15 @@ class Service(Base):
     has_options: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     price_from: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     deposit_amount: Mapped[float] = mapped_column(Float, default=0, nullable=False, server_default='0')
+    service_type_id: Mapped[int | None] = mapped_column(
+        ForeignKey("service_types.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     appointments: Mapped[list["Appointment"]] = relationship("Appointment", back_populates="service")
     options: Mapped[list["ServiceOption"]] = relationship(
         "ServiceOption", back_populates="service", cascade="all, delete-orphan"
     )
+    service_type: Mapped["ServiceType | None"] = relationship("ServiceType", back_populates="services")
 
 
 class ServiceOption(Base):

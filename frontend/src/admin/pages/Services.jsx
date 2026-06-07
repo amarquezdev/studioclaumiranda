@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   adminGetServices, adminCreateService, adminUpdateService, adminDeleteService,
   adminCreateServiceOption, adminUpdateServiceOption, adminDeleteServiceOption,
+  getServiceTypes, adminCreateServiceType, adminDeleteServiceType,
 } from '../../api/client'
 import ConfirmModal from '../components/ConfirmModal'
 
@@ -10,6 +11,7 @@ import ConfirmModal from '../components/ConfirmModal'
 const EMPTY_FORM = {
   name: '', description: '', duration_minutes: 30,
   price: 0, is_active: true, has_options: false, price_from: false, deposit_amount: 0,
+  service_type_id: null,
 }
 
 const fmtClp = (n) => (!n || n === 0) ? '' : Math.round(Number(n)).toLocaleString('es-CL')
@@ -19,7 +21,7 @@ const parseClp = (str) => {
 }
 const EMPTY_OPTION = { name: '', price: '' }
 
-function ServiceModal({ title, initial, onClose, onSaved }) {
+function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
   const [form, setForm]         = useState(initial)
   const [options, setOptions]   = useState(initial.options || [])
   const [newOpts, setNewOpts]   = useState([])
@@ -73,6 +75,7 @@ function ServiceModal({ title, initial, onClose, onSaved }) {
         has_options: form.has_options,
         price_from: form.price_from,
         deposit_amount: Number(form.deposit_amount) || 0,
+        service_type_id: form.service_type_id ? Number(form.service_type_id) : null,
       }
 
       let serviceId = form.id
@@ -119,6 +122,20 @@ function ServiceModal({ title, initial, onClose, onSaved }) {
             <input required value={form.name} onChange={e => set('name', e.target.value)}
               className={inputBase}
               placeholder="Ej: Corte clásico" />
+          </div>
+
+          <div>
+            <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Tipo de servicio</label>
+            <select
+              value={form.service_type_id ?? ''}
+              onChange={e => set('service_type_id', e.target.value === '' ? null : Number(e.target.value))}
+              className={inputBase}
+            >
+              <option value="">Sin categoría</option>
+              {serviceTypes.filter(t => t.is_active).map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -266,12 +283,29 @@ function ServiceModal({ title, initial, onClose, onSaved }) {
 // ── Page component ─────────────────────────────────────────────────────────
 
 export default function Services() {
-  const [services, setServices] = useState([])
-  const [modal, setModal]       = useState(null)
-  const [confirm, setConfirm]   = useState(null)
+  const [services, setServices]         = useState([])
+  const [serviceTypes, setServiceTypes] = useState([])
+  const [modal, setModal]               = useState(null)
+  const [confirm, setConfirm]           = useState(null)
+  const [newTypeName, setNewTypeName]   = useState('')
+  const [showTypePanel, setShowTypePanel] = useState(false)
 
   const load = () => adminGetServices().then(r => setServices(r.data)).catch(() => {})
-  useEffect(() => { load() }, [])
+  const loadTypes = () => getServiceTypes().then(r => setServiceTypes(r.data)).catch(() => {})
+
+  useEffect(() => { load(); loadTypes() }, [])
+
+  const handleCreateType = async () => {
+    if (!newTypeName.trim()) return
+    await adminCreateServiceType({ name: newTypeName.trim() }).catch(() => {})
+    setNewTypeName('')
+    loadTypes()
+  }
+
+  const handleDeleteType = async (id) => {
+    await adminDeleteServiceType(id).catch(() => {})
+    loadTypes()
+  }
 
   const openCreate = () => setModal({ mode: 'create', data: { ...EMPTY_FORM } })
   const openEdit   = (s)  => setModal({ mode: 'edit',   data: { ...s } })
@@ -293,14 +327,49 @@ export default function Services() {
           <h1 className="text-3xl font-light tracking-wide text-foreground">Servicios</h1>
           <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">{services.length} servicios registrados</p>
         </div>
-        <button onClick={openCreate} className="btn-gold">+ Nuevo servicio</button>
+        <div className="flex gap-3">
+          <button onClick={() => setShowTypePanel(p => !p)}
+            className="px-4 py-2 text-sm border border-border rounded-sm transition-colors hover:border-primary text-muted-foreground">
+            Tipos de servicio
+          </button>
+          <button onClick={openCreate} className="btn-gold">+ Nuevo servicio</button>
+        </div>
       </div>
+
+      {showTypePanel && (
+        <div className="bg-card border border-border rounded-sm p-5 mb-6">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Gestionar tipos de servicio</p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {serviceTypes.map(t => (
+              <span key={t.id} className="flex items-center gap-1.5 text-sm bg-foreground/5 border border-border rounded-sm px-3 py-1">
+                {t.name}
+                <button onClick={() => handleDeleteType(t.id)}
+                  className="text-muted-foreground hover:text-red-400 transition-colors leading-none">&times;</button>
+              </span>
+            ))}
+            {serviceTypes.length === 0 && <span className="text-muted-foreground text-xs">Sin tipos creados</span>}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={newTypeName}
+              onChange={e => setNewTypeName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleCreateType()}
+              placeholder="Nuevo tipo..."
+              className="bg-input border border-border text-foreground px-3 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground"
+            />
+            <button onClick={handleCreateType}
+              className="px-4 py-1.5 text-sm border border-primary text-primary rounded-sm hover:bg-primary/10 transition-colors">
+              Agregar
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              {['Nombre', 'Duración', 'Precio', 'Opciones', 'Estado', 'Acciones'].map(h => (
+              {['Nombre', 'Tipo', 'Duración', 'Precio', 'Opciones', 'Estado', 'Acciones'].map(h => (
                 <th key={h} className="text-left text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
               ))}
             </tr>
@@ -311,6 +380,13 @@ export default function Services() {
                 <td className="px-4 py-3">
                   <p className="text-foreground font-medium">{s.name}</p>
                   {s.description && <p className="text-muted-foreground text-xs mt-0.5 truncate max-w-xs">{s.description}</p>}
+                </td>
+                <td className="px-4 py-3">
+                  {s.service_type ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{s.service_type.name}</span>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{s.duration_minutes} min</td>
                 <td className="px-4 py-3 text-primary font-medium">${s.price.toLocaleString()}</td>
@@ -340,7 +416,7 @@ export default function Services() {
               </tr>
             ))}
             {services.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay servicios registrados</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay servicios registrados</td></tr>
             )}
           </tbody>
         </table>
@@ -350,6 +426,7 @@ export default function Services() {
         <ServiceModal
           title={modal.mode === 'create' ? 'Nuevo servicio' : 'Editar servicio'}
           initial={modal.data}
+          serviceTypes={serviceTypes}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); load() }}
         />
