@@ -2,6 +2,7 @@ import { SiteHeader } from './components/SiteHeader'
 import { Hero } from './components/Hero'
 import { Testimonial } from './components/Testimonial'
 import { Booking } from './components/Booking'
+import BookingSection from './components/BookingSection'
 import { BrandSlider } from './components/BrandSlider'
 import { Gallery } from './components/Gallery'
 import { Footer } from './components/Footer'
@@ -13,6 +14,7 @@ export default function PublicSite() {
       <Hero />
       <Testimonial />
       <Booking />
+      <BookingSection />
       <BrandSlider />
       <Gallery />
       <Footer />

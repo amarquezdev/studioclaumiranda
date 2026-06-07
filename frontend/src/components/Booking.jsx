@@ -112,7 +112,7 @@ export function Booking() {
                   </div>
 
                   <a
-                    href="#"
+                    href="#reservar"
                     className="mt-6 inline-flex items-center justify-center bg-primary px-5 py-3 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
                   >
                     RESERVAR
