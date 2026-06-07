@@ -1,37 +1,75 @@
 import { Scissors, Sparkles, Palette, Droplets } from "lucide-react"
 
-const services = [
+const ICONS = [Scissors, Palette, Droplets, Sparkles]
+
+const FALLBACK_SERVICES = [
   {
-    icon: Scissors,
     name: "Corte & Estilo",
-    desc: "Cortes personalizados y peinados que realzan tu rostro y personalidad.",
-    price: "Desde $45",
-    duration: "60 min",
+    description: "Cortes personalizados y peinados que realzan tu rostro y personalidad.",
+    price: "Desde $14.000",
+    duration: "30 min",
   },
   {
-    icon: Palette,
     name: "Coloración",
-    desc: "Color a medida, balayage y mechas con productos de lujo.",
-    price: "Desde $90",
+    description: "Color a medida, balayage y mechas con productos de lujo.",
+    price: "Desde $30.000",
     duration: "120 min",
   },
   {
-    icon: Droplets,
     name: "Tratamientos",
-    desc: "Hidratación profunda, keratina y rituales reparadores.",
-    price: "Desde $60",
+    description: "Hidratación profunda, keratina y rituales reparadores.",
+    price: "Desde $20.000",
     duration: "75 min",
   },
   {
-    icon: Sparkles,
     name: "Eventos & Novias",
-    desc: "Peinados de ocasión y paquetes especiales para tu gran día.",
-    price: "Desde $120",
+    description: "Peinados de ocasión y paquetes especiales para tu gran día.",
+    price: "Desde $40.000",
     duration: "90 min",
   },
 ]
 
-export function Booking() {
+type ApiService = {
+  id: number
+  name: string
+  description: string | null
+  duration_minutes: number
+  price: number
+  price_from: boolean
+  is_active: boolean
+}
+
+function formatPrice(price: number, priceFrom: boolean): string {
+  const formatted = "$" + Math.round(price).toLocaleString("es-CL")
+  return priceFrom ? `Desde ${formatted}` : formatted
+}
+
+async function getServices() {
+  try {
+    const res = await fetch("https://studioclaumiranda.onrender.com/services/", {
+      next: { revalidate: 300 },
+    })
+    if (!res.ok) return null
+    const data: ApiService[] = await res.json()
+    return data.filter((s) => s.is_active)
+  } catch {
+    return null
+  }
+}
+
+export async function Booking() {
+  const apiServices = await getServices()
+
+  const services = apiServices
+    ? apiServices.map((s, i) => ({
+        icon: ICONS[i % ICONS.length],
+        name: s.name,
+        desc: s.description ?? "",
+        price: formatPrice(s.price, s.price_from),
+        duration: `${s.duration_minutes} min`,
+      }))
+    : FALLBACK_SERVICES.map((s, i) => ({ icon: ICONS[i % ICONS.length], ...s, desc: s.description }))
+
   return (
     <section id="book" className="bg-background">
       <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">

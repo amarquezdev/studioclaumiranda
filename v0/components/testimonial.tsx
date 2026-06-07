@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Star, ArrowLeft, ArrowRight } from "lucide-react"
 
-const reviews = [
+const FALLBACK_REVIEWS = [
   {
     quote:
       "Es la segunda vez que vamos con mi hija y 100% recomendada. Una mujer muy amable y admirable; sobre todo una excelente profesional, seca en lo que hace.",
@@ -20,17 +20,35 @@ const reviews = [
     name: "MARÍA ISABEL FUENTES",
   },
   {
-    quote:
-      "Excelente. Buena conversación, productos de calidad, una atención 10/10.",
+    quote: "Excelente. Buena conversación, productos de calidad, una atención 10/10.",
     name: "CATALINA ASTORGA",
   },
 ]
 
 export function Testimonial() {
+  const [reviews, setReviews] = useState(FALLBACK_REVIEWS)
+  const [rating, setRating] = useState({ overall: 5.0, total: 48 })
   const [index, setIndex] = useState(0)
 
-  const next = useCallback(() => setIndex((i) => (i + 1) % reviews.length), [])
-  const prev = useCallback(() => setIndex((i) => (i - 1 + reviews.length) % reviews.length), [])
+  useEffect(() => {
+    fetch("/api/reviews/")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.reviews?.length) {
+          setReviews(
+            data.reviews.map((r: { text: string; author_name: string }) => ({
+              quote: r.text,
+              name: r.author_name.toUpperCase(),
+            }))
+          )
+          setRating({ overall: data.overall_rating, total: data.total_ratings })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const next = useCallback(() => setIndex((i) => (i + 1) % reviews.length), [reviews.length])
+  const prev = useCallback(() => setIndex((i) => (i - 1 + reviews.length) % reviews.length), [reviews.length])
 
   useEffect(() => {
     const id = setInterval(next, 5000)
@@ -53,7 +71,8 @@ export function Testimonial() {
             ))}
           </div>
           <p className="text-sm text-foreground/70">
-            <span className="font-medium text-foreground">5.0</span> basado en 48 reseñas de Google
+            <span className="font-medium text-foreground">{rating.overall.toFixed(1)}</span>{" "}
+            basado en {rating.total} reseñas de Google
           </p>
         </div>
 
