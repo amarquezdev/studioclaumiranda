@@ -415,28 +415,28 @@ export function Booking() {
         />
       )}
 
-      <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
+      <div className="mx-auto max-w-7xl px-6 py-16 md:px-10 md:py-32">
 
         {/* ── Paso 1: selección de servicios con carrito ── */}
         {step === 1 && (
           <>
-            <div className="mb-14 text-center">
+            <div className="mb-8 md:mb-14 text-center">
               <p className="text-[11px] tracking-[0.3em] text-foreground/50">RESERVA</p>
-              <h2 className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl text-balance">
+              <h2 className="mt-4 font-serif text-3xl md:text-5xl italic text-foreground text-balance">
                 Elige tus Servicios
               </h2>
-              <p className="mt-3 text-muted-foreground text-sm">Puedes seleccionar uno o varios</p>
+              <p className="mt-2 text-muted-foreground text-sm">Puedes seleccionar uno o varios</p>
             </div>
 
             {error && <p className="text-red-400 text-sm text-center mb-8">{error}</p>}
 
             {/* Filtro por tipo */}
             {!loadingInit && serviceTypes.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 mb-10">
+              <div className="flex gap-2 mb-6 md:mb-10 overflow-x-auto pb-1 -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap md:justify-center md:overflow-visible scrollbar-hide">
                 <button
                   onClick={() => setActiveType(null)}
                   className={cn(
-                    'px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
+                    'shrink-0 px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
                     activeType === null
                       ? 'bg-primary border-primary text-primary-foreground'
                       : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
@@ -446,7 +446,7 @@ export function Booking() {
                 {serviceTypes.map(t => (
                   <button key={t.id} onClick={() => setActiveType(t.id)}
                     className={cn(
-                      'px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
+                      'shrink-0 px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
                       activeType === t.id
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
@@ -457,9 +457,9 @@ export function Booking() {
               </div>
             )}
 
-            {/* Carrito resumen */}
+            {/* Carrito resumen — solo desktop */}
             {cart.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mb-8 px-4 py-3 bg-card border border-primary/30">
+              <div className="hidden md:flex flex-wrap items-center gap-2 mb-8 px-4 py-3 bg-card border border-primary/30">
                 <span className="text-muted-foreground text-[11px] uppercase tracking-wider mr-1">Seleccionados:</span>
                 {cart.map(item => (
                   <span key={item.service.id} className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary border border-primary/30 px-3 py-1.5">
@@ -477,70 +477,143 @@ export function Booking() {
               </div>
             )}
 
-            {/* Grid de servicios */}
+            {/* ── Lista mobile / grid desktop ── */}
             {loadingInit ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex flex-col border border-border bg-card px-8 py-12 animate-pulse">
-                    <div className="size-7 rounded bg-muted" />
-                    <div className="mt-6 h-6 w-3/4 rounded bg-muted" />
-                    <div className="mt-3 flex-1 space-y-2">
-                      <div className="h-3 rounded bg-muted" />
-                      <div className="h-3 w-5/6 rounded bg-muted" />
+              <>
+                {/* Skeleton mobile */}
+                <div className="md:hidden border border-border divide-y divide-border">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-4 animate-pulse">
+                      <div className="w-8 h-8 rounded bg-muted shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3.5 w-1/2 rounded bg-muted" />
+                        <div className="h-3 w-3/4 rounded bg-muted" />
+                      </div>
+                      <div className="w-14 space-y-1.5 text-right">
+                        <div className="h-3.5 rounded bg-muted" />
+                        <div className="h-3 rounded bg-muted" />
+                      </div>
                     </div>
-                    <div className="mt-6 h-10 rounded bg-muted" />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {/* Skeleton desktop */}
+                <div className="hidden md:grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex flex-col border border-border bg-card px-8 py-12 animate-pulse">
+                      <div className="size-7 rounded bg-muted" />
+                      <div className="mt-6 h-6 w-3/4 rounded bg-muted" />
+                      <div className="mt-3 flex-1 space-y-2">
+                        <div className="h-3 rounded bg-muted" />
+                        <div className="h-3 w-5/6 rounded bg-muted" />
+                      </div>
+                      <div className="mt-6 h-10 rounded bg-muted" />
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {services
-                  .filter(s => activeType === null || s.service_type_id === activeType)
-                  .map((s, i) => {
-                    const Icon    = SERVICE_ICONS[i % SERVICE_ICONS.length]
-                    const inCart  = cartHasService(s.id)
-                    return (
-                      <button key={s.id} onClick={() => handleServiceClick(s)}
-                        className={cn(
-                          'group flex flex-col border bg-card px-8 py-12 text-left transition-colors relative',
-                          inCart
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:bg-accent hover:border-primary/60'
-                        )}>
-                        {inCart && (
-                          <div className="absolute top-3 right-3 w-6 h-6 bg-primary flex items-center justify-center">
-                            <Check className="w-3.5 h-3.5 text-primary-foreground" />
+              <>
+                {/* ── Mobile: lista compacta ── */}
+                <div className={cn('md:hidden border border-border divide-y divide-border', cart.length > 0 && 'mb-24')}>
+                  {services
+                    .filter(s => activeType === null || s.service_type_id === activeType)
+                    .map((s, i) => {
+                      const Icon   = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                      const inCart = cartHasService(s.id)
+                      return (
+                        <button key={s.id} onClick={() => handleServiceClick(s)}
+                          className={cn(
+                            'w-full flex items-center gap-3 px-4 py-4 text-left transition-colors active:bg-primary/10',
+                            inCart ? 'bg-primary/5' : 'bg-card'
+                          )}>
+                          <div className={cn(
+                            'w-8 h-8 border flex items-center justify-center shrink-0 transition-colors',
+                            inCart ? 'bg-primary border-primary' : 'border-border'
+                          )}>
+                            {inCart
+                              ? <Check className="w-4 h-4 text-primary-foreground" />
+                              : <Icon className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+                            }
                           </div>
-                        )}
-                        <Icon className={cn('size-7', inCart ? 'text-primary' : 'text-foreground/80')} strokeWidth={1.25} />
-                        <h3 className={cn(
-                          'mt-6 font-serif text-2xl transition-colors',
-                          inCart ? 'text-primary' : 'text-foreground group-hover:text-primary'
-                        )}>
-                          {s.name}
-                        </h3>
-                        <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
-                        <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
-                          <span>
-                            {s.price_from && <span className="mr-0.5">Desde </span>}
-                            ${s.price.toLocaleString('es-CL')}
-                          </span>
-                          <span>{s.duration_minutes} min</span>
-                        </div>
-                      </button>
-                    )
-                  })}
-              </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn('text-sm font-medium leading-tight', inCart ? 'text-primary' : 'text-foreground')}>
+                              {s.name}
+                            </p>
+                            {s.description && (
+                              <p className="text-muted-foreground text-xs mt-0.5 truncate">{s.description}</p>
+                            )}
+                          </div>
+                          <div className="text-right shrink-0 ml-2">
+                            <p className={cn('text-sm font-medium', inCart ? 'text-primary' : 'text-foreground')}>
+                              {s.price_from && <span className="text-xs font-normal">Desde </span>}
+                              ${s.price.toLocaleString('es-CL')}
+                            </p>
+                            <p className="text-muted-foreground text-xs">{s.duration_minutes} min</p>
+                          </div>
+                        </button>
+                      )
+                    })}
+                </div>
+
+                {/* ── Desktop: grid de cards ── */}
+                <div className="hidden md:grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  {services
+                    .filter(s => activeType === null || s.service_type_id === activeType)
+                    .map((s, i) => {
+                      const Icon   = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                      const inCart = cartHasService(s.id)
+                      return (
+                        <button key={s.id} onClick={() => handleServiceClick(s)}
+                          className={cn(
+                            'group flex flex-col border bg-card px-8 py-12 text-left transition-colors relative',
+                            inCart ? 'border-primary bg-primary/5' : 'border-border hover:bg-accent hover:border-primary/60'
+                          )}>
+                          {inCart && (
+                            <div className="absolute top-3 right-3 w-6 h-6 bg-primary flex items-center justify-center">
+                              <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                            </div>
+                          )}
+                          <Icon className={cn('size-7', inCart ? 'text-primary' : 'text-foreground/80')} strokeWidth={1.25} />
+                          <h3 className={cn('mt-6 font-serif text-2xl transition-colors', inCart ? 'text-primary' : 'text-foreground group-hover:text-primary')}>
+                            {s.name}
+                          </h3>
+                          <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
+                          <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
+                            <span>
+                              {s.price_from && <span className="mr-0.5">Desde </span>}
+                              ${s.price.toLocaleString('es-CL')}
+                            </span>
+                            <span>{s.duration_minutes} min</span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                </div>
+              </>
             )}
 
-            {/* Botón continuar */}
+            {/* ── Botón continuar: sticky en mobile, centrado en desktop ── */}
             {cart.length > 0 && (
-              <div className="mt-12 text-center">
-                <button onClick={() => setStep(2)}
-                  className="bg-primary text-primary-foreground px-12 py-4 text-[11px] tracking-[0.2em] uppercase hover:opacity-90 transition-opacity">
-                  Continuar con {cart.length} servicio{cart.length > 1 ? 's' : ''} · {totalDuration} min
-                </button>
-              </div>
+              <>
+                {/* Mobile sticky */}
+                <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border p-4">
+                  <button onClick={() => setStep(2)}
+                    className="w-full bg-primary text-primary-foreground py-4 text-[11px] tracking-[0.2em] uppercase hover:opacity-90 transition-opacity flex items-center justify-center gap-3">
+                    <span>Continuar</span>
+                    <span className="opacity-70">·</span>
+                    <span>{cart.length} servicio{cart.length > 1 ? 's' : ''}</span>
+                    <span className="opacity-70">·</span>
+                    <span>{totalDuration} min</span>
+                  </button>
+                </div>
+                {/* Desktop */}
+                <div className="hidden md:block mt-12 text-center">
+                  <button onClick={() => setStep(2)}
+                    className="bg-primary text-primary-foreground px-12 py-4 text-[11px] tracking-[0.2em] uppercase hover:opacity-90 transition-opacity">
+                    Continuar con {cart.length} servicio{cart.length > 1 ? 's' : ''} · {totalDuration} min
+                  </button>
+                </div>
+              </>
             )}
           </>
         )}
