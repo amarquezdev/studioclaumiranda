@@ -4,44 +4,47 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── Warm gold (matches public site primary oklch(0.78 0.07 75)) ────
-        gold: {
-          DEFAULT: '#D4B98A',
-          light:   '#DFC99E',
-          dark:    '#BFA070',
-        },
-        // ── Dark editorial surfaces ──────────────────────────────────────
-        dark: {
-          DEFAULT: '#1C1813',
-          card:    '#221E1A',
-          border:  '#3C3830',
-        },
-        // ── Semantic tokens — hex values so opacity modifiers work in Tailwind v3
-        background:  '#1C1813',
-        foreground:  '#F2EFE9',
+        // ── Semantic tokens — hex equivalents of oklch values for opacity support
+        background:  '#F6F3EE',
+        foreground:  '#342D1E',
         primary: {
-          DEFAULT:    '#D4B98A',
-          foreground: '#1C1813',
+          DEFAULT:    '#2E2618',
+          foreground: '#F6F3EE',
         },
         secondary: {
-          DEFAULT:    '#2E2A25',
-          foreground: '#F2EFE9',
+          DEFAULT:    '#E3D7C2',
+          foreground: '#342D1E',
         },
         muted: {
-          DEFAULT:    '#2E2A25',
-          foreground: '#A09890',
+          DEFAULT:    '#ECE8DA',
+          foreground: '#88796A',
+        },
+        accent: {
+          DEFAULT:    '#D8C9A6',
+          foreground: '#342D1E',
         },
         card: {
-          DEFAULT:    '#221E1A',
-          foreground: '#F2EFE9',
+          DEFAULT:    '#FDFCF9',
+          foreground: '#342D1E',
         },
-        border:  '#3C3830',
-        input:   '#2E2A25',
-        ring:    '#D4B98A',
+        border:  '#CFBFA7',
+        input:   '#CFBFA7',
+        ring:    '#88796A',
+        // ── Legacy aliases (kept for any direct usage in components)
+        gold: {
+          DEFAULT: '#2E2618',
+          light:   '#6B6050',
+          dark:    '#1C1813',
+        },
+        dark: {
+          DEFAULT: '#2E2618',
+          card:    '#FDFCF9',
+          border:  '#CFBFA7',
+        },
       },
       fontFamily: {
         serif: ['Cormorant Garamond', 'Georgia', 'serif'],
-        sans:  ['Inter', 'system-ui', 'sans-serif'],
+        sans:  ['Jost', 'system-ui', 'sans-serif'],
       },
     },
   },

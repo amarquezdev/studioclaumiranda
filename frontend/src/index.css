@@ -1,61 +1,60 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Dark editorial tokens (matches public site) ──────────────────────────── */
+/* ── Light editorial tokens (matches public site Evnia theme) ─────────────── */
 :root {
-  --background:            #1C1813;
-  --foreground:            #F2EFE9;
-  --card:                  #221E1A;
-  --card-foreground:       #F2EFE9;
-  --primary:               #D4B98A;
-  --primary-foreground:    #1C1813;
-  --secondary:             #2E2A25;
-  --secondary-foreground:  #F2EFE9;
-  --muted:                 #2E2A25;
-  --muted-foreground:      #A09890;
-  --border:                #3C3830;
-  --input:                 #2E2A25;
-  --ring:                  #D4B98A;
+  --background:            oklch(0.97 0.006 85);
+  --foreground:            oklch(0.28 0.008 60);
+  --card:                  oklch(0.985 0.004 85);
+  --card-foreground:       oklch(0.28 0.008 60);
+  --primary:               oklch(0.26 0.006 60);
+  --primary-foreground:    oklch(0.97 0.006 85);
+  --secondary:             oklch(0.88 0.01 75);
+  --secondary-foreground:  oklch(0.28 0.008 60);
+  --muted:                 oklch(0.91 0.008 80);
+  --muted-foreground:      oklch(0.52 0.008 65);
+  --accent:                oklch(0.85 0.012 70);
+  --accent-foreground:     oklch(0.28 0.008 60);
+  --border:                oklch(0.82 0.01 75);
+  --input:                 oklch(0.82 0.01 75);
+  --ring:                  oklch(0.52 0.008 65);
   --radius:                0rem;
 }
 
 @layer base {
   html { scroll-behavior: smooth; }
   body {
-    background-color: #1C1813;
-    color: #F2EFE9;
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    background-color: oklch(0.97 0.006 85);
+    color: oklch(0.28 0.008 60);
+    font-family: 'Jost', system-ui, sans-serif;
   }
 }
 
 @layer components {
-  /* ── Shared button styles (public + admin) ─────────────────────────────── */
+  /* ── Shared button styles ──────────────────────────────────────────────── */
   .btn-gold {
     @apply bg-primary text-primary-foreground font-medium px-6 py-3 rounded-sm
            hover:opacity-90 transition-all duration-200 tracking-wide text-sm;
   }
   .btn-outline {
-    @apply border border-gold text-gold font-medium px-6 py-3 rounded-sm
-           hover:bg-gold hover:text-white transition-colors duration-200 tracking-wide text-sm;
+    @apply border border-primary text-primary font-medium px-6 py-3 rounded-sm
+           hover:bg-primary hover:text-primary-foreground transition-colors duration-200 tracking-wide text-sm;
   }
   .section-title {
     @apply text-3xl md:text-4xl font-light tracking-wide mb-2;
     font-family: 'Cormorant Garamond', Georgia, serif;
-    color: #F2EFE9;
   }
   .section-subtitle {
     @apply text-sm tracking-widest uppercase mb-10;
-    color: #A09890;
+    color: oklch(0.52 0.008 65);
   }
   .card-dark {
-    @apply bg-dark-card border border-dark-border rounded-sm p-5
-           hover:border-gold transition-colors duration-200 cursor-pointer;
+    @apply bg-card border border-border rounded-sm p-5
+           hover:border-primary transition-colors duration-200 cursor-pointer;
   }
   .card-selected {
-    @apply border-gold bg-gold/5;
+    @apply border-primary bg-primary/5;
   }
 }
 
@@ -65,4 +64,7 @@ h1, h2, h3, h4 {
 }
 
 /* Select option colors */
-select option { background-color: #221E1A; color: #F2EFE9; }
+select option {
+  background-color: oklch(0.985 0.004 85);
+  color: oklch(0.28 0.008 60);
+}
