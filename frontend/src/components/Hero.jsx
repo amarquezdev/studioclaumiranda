@@ -3,7 +3,13 @@ export function Hero() {
     <section className="relative h-screen min-h-[640px] w-full">
       {/* Three columns spanning full height */}
       <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3">
-        <div className="hidden bg-secondary md:block" aria-hidden="true" />
+        <div className="relative hidden h-full w-full md:block" aria-hidden="true">
+          <img
+            src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?fm=jpg&q=80&w=800&auto=format&fit=crop"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
         <div className="relative h-full w-full">
           <img
             src="https://images.unsplash.com/photo-1779400203057-23f445b63fc1?fm=jpg&q=80&w=1600&auto=format&fit=crop"
@@ -11,7 +17,13 @@ export function Hero() {
             className="absolute inset-x-0 top-0 h-[calc(100%+2.5rem)] w-full object-cover object-top"
           />
         </div>
-        <div className="hidden bg-muted md:block" aria-hidden="true" />
+        <div className="relative hidden h-full w-full md:block" aria-hidden="true">
+          <img
+            src="https://images.unsplash.com/photo-1521194263619-39ecc5b55c61?fm=jpg&q=80&w=800&auto=format&fit=crop"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
       </div>
 
       {/* Headline overlay */}
