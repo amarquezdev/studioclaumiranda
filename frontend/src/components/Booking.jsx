@@ -36,12 +36,11 @@ function formatPrice(price, priceFrom) {
 }
 
 export function Booking() {
-  const [services, setServices] = useState(
-    FALLBACK_SERVICES.map((s, i) => ({ icon: ICONS[i % ICONS.length], ...s, desc: s.description }))
-  )
+  const [services, setServices] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/services/?active_only=true')
+    fetch('/api/services?active_only=true')
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -56,9 +55,18 @@ export function Booking() {
                 duration: `${s.duration_minutes} min`,
               }))
           )
+        } else {
+          setServices(
+            FALLBACK_SERVICES.map((s, i) => ({ icon: ICONS[i % ICONS.length], ...s, desc: s.description }))
+          )
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        setServices(
+          FALLBACK_SERVICES.map((s, i) => ({ icon: ICONS[i % ICONS.length], ...s, desc: s.description }))
+        )
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   return (
@@ -71,33 +79,49 @@ export function Booking() {
           </h2>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {services.map((s) => {
-            const Icon = s.icon
-            return (
-              <div
-                key={s.name}
-                className="group flex flex-col border border-border bg-card p-8 transition-colors hover:bg-accent"
-              >
-                <Icon className="size-7 text-foreground/80" strokeWidth={1.25} />
-                <h3 className="mt-6 font-serif text-2xl text-foreground">{s.name}</h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
-
-                <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
-                  <span>{s.price}</span>
-                  <span>{s.duration}</span>
+        {loading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex flex-col border border-border bg-card p-8 animate-pulse">
+                <div className="size-7 rounded bg-muted" />
+                <div className="mt-6 h-6 w-3/4 rounded bg-muted" />
+                <div className="mt-3 flex-1 space-y-2">
+                  <div className="h-3 rounded bg-muted" />
+                  <div className="h-3 w-5/6 rounded bg-muted" />
                 </div>
-
-                <a
-                  href="#"
-                  className="mt-6 inline-flex items-center justify-center bg-primary px-5 py-3 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
-                >
-                  RESERVAR
-                </a>
+                <div className="mt-6 h-10 rounded bg-muted" />
               </div>
-            )
-          })}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {services.map((s) => {
+              const Icon = s.icon
+              return (
+                <div
+                  key={s.name}
+                  className="group flex flex-col border border-border bg-card p-8 transition-colors hover:bg-accent"
+                >
+                  <Icon className="size-7 text-foreground/80" strokeWidth={1.25} />
+                  <h3 className="mt-6 font-serif text-2xl text-foreground">{s.name}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
+
+                  <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
+                    <span>{s.price}</span>
+                    <span>{s.duration}</span>
+                  </div>
+
+                  <a
+                    href="#"
+                    className="mt-6 inline-flex items-center justify-center bg-primary px-5 py-3 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
+                  >
+                    RESERVAR
+                  </a>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </section>
   )
