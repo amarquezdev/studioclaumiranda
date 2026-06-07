@@ -6,8 +6,8 @@ export function Hero() {
         <div className="hidden bg-secondary md:block" aria-hidden="true" />
         <div className="relative h-full w-full">
           <img
-            src="/hero.png"
-            alt="Woman with voluminous blonde hair wearing sunglasses and a camel coat"
+            src="https://images.unsplash.com/photo-1779400203057-23f445b63fc1?fm=jpg&q=80&w=1600&auto=format&fit=crop"
+            alt="Joven con vestido negro y cabello en movimiento"
             className="absolute inset-x-0 top-0 h-[calc(100%+2.5rem)] w-full object-cover object-top"
           />
         </div>
@@ -30,7 +30,7 @@ export function Hero() {
           href="#book"
           className="inline-flex items-center bg-primary px-7 py-3.5 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
         >
-          BOOK APPOINTMENT
+          RESERVAR CITA
         </a>
       </div>
     </section>
