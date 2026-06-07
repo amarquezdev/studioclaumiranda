@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Star, ArrowLeft, ArrowRight } from 'lucide-react'
+import { getReviews } from '../api/client'
 
 const FALLBACK_REVIEWS = [
   {
@@ -29,9 +30,8 @@ export function Testimonial() {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
-    fetch('/api/reviews/')
-      .then((r) => r.json())
-      .then((data) => {
+    getReviews()
+      .then(({ data }) => {
         if (data.reviews?.length) {
           setReviews(
             data.reviews.map((r) => ({
