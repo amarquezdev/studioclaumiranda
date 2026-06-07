@@ -41,8 +41,9 @@ function NewAppointmentModal({ onClose, onCreated }) {
     barber_id: '', service_id: '', date: '', slot: null, notes: '',
   })
   const [selectedOptions, setSelectedOptions] = useState([])
-  const [saving, setSaving]     = useState(false)
-  const [error, setError]       = useState('')
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState('')
+  const [loadError, setLoadError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({
     name: '', email: '', barber_id: '', service_id: '', date: '', slot: '',
   })
@@ -99,6 +100,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
   useEffect(() => {
     Promise.all([adminGetBarbers(), adminGetServices()])
       .then(([b, s]) => { setBarbers(b.data); setServices(s.data) })
+      .catch(() => setLoadError('No se pudieron cargar estilistas y servicios. Recarga la página.'))
   }, [])
 
   useEffect(() => {
@@ -170,6 +172,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          {loadError && <div className="border border-red-400/40 text-red-500 text-xs px-3 py-2 rounded-sm bg-red-50">{loadError}</div>}
           {error && <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">{error}</div>}
 
           <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Datos del cliente</p>
