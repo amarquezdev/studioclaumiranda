@@ -6,6 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
       {
