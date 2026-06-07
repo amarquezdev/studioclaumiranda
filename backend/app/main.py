@@ -27,7 +27,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.ALLOWED_ORIGINS.split(",")],
-    allow_origin_regex=r"https://studioclaumiranda.*\.vercel\.app",
+    allow_origin_regex=r"https://(studioclaumiranda\.cl|www\.studioclaumiranda\.cl|studioclaumiranda.*\.vercel\.app)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
