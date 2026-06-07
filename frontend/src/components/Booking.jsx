@@ -1,74 +1,65 @@
-import { Scissors, Sparkles, Palette, Droplets } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { Scissors, Sparkles, Palette, Droplets } from 'lucide-react'
 
 const ICONS = [Scissors, Palette, Droplets, Sparkles]
 
 const FALLBACK_SERVICES = [
   {
-    name: "Corte & Estilo",
-    description: "Cortes personalizados y peinados que realzan tu rostro y personalidad.",
-    price: "Desde $14.000",
-    duration: "30 min",
+    name: 'Corte & Estilo',
+    description: 'Cortes personalizados y peinados que realzan tu rostro y personalidad.',
+    price: 'Desde $14.000',
+    duration: '30 min',
   },
   {
-    name: "Coloración",
-    description: "Color a medida, balayage y mechas con productos de lujo.",
-    price: "Desde $30.000",
-    duration: "120 min",
+    name: 'Coloración',
+    description: 'Color a medida, balayage y mechas con productos de lujo.',
+    price: 'Desde $30.000',
+    duration: '120 min',
   },
   {
-    name: "Tratamientos",
-    description: "Hidratación profunda, keratina y rituales reparadores.",
-    price: "Desde $20.000",
-    duration: "75 min",
+    name: 'Tratamientos',
+    description: 'Hidratación profunda, keratina y rituales reparadores.',
+    price: 'Desde $20.000',
+    duration: '75 min',
   },
   {
-    name: "Eventos & Novias",
-    description: "Peinados de ocasión y paquetes especiales para tu gran día.",
-    price: "Desde $40.000",
-    duration: "90 min",
+    name: 'Eventos & Novias',
+    description: 'Peinados de ocasión y paquetes especiales para tu gran día.',
+    price: 'Desde $40.000',
+    duration: '90 min',
   },
 ]
 
-type ApiService = {
-  id: number
-  name: string
-  description: string | null
-  duration_minutes: number
-  price: number
-  price_from: boolean
-  is_active: boolean
-}
-
-function formatPrice(price: number, priceFrom: boolean): string {
-  const formatted = "$" + Math.round(price).toLocaleString("es-CL")
+function formatPrice(price, priceFrom) {
+  const formatted = '$' + Math.round(price).toLocaleString('es-CL')
   return priceFrom ? `Desde ${formatted}` : formatted
 }
 
-async function getServices() {
-  try {
-    const res = await fetch("https://studioclaumiranda.onrender.com/services/", {
-      next: { revalidate: 300 },
-    })
-    if (!res.ok) return null
-    const data: ApiService[] = await res.json()
-    return data.filter((s) => s.is_active)
-  } catch {
-    return null
-  }
-}
+export function Booking() {
+  const [services, setServices] = useState(
+    FALLBACK_SERVICES.map((s, i) => ({ icon: ICONS[i % ICONS.length], ...s, desc: s.description }))
+  )
 
-export async function Booking() {
-  const apiServices = await getServices()
-
-  const services = apiServices
-    ? apiServices.map((s, i) => ({
-        icon: ICONS[i % ICONS.length],
-        name: s.name,
-        desc: s.description ?? "",
-        price: formatPrice(s.price, s.price_from),
-        duration: `${s.duration_minutes} min`,
-      }))
-    : FALLBACK_SERVICES.map((s, i) => ({ icon: ICONS[i % ICONS.length], ...s, desc: s.description }))
+  useEffect(() => {
+    fetch('/api/services/?active_only=true')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setServices(
+            data
+              .filter((s) => s.is_active)
+              .map((s, i) => ({
+                icon: ICONS[i % ICONS.length],
+                name: s.name,
+                desc: s.description ?? '',
+                price: formatPrice(s.price, s.price_from),
+                duration: `${s.duration_minutes} min`,
+              }))
+          )
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <section id="book" className="bg-background">

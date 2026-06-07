@@ -1,10 +1,8 @@
-"use client"
+import { useState } from 'react'
+import { Menu, X } from 'lucide-react'
 
-import { useState } from "react"
-import { Menu, X } from "lucide-react"
-
-const leftLinks = ["ABOUT", "SERVICES", "GALLERY"]
-const rightLinks = ["PRODUCTS", "BLOG", "CONTACT"]
+const leftLinks = ['ABOUT', 'SERVICES', 'GALLERY']
+const rightLinks = ['PRODUCTS', 'BLOG', 'CONTACT']
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)

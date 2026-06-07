@@ -1,27 +1,25 @@
-"use client"
-
-import { useState, useEffect, useCallback } from "react"
-import { Star, ArrowLeft, ArrowRight } from "lucide-react"
+import { useState, useEffect, useCallback } from 'react'
+import { Star, ArrowLeft, ArrowRight } from 'lucide-react'
 
 const FALLBACK_REVIEWS = [
   {
     quote:
-      "Es la segunda vez que vamos con mi hija y 100% recomendada. Una mujer muy amable y admirable; sobre todo una excelente profesional, seca en lo que hace.",
-    name: "IRIS FLORES",
+      'Es la segunda vez que vamos con mi hija y 100% recomendada. Una mujer muy amable y admirable; sobre todo una excelente profesional, seca en lo que hace.',
+    name: 'IRIS FLORES',
   },
   {
     quote:
-      "Quedé más que feliz con mi corte. Con la atención que entrega es amable y es seca como peluquera. 100% la recomiendo. Nunca salí feliz de una peluquería hasta hoy.",
-    name: "SOLANGE CONCHA",
+      'Quedé más que feliz con mi corte. Con la atención que entrega es amable y es seca como peluquera. 100% la recomiendo. Nunca salí feliz de una peluquería hasta hoy.',
+    name: 'SOLANGE CONCHA',
   },
   {
     quote:
-      "Excelente atención. Hace tiempo que me atiendo con la señora Claudia y es muy linda persona y su trabajo lo hace excelente.",
-    name: "MARÍA ISABEL FUENTES",
+      'Excelente atención. Hace tiempo que me atiendo con la señora Claudia y es muy linda persona y su trabajo lo hace excelente.',
+    name: 'MARÍA ISABEL FUENTES',
   },
   {
-    quote: "Excelente. Buena conversación, productos de calidad, una atención 10/10.",
-    name: "CATALINA ASTORGA",
+    quote: 'Excelente. Buena conversación, productos de calidad, una atención 10/10.',
+    name: 'CATALINA ASTORGA',
   },
 ]
 
@@ -31,12 +29,12 @@ export function Testimonial() {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
-    fetch("/api/reviews/")
+    fetch('/api/reviews/')
       .then((r) => r.json())
       .then((data) => {
         if (data.reviews?.length) {
           setReviews(
-            data.reviews.map((r: { text: string; author_name: string }) => ({
+            data.reviews.map((r) => ({
               quote: r.text,
               name: r.author_name.toUpperCase(),
             }))
@@ -71,7 +69,7 @@ export function Testimonial() {
             ))}
           </div>
           <p className="text-sm text-foreground/70">
-            <span className="font-medium text-foreground">{rating.overall.toFixed(1)}</span>{" "}
+            <span className="font-medium text-foreground">{rating.overall.toFixed(1)}</span>{' '}
             basado en {rating.total} reseñas de Google
           </p>
         </div>
@@ -102,7 +100,7 @@ export function Testimonial() {
                   onClick={() => setIndex(i)}
                   aria-label={`Ir a la reseña ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all ${
-                    i === index ? "w-6 bg-foreground" : "w-1.5 bg-foreground/30"
+                    i === index ? 'w-6 bg-foreground' : 'w-1.5 bg-foreground/30'
                   }`}
                 />
               ))}

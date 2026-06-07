@@ -1,19 +1,21 @@
-import Navbar from './components/Navbar'
-import SageLanding from './components/SageLanding'
-import BookingSection from './components/BookingSection'
-import Reviews from './components/Reviews'
-import Footer from './components/Footer'
-import WhatsAppButton from './components/WhatsAppButton'
+import { SiteHeader } from './components/SiteHeader'
+import { Hero } from './components/Hero'
+import { Testimonial } from './components/Testimonial'
+import { Booking } from './components/Booking'
+import { BrandSlider } from './components/BrandSlider'
+import { Gallery } from './components/Gallery'
+import { Footer } from './components/Footer'
 
 export default function PublicSite() {
   return (
-    <div className="min-h-screen bg-background font-serif">
-      <Navbar />
-      <SageLanding />
-      <BookingSection />
-      <Reviews />
+    <main className="bg-background">
+      <SiteHeader />
+      <Hero />
+      <Testimonial />
+      <Booking />
+      <BrandSlider />
+      <Gallery />
       <Footer />
-      <WhatsAppButton />
-    </div>
+    </main>
   )
 }

@@ -1,40 +1,30 @@
-const images = [
-  { id: 'barber1', alt: 'Corte clásico' },
-  { id: 'barber2', alt: 'Fade moderno' },
-  { id: 'barber3', alt: 'Barba perfilada' },
-  { id: 'barber4', alt: 'Ambiente de la barbería' },
-  { id: 'barber5', alt: 'Herramientas profesionales' },
-  { id: 'barber6', alt: 'Resultado final' },
+const items = [
+  { img: '/sq-1.png', alt: 'Woman with sleek styled blonde hair' },
+  { img: '/sq-2.png', alt: 'Luxury salon interior with chair and mirror' },
+  { img: '/sq-3.png', alt: 'Premium hair care products in amber bottles' },
+  { img: '/sq-4.png', alt: 'Woman receiving a luxury hair treatment' },
 ]
 
-export default function Gallery() {
+export function Gallery() {
   return (
-    <section id="galeria" className="py-24 px-6 bg-[#0a0a0a]">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-14">
-          <p className="section-subtitle">Nuestro trabajo</p>
-          <h2 className="section-title">Galería</h2>
-          <div className="w-12 h-0.5 bg-gold mx-auto mt-4" />
+    <section className="bg-background">
+      <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
+        <div className="mb-12 text-center">
+          <p className="text-[11px] tracking-[0.3em] text-foreground/50">GALERÍA</p>
+          <h2 className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl text-balance">
+            Nuestro Trabajo
+          </h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {images.map((img, i) => (
-            <div key={i} className="relative overflow-hidden aspect-[4/3] group">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+          {items.map((item, i) => (
+            <a key={i} href="#" className="group block overflow-hidden">
               <img
-                src={`https://picsum.photos/seed/${img.id}/600/450`}
-                alt={img.alt}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                loading="lazy"
+                src={item.img}
+                alt={item.alt}
+                className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
-                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm tracking-widest uppercase font-medium">
-                  {img.alt}
-                </span>
-              </div>
-              {/* Gold corner accent */}
-              <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-gold opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-gold opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
+            </a>
           ))}
         </div>
       </div>
