@@ -331,7 +331,7 @@ export function Booking() {
             {loadingInit ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex flex-col border border-border bg-card p-8 animate-pulse">
+                  <div key={i} className="flex flex-col border border-border bg-card px-8 py-12 animate-pulse">
                     <div className="size-7 rounded bg-muted" />
                     <div className="mt-6 h-6 w-3/4 rounded bg-muted" />
                     <div className="mt-3 flex-1 space-y-2">
@@ -354,7 +354,7 @@ export function Booking() {
                         setSelectedOptions([])
                         setStep(s.has_options ? 1.5 : 3)
                       }}
-                      className="group flex flex-col border border-border bg-card p-8 text-left transition-colors hover:bg-accent hover:border-primary/60"
+                      className="group flex flex-col border border-border bg-card px-8 py-12 text-left transition-colors hover:bg-accent hover:border-primary/60"
                     >
                       <Icon className="size-7 text-foreground/80" strokeWidth={1.25} />
                       <h3 className="mt-6 font-serif text-2xl text-foreground group-hover:text-primary transition-colors">
