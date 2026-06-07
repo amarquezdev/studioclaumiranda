@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Scissors, Sparkles, Palette, Droplets, ChevronLeft, ChevronRight, Check } from 'lucide-react'
-import { getServices, getBarbers, getBusinessHours, getAvailability, guestCreateAppointment, getBlockedDates } from '../api/client'
+import { getServices, getBarbers, getBusinessHours, getAvailability, guestCreateAppointment, getBlockedDates, getServiceTypes } from '../api/client'
 import { cn } from '../lib/utils'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -163,6 +163,8 @@ function Field({ label, type='text', value, onChange, required, placeholder }) {
 export function Booking() {
   const [step, setStep]                     = useState(1)
   const [services, setServices]             = useState([])
+  const [serviceTypes, setServiceTypes]     = useState([])
+  const [activeType, setActiveType]         = useState(null)
   const [barbers, setBarbers]               = useState([])
   const [businessHours, setBusinessHours]   = useState([])
   const [slots, setSlots]                   = useState([])
@@ -188,12 +190,14 @@ export function Booking() {
   const [submitting,  setSubmitting]   = useState(false)
 
   useEffect(() => {
-    Promise.all([getServices(), getBarbers(), getBusinessHours(), getBlockedDates()])
-      .then(([s, b, h, bd]) => {
+    Promise.all([getServices(), getBarbers(), getBusinessHours(), getBlockedDates(), getServiceTypes()])
+      .then(([s, b, h, bd, st]) => {
         setServices(s.data)
         setBarbers(b.data)
         setBusinessHours(h.data)
         setBlockedDates(bd.data)
+        const types = st.data.filter(t => t.is_active && s.data.some(svc => svc.service_type_id === t.id))
+        setServiceTypes(types)
         const active = b.data.find(x => x.is_active) ?? b.data[0]
         if (active) setSelectedBarber(active)
       })
@@ -328,6 +332,37 @@ export function Booking() {
               <p className="text-red-400 text-sm text-center mb-8">{error}</p>
             )}
 
+            {/* Filtro por tipo */}
+            {!loadingInit && serviceTypes.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 mb-10">
+                <button
+                  onClick={() => setActiveType(null)}
+                  className={cn(
+                    'px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
+                    activeType === null
+                      ? 'bg-primary border-primary text-primary-foreground'
+                      : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
+                  )}
+                >
+                  Todos
+                </button>
+                {serviceTypes.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveType(t.id)}
+                    className={cn(
+                      'px-5 py-2 text-[11px] tracking-[0.2em] uppercase border transition-colors',
+                      activeType === t.id
+                        ? 'bg-primary border-primary text-primary-foreground'
+                        : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {loadingInit ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -344,33 +379,35 @@ export function Booking() {
               </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {services.map((s, i) => {
-                  const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length]
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        setSelectedService(s)
-                        setSelectedOptions([])
-                        setStep(s.has_options ? 1.5 : 3)
-                      }}
-                      className="group flex flex-col border border-border bg-card px-8 py-12 text-left transition-colors hover:bg-accent hover:border-primary/60"
-                    >
-                      <Icon className="size-7 text-foreground/80" strokeWidth={1.25} />
-                      <h3 className="mt-6 font-serif text-2xl text-foreground group-hover:text-primary transition-colors">
-                        {s.name}
-                      </h3>
-                      <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
-                      <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
-                        <span>
-                          {s.price_from && <span className="mr-0.5">Desde </span>}
-                          ${s.price.toLocaleString('es-CL')}
-                        </span>
-                        <span>{s.duration_minutes} min</span>
-                      </div>
-                    </button>
-                  )
-                })}
+                {services
+                  .filter(s => activeType === null || s.service_type_id === activeType)
+                  .map((s, i) => {
+                    const Icon = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setSelectedService(s)
+                          setSelectedOptions([])
+                          setStep(s.has_options ? 1.5 : 3)
+                        }}
+                        className="group flex flex-col border border-border bg-card px-8 py-12 text-left transition-colors hover:bg-accent hover:border-primary/60"
+                      >
+                        <Icon className="size-7 text-foreground/80" strokeWidth={1.25} />
+                        <h3 className="mt-6 font-serif text-2xl text-foreground group-hover:text-primary transition-colors">
+                          {s.name}
+                        </h3>
+                        <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
+                        <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
+                          <span>
+                            {s.price_from && <span className="mr-0.5">Desde </span>}
+                            ${s.price.toLocaleString('es-CL')}
+                          </span>
+                          <span>{s.duration_minutes} min</span>
+                        </div>
+                      </button>
+                    )
+                  })}
               </div>
             )}
           </>
