@@ -2,7 +2,7 @@ export function Hero() {
   return (
     <section className="relative h-screen min-h-[640px] w-full">
       {/* Three columns spanning full height */}
-      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3">
+      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?fm=jpg&q=80&w=800&auto=format&fit=crop"
@@ -27,7 +27,7 @@ export function Hero() {
       </div>
 
       {/* Headline overlay */}
-      <div className="relative z-10 grid h-full grid-cols-1 md:grid-cols-3">
+      <div className="relative z-10 grid h-full grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
         <div className="col-span-1 flex flex-col justify-center px-6 md:col-span-2 md:px-10">
           <h1 className="font-serif text-5xl leading-[1.05] text-foreground text-nowrap sm:text-6xl md:text-7xl">
             Good Hair Days
