@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     GOOGLE_PLACES_API_KEY: str = ""
     PLACE_ID: str = ""
     SERPAPI_KEY: str = ""
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173,https://studioclaumiranda.cl,https://www.studioclaumiranda.cl"
     RESEND_API_KEY: str = ""
     FROM_EMAIL: str = "reserva@studioclaumiranda.cl"
     CRON_SECRET: str = ""

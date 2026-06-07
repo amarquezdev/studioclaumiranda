@@ -8,10 +8,31 @@ from app.database import Base, engine
 from app.routers import appointments, auth, availability, barbers, blocked_dates, business_hours, reminders, reviews, service_types, services, users
 
 
+async def _run_migrations(conn):
+    await conn.run_sync(Base.metadata.create_all)
+    # Add service_type_id to services if missing (create_all doesn't ALTER existing tables)
+    from sqlalchemy import text
+    from app.database import _db_url
+    if _db_url.startswith("postgresql"):
+        await conn.execute(text(
+            "ALTER TABLE services ADD COLUMN IF NOT EXISTS "
+            "service_type_id INTEGER REFERENCES service_types(id) ON DELETE SET NULL"
+        ))
+    else:
+        # SQLite: check via pragma then alter
+        result = await conn.execute(text("PRAGMA table_info(services)"))
+        cols = [row[1] for row in result.fetchall()]
+        if "service_type_id" not in cols:
+            await conn.execute(text(
+                "ALTER TABLE services ADD COLUMN service_type_id INTEGER "
+                "REFERENCES service_types(id) ON DELETE SET NULL"
+            ))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await _run_migrations(conn)
     yield
     await engine.dispose()
 
