@@ -54,7 +54,7 @@ export function Testimonial() {
   }, [next])
 
   return (
-    <section className="bg-background">
+    <section id="resenas" className="bg-background">
       <div className="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center md:py-32">
         <p className="text-[11px] tracking-[0.3em] text-foreground/50">TESTIMONIOS</p>
         <h2 className="mt-4 font-serif text-3xl italic text-foreground md:text-4xl text-balance">

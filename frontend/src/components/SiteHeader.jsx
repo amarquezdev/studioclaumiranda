@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 
-const leftLinks = ['ABOUT', 'SERVICES', 'GALLERY']
-const rightLinks = ['PRODUCTS', 'BLOG', 'CONTACT']
+const leftLinks = [
+  { label: 'INICIO',   href: '#'         },
+  { label: 'RESEÑAS',  href: '#resenas'  },
+]
+const rightLinks = [
+  { label: 'RESERVA',  href: '#book'     },
+  { label: 'HISTORIA', href: '#historia' },
+  { label: 'TRABAJOS', href: '#trabajos' },
+]
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
@@ -13,12 +20,12 @@ export function SiteHeader() {
         {/* Left links */}
         <ul className="hidden flex-1 items-center justify-end gap-8 md:flex">
           {leftLinks.map((link) => (
-            <li key={link}>
+            <li key={link.label}>
               <a
-                href="#"
+                href={link.href}
                 className="text-[11px] tracking-[0.2em] text-foreground/70 transition-colors hover:text-foreground"
               >
-                {link}
+                {link.label}
               </a>
             </li>
           ))}
@@ -35,12 +42,12 @@ export function SiteHeader() {
         {/* Right links */}
         <ul className="hidden flex-1 items-center justify-start gap-8 md:flex">
           {rightLinks.map((link) => (
-            <li key={link}>
+            <li key={link.label}>
               <a
-                href="#"
+                href={link.href}
                 className="text-[11px] tracking-[0.2em] text-foreground/70 transition-colors hover:text-foreground"
               >
-                {link}
+                {link.label}
               </a>
             </li>
           ))}
@@ -60,12 +67,13 @@ export function SiteHeader() {
         <div className="border-t border-border bg-background/95 px-6 py-6 md:hidden">
           <ul className="flex flex-col gap-4">
             {[...leftLinks, ...rightLinks].map((link) => (
-              <li key={link}>
+              <li key={link.label}>
                 <a
-                  href="#"
+                  href={link.href}
                   className="text-xs tracking-[0.2em] text-foreground/70"
+                  onClick={() => setOpen(false)}
                 >
-                  {link}
+                  {link.label}
                 </a>
               </li>
             ))}

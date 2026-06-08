@@ -1,6 +1,6 @@
 export function About() {
   return (
-    <section className="bg-background">
+    <section id="historia" className="bg-background">
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Portrait */}
         <div className="relative h-72 overflow-hidden md:h-auto md:min-h-[680px]">

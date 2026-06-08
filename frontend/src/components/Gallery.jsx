@@ -7,7 +7,7 @@ const items = [
 
 export function Gallery() {
   return (
-    <section className="bg-background">
+    <section id="trabajos" className="bg-background">
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
         <div className="mb-12 text-center">
           <p className="text-[11px] tracking-[0.3em] text-foreground/50">GALERÍA</p>
