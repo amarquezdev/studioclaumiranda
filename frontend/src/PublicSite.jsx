@@ -6,6 +6,7 @@ import { About } from './components/About'
 import { BrandSlider } from './components/BrandSlider'
 import { Gallery } from './components/Gallery'
 import { Footer } from './components/Footer'
+import WhatsAppButton from './components/WhatsAppButton'
 
 export default function PublicSite() {
   return (
@@ -18,6 +19,7 @@ export default function PublicSite() {
       <BrandSlider />
       <Gallery />
       <Footer />
+      <WhatsAppButton />
     </main>
   )
 }
