@@ -87,52 +87,70 @@ export default function BusinessHours() {
   }
 
   return (
-    <div className="p-8 space-y-10">
+    <div className="p-4 md:p-8 space-y-10">
       {/* ── Horarios semanales ────────────────────────────────────── */}
       <div>
         <div className="mb-6">
-          <h1 className="text-3xl font-light tracking-wide text-foreground">Horarios de atención</h1>
+          <h1 className="text-2xl md:text-3xl font-light tracking-wide text-foreground">Horarios de atención</h1>
           <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">Configura los días y horas de apertura</p>
         </div>
 
         <div className="bg-card border border-border rounded-sm overflow-hidden max-w-2xl">
           {rows.map(row => (
             <div key={row.day_of_week}
-              className="flex items-center gap-4 px-5 py-4 border-b border-border/50 last:border-0">
-              <div className="w-24">
+              className="px-4 md:px-5 py-4 border-b border-border/50 last:border-0">
+              {/* Mobile layout */}
+              <div className="flex items-center justify-between mb-2 md:hidden">
                 <p className={`text-sm font-medium ${row.is_open ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {DAY_NAMES[row.day_of_week]}
                 </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => update(row.day_of_week, 'is_open', !row.is_open)}
+                    className={`relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${row.is_open ? 'bg-primary' : 'bg-border'}`}>
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${row.is_open ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                  <button onClick={() => save(row)} disabled={saving[row.day_of_week]}
+                    className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                      saved[row.day_of_week] ? 'border-green-700 text-green-400 bg-green-900/20' : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
+                    }`}>
+                    {saving[row.day_of_week] ? '...' : saved[row.day_of_week] ? '✓' : 'Guardar'}
+                  </button>
+                </div>
+              </div>
+              <div className={`flex items-center gap-2 md:hidden transition-opacity ${row.is_open ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                <input type="time" value={row.open_time || '09:00'} onChange={e => update(row.day_of_week, 'open_time', e.target.value)}
+                  className="bg-input border border-border text-foreground text-sm px-2 py-1.5 rounded-sm focus:outline-none focus:border-primary flex-1" />
+                <span className="text-muted-foreground text-sm shrink-0">—</span>
+                <input type="time" value={row.close_time || '19:00'} onChange={e => update(row.day_of_week, 'close_time', e.target.value)}
+                  className="bg-input border border-border text-foreground text-sm px-2 py-1.5 rounded-sm focus:outline-none focus:border-primary flex-1" />
               </div>
 
-              <button
-                onClick={() => update(row.day_of_week, 'is_open', !row.is_open)}
-                className={`relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${
-                  row.is_open ? 'bg-primary' : 'bg-border'
-                }`}>
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
-                  row.is_open ? 'translate-x-5' : 'translate-x-0.5'
-                }`} />
-              </button>
-
-              <div className={`flex items-center gap-2 flex-1 transition-opacity ${row.is_open ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-                <input type="time" value={row.open_time || '09:00'}
-                  onChange={e => update(row.day_of_week, 'open_time', e.target.value)}
-                  className="bg-input border border-border text-foreground text-sm px-2 py-1.5 rounded-sm focus:outline-none focus:border-primary w-28" />
-                <span className="text-muted-foreground text-sm">—</span>
-                <input type="time" value={row.close_time || '19:00'}
-                  onChange={e => update(row.day_of_week, 'close_time', e.target.value)}
-                  className="bg-input border border-border text-foreground text-sm px-2 py-1.5 rounded-sm focus:outline-none focus:border-primary w-28" />
+              {/* Desktop layout */}
+              <div className="hidden md:flex items-center gap-4">
+                <div className="w-24">
+                  <p className={`text-sm font-medium ${row.is_open ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {DAY_NAMES[row.day_of_week]}
+                  </p>
+                </div>
+                <button onClick={() => update(row.day_of_week, 'is_open', !row.is_open)}
+                  className={`relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${row.is_open ? 'bg-primary' : 'bg-border'}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${row.is_open ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </button>
+                <div className={`flex items-center gap-2 flex-1 transition-opacity ${row.is_open ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                  <input type="time" value={row.open_time || '09:00'} onChange={e => update(row.day_of_week, 'open_time', e.target.value)}
+                    className="bg-input border border-border text-foreground text-sm px-2 py-1.5 rounded-sm focus:outline-none focus:border-primary w-28" />
+                  <span className="text-muted-foreground text-sm">—</span>
+                  <input type="time" value={row.close_time || '19:00'} onChange={e => update(row.day_of_week, 'close_time', e.target.value)}
+                    className="bg-input border border-border text-foreground text-sm px-2 py-1.5 rounded-sm focus:outline-none focus:border-primary w-28" />
+                </div>
+                <button onClick={() => save(row)} disabled={saving[row.day_of_week]}
+                  className={`text-xs px-3 py-1.5 rounded-sm border transition-colors flex-shrink-0 ${
+                    saved[row.day_of_week] ? 'border-green-700 text-green-400 bg-green-900/20' : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
+                  }`}>
+                  {saving[row.day_of_week] ? '...' : saved[row.day_of_week] ? '✓ Guardado' : 'Guardar'}
+                </button>
               </div>
-
-              <button onClick={() => save(row)} disabled={saving[row.day_of_week]}
-                className={`text-xs px-3 py-1.5 rounded-sm border transition-colors flex-shrink-0 ${
-                  saved[row.day_of_week]
-                    ? 'border-green-700 text-green-400 bg-green-900/20'
-                    : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
-                }`}>
-                {saving[row.day_of_week] ? '...' : saved[row.day_of_week] ? '✓ Guardado' : 'Guardar'}
-              </button>
             </div>
           ))}
         </div>

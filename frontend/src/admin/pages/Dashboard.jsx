@@ -14,8 +14,6 @@ function StatCard({ icon, label, value, sub, accent }) {
   )
 }
 
-// Strip timezone suffix before parsing so the browser treats the stored value
-// as local time, avoiding the UTC→Chile conversion that shifts hours by -4.
 function fmtDt(iso, opts) {
   if (!iso) return '—'
   const local = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
@@ -69,16 +67,16 @@ export default function Dashboard() {
   const fmt = (n) => `$${Math.round(n).toLocaleString('es-CL')}`
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-light tracking-wide text-foreground">Dashboard</h1>
+    <div className="p-4 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-light tracking-wide text-foreground">Dashboard</h1>
         <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground mt-1">
           {now.toLocaleDateString('es-CL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
         </p>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 mb-8 md:mb-10">
         <StatCard icon="✂"  label="Servicios activos"  value={services.filter(s => s.is_active).length} sub={`${services.length} total`} />
         <StatCard icon="📅" label="Citas hoy"          value={todayAppts.length}   sub="agendadas hoy" />
         <StatCard icon="⏳" label="Sin confirmar"      value={pendingAppts.length} sub="pendientes" />
@@ -89,10 +87,12 @@ export default function Dashboard() {
       {/* Upcoming appointments */}
       <div>
         <h2 className="text-foreground font-light tracking-widest text-xs uppercase mb-4">Próximas citas</h2>
-        {upcoming.length === 0
-          ? <p className="text-muted-foreground text-sm">No hay citas próximas.</p>
-          : (
-            <div className="bg-card border border-border rounded-sm overflow-x-auto">
+        {upcoming.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No hay citas próximas.</p>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block bg-card border border-border rounded-sm overflow-x-auto">
               <table className="w-full text-sm min-w-[600px]">
                 <thead>
                   <tr className="border-b border-border">
@@ -127,8 +127,43 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
-          )
-        }
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {upcoming.map(a => (
+                <div key={a.id} className="bg-card border border-border rounded-sm p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="text-foreground font-medium text-sm">{a.user?.name ?? '—'}</p>
+                      <p className="text-muted-foreground text-xs">{a.user?.email ?? '—'}</p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[a.status]}`}>
+                      {STATUS_LABELS[a.status]}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-border/50 text-xs">
+                    <div>
+                      <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Fecha</p>
+                      <p className="text-foreground mt-0.5">{fmtDt(a.start_datetime, { dateStyle:'short', timeStyle:'short' })}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Servicio</p>
+                      <p className="text-foreground mt-0.5">{a.service?.name ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
+                      <p className="text-primary font-medium mt-0.5">{a.service ? `$${a.service.price.toLocaleString()}` : '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Estilista</p>
+                      <p className="text-foreground mt-0.5">{a.barber?.name ?? '—'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
