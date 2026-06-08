@@ -97,7 +97,18 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
             </div>
             <div>
               <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Precio base ($) *</label>
-              <input required type="number" min={0} step={100} value={form.price} onChange={e => set('price', e.target.value)} className={inputBase} />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                <input
+                  required
+                  type="text"
+                  inputMode="numeric"
+                  value={fmtClp(form.price)}
+                  onChange={e => set('price', parseClp(e.target.value))}
+                  placeholder="0"
+                  className={`${inputBase} pl-7`}
+                />
+              </div>
             </div>
           </div>
           <div>
