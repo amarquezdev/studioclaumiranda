@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useReveal } from '../hooks/useReveal'
 
 const items = [
   { img: '/1s.webp', alt: 'Trabajo Studio Clau Miranda 1' },
@@ -10,6 +11,9 @@ const items = [
 
 export function Gallery() {
   const [active, setActive] = useState(null)
+  const labelRef   = useReveal({ y: 20, duration: 0.7 })
+  const headingRef = useReveal({ y: 30, delay: 0.1, duration: 0.9 })
+  const gridRef    = useReveal({ y: 40, delay: 0.2, duration: 1.0 })
 
   const prev = useCallback(() =>
     setActive(i => (i - 1 + items.length) % items.length), [])
@@ -38,13 +42,13 @@ export function Gallery() {
     <section id="trabajos" className="bg-background">
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
         <div className="mb-12 text-center">
-          <p className="text-[11px] tracking-[0.3em] text-foreground/50">GALERÍA</p>
-          <h2 className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl text-balance">
+          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/50">GALERÍA</p>
+          <h2 ref={headingRef} className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl text-balance">
             Nuestro Trabajo
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+        <div ref={gridRef} className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
           {items.map((item, i) => (
             <button
               key={i}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Star, ArrowLeft, ArrowRight } from 'lucide-react'
 import { getReviews } from '../api/client'
+import { useReveal } from '../hooks/useReveal'
 
 const FALLBACK_REVIEWS = [
   {
@@ -53,11 +54,14 @@ export function Testimonial() {
     return () => clearInterval(id)
   }, [next])
 
+  const labelRef = useReveal({ y: 20, duration: 0.7 })
+  const headingRef = useReveal({ y: 30, delay: 0.1, duration: 0.9 })
+
   return (
     <section id="resenas" className="bg-background">
       <div className="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center md:py-32">
-        <p className="text-[11px] tracking-[0.3em] text-foreground/50">TESTIMONIOS</p>
-        <h2 className="mt-4 font-serif text-3xl italic text-foreground md:text-4xl text-balance">
+        <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/50">TESTIMONIOS</p>
+        <h2 ref={headingRef} className="mt-4 font-serif text-3xl italic text-foreground md:text-4xl text-balance">
           Lo que dicen Nuestras Clientas
         </h2>
 
