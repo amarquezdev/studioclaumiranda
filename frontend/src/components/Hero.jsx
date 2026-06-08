@@ -31,16 +31,16 @@ export function Hero() {
         {/* Mobile */}
         <div className="flex h-full items-center px-6 md:hidden">
           <h1 className="font-serif text-5xl leading-[1.05] text-foreground sm:text-6xl">
-            Good Hair Days
-            <span className="mt-2 block italic">Just Got Better</span>
+            Un cabello sano
+            <span className="mt-2 block italic">En manos expertas</span>
           </h1>
         </div>
         {/* Desktop */}
         <div className="absolute inset-0 hidden md:block">
           <div className="absolute top-1/2 -translate-y-1/2 left-[28.57%] -translate-x-1/2 text-center">
             <h1 className="font-serif text-7xl leading-[1.05] text-foreground text-nowrap">
-              Good Hair Days
-              <span className="mt-2 block italic">Just Got Better</span>
+              Un cabello sano
+              <span className="mt-2 block italic">En manos expertas</span>
             </h1>
           </div>
         </div>
