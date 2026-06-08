@@ -19,23 +19,23 @@ def _fmt_time(dt) -> str:
 
 def _details_rows(appt) -> str:
     rows = [
-        ("Servicio", appt.service.name if appt.service else "—"),
-        ("Fecha",    _fmt_date(appt.start_datetime)),
-        ("Hora",     _fmt_time(appt.start_datetime), True),
+        ("Servicio", appt.service.name if appt.service else "—", False),
+        ("Fecha",    _fmt_date(appt.start_datetime),             False),
+        ("Hora",     _fmt_time(appt.start_datetime),             True),
     ]
     html = ""
-    for i, row in enumerate(rows):
-        label, value = row[0], row[1]
-        accent = len(row) == 3
-        border = "border-bottom:1px solid #E0D9D2;" if i < len(rows) - 1 else ""
-        val_style = f"color:#6E8060;font-size:20px;font-weight:bold;" if accent else "color:#2A2420;font-size:14px;"
+    for i, (label, value, accent) in enumerate(rows):
+        border = "border-bottom:1px solid #E8E0D5;" if i < len(rows) - 1 else ""
+        val_color = "#C9A05A" if accent else "#2A2420"
+        val_size  = "20px" if accent else "14px"
+        val_weight = "600" if accent else "400"
         html += f"""
         <tr>
-          <td style="padding:10px 0;{border}">
-            <span style="color:#8A8480;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;">{label}</span>
+          <td style="padding:12px 0;{border}font-family:'Jost',Helvetica,Arial,sans-serif;">
+            <span style="color:#9A9490;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;">{label}</span>
           </td>
-          <td align="right" style="padding:10px 0;{border}">
-            <span style="{val_style}">{value}</span>
+          <td align="right" style="padding:12px 0;{border}font-family:'Cormorant Garamond',Georgia,serif;">
+            <span style="color:{val_color};font-size:{val_size};font-weight:{val_weight};">{value}</span>
           </td>
         </tr>"""
     return html
@@ -44,22 +44,23 @@ def _details_rows(appt) -> str:
 def _notes_block(appt) -> str:
     if not appt.notes:
         return ""
-    # Extract option names if present
     notes = appt.notes.strip()
     if notes.startswith("Opciones:"):
         first_line = notes.split("\n")[0]
         opts = first_line.replace("Opciones:", "").strip()
         return f"""
-        <p style="margin:16px 0 0;color:#8A8480;font-size:12px;text-align:center;">
-          Opciones seleccionadas: <span style="color:#6E8060;">{opts}</span>
+        <p style="margin:20px 0 0;color:#9A9490;font-size:12px;text-align:center;
+                  font-family:'Jost',Helvetica,Arial,sans-serif;letter-spacing:0.05em;">
+          Opciones seleccionadas: <span style="color:#C9A05A;">{opts}</span>
         </p>"""
     return f"""
-        <p style="margin:16px 0 0;color:#8A8480;font-size:12px;text-align:center;">
+        <p style="margin:20px 0 0;color:#9A9490;font-size:12px;text-align:center;
+                  font-family:'Jost',Helvetica,Arial,sans-serif;">
           Nota: {notes}
         </p>"""
 
 
-def _base_template(header_icon: str, title: str, subtitle: str, body_extra: str, appt) -> str:
+def _base_template(title: str, subtitle: str, body_extra: str, appt) -> str:
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -67,51 +68,51 @@ def _base_template(header_icon: str, title: str, subtitle: str, body_extra: str,
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>{title}</title>
 </head>
-<body style="margin:0;padding:0;background:#F0EBE3;font-family:Georgia,'Times New Roman',serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0EBE3;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#EDE8E0;font-family:'Jost',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#EDE8E0;padding:40px 16px;">
     <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E0D9D2;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FAFAF8;">
 
-        <!-- Header -->
+        <!-- Header bar -->
         <tr>
-          <td style="background:#2A2420;padding:28px 40px;text-align:center;">
-            <p style="margin:0;color:#F7F2EC;font-family:Georgia,serif;font-size:18px;
-                      font-weight:normal;letter-spacing:0.25em;text-transform:uppercase;">
+          <td style="background:#2A2420;padding:30px 40px;text-align:center;">
+            <p style="margin:0;color:#F5F0EA;font-family:'Cormorant Garamond',Georgia,serif;
+                      font-size:20px;font-weight:400;letter-spacing:0.28em;text-transform:uppercase;">
               Studio Clau Miranda
             </p>
-            <p style="margin:5px 0 0;color:#6A6460;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;">
+            <p style="margin:6px 0 0;color:#6A6460;font-size:9px;letter-spacing:0.35em;
+                      text-transform:uppercase;font-family:'Jost',Helvetica,Arial,sans-serif;">
               Peluquería &amp; Estética
             </p>
           </td>
         </tr>
 
+        <!-- Gold accent line -->
+        <tr><td style="height:3px;background:#C9A05A;"></td></tr>
+
         <!-- Body -->
         <tr>
-          <td style="padding:40px 40px 32px;">
+          <td style="padding:44px 40px 36px;">
 
-            <!-- Icon -->
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr><td align="center" style="padding-bottom:20px;">
-                <div style="width:52px;height:52px;background:#6E8060;border-radius:50%;
-                            display:inline-block;text-align:center;line-height:52px;
-                            font-size:22px;color:#FFFFFF;">
-                  {header_icon}
-                </div>
-              </td></tr>
-            </table>
-
-            <h1 style="margin:0 0 6px;font-family:Georgia,serif;font-size:26px;
-                       font-weight:normal;color:#2A2420;text-align:center;">
+            <h1 style="margin:0 0 10px;font-family:'Cormorant Garamond',Georgia,serif;
+                       font-size:30px;font-weight:400;color:#2A2420;text-align:center;
+                       letter-spacing:0.04em;">
               {title}
             </h1>
-            <p style="margin:0 0 28px;color:#8A8480;font-size:14px;text-align:center;line-height:1.6;">
+            <p style="margin:0 0 32px;color:#7A7470;font-size:13px;text-align:center;
+                      line-height:1.7;letter-spacing:0.02em;">
               {subtitle}
             </p>
 
+            <!-- Thin divider -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr><td style="border-top:1px solid #E2DBD0;"></td></tr>
+            </table>
+
             <!-- Details card -->
             <table width="100%" cellpadding="0" cellspacing="0"
-                   style="background:#F7F2EC;border-left:3px solid #6E8060;">
-              <tr><td style="padding:16px 20px;">
+                   style="background:#F5F0EA;border-top:2px solid #C9A05A;">
+              <tr><td style="padding:18px 24px;">
                 <table width="100%" cellpadding="0" cellspacing="0">
                   {_details_rows(appt)}
                 </table>
@@ -121,23 +122,29 @@ def _base_template(header_icon: str, title: str, subtitle: str, body_extra: str,
             {_notes_block(appt)}
             {body_extra}
 
-            <p style="margin:28px 0 0;color:#8A8480;font-size:12px;text-align:center;line-height:1.7;">
+            <!-- Thin divider -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
+              <tr><td style="border-top:1px solid #E2DBD0;"></td></tr>
+            </table>
+
+            <p style="margin:24px 0 0;color:#9A9490;font-size:11px;text-align:center;
+                      line-height:1.8;letter-spacing:0.03em;">
               ¿Necesitas cancelar o modificar tu cita?<br>
-              Escríbenos a
               <a href="mailto:contacto@studioclaumiranda.cl"
-                 style="color:#6E8060;text-decoration:none;">
+                 style="color:#C9A05A;text-decoration:none;letter-spacing:0.05em;">
                 contacto@studioclaumiranda.cl
               </a>
             </p>
+
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td style="background:#F7F2EC;padding:18px 40px;text-align:center;
-                     border-top:1px solid #E0D9D2;">
-            <p style="margin:0;color:#B0A8A4;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;">
-              Studio Clau Miranda &nbsp;·&nbsp; studioclaumiranda.cl
+          <td style="background:#2A2420;padding:16px 40px;text-align:center;">
+            <p style="margin:0;color:#6A6460;font-size:9px;letter-spacing:0.2em;
+                      text-transform:uppercase;font-family:'Jost',Helvetica,Arial,sans-serif;">
+              Studio Clau Miranda &nbsp;&mdash;&nbsp; studioclaumiranda.cl
             </p>
           </td>
         </tr>
@@ -152,9 +159,8 @@ def _base_template(header_icon: str, title: str, subtitle: str, body_extra: str,
 def build_confirmation_html(appt) -> str:
     name = appt.user.name if appt.user else "Cliente"
     return _base_template(
-        header_icon="✓",
-        title="¡Reserva confirmada!",
-        subtitle=f"Hola <strong style='color:#2A2420;'>{name}</strong>, tu cita ha sido registrada exitosamente.",
+        title="Reserva Confirmada",
+        subtitle=f"Hola <strong style='color:#2A2420;font-weight:500;'>{name}</strong>, tu cita ha sido registrada exitosamente.",
         body_extra="",
         appt=appt,
     )
@@ -162,24 +168,20 @@ def build_confirmation_html(appt) -> str:
 
 def build_reminder_html(appt) -> str:
     name = appt.user.name if appt.user else "Cliente"
+    time_str = _fmt_time(appt.start_datetime)
     return _base_template(
-        header_icon="◷",
-        title="Recordatorio de cita",
-        subtitle=f"Hola <strong style='color:#2A2420;'>{name}</strong>, te recordamos que <strong style='color:#2A2420;'>mañana</strong> tienes una cita con nosotros.",
+        title="Recordatorio de Cita",
+        subtitle=f"Hola <strong style='color:#2A2420;font-weight:500;'>{name}</strong>, te recordamos que <strong style='color:#2A2420;font-weight:500;'>hoy a las {time_str}</strong> tienes una cita con nosotros.",
         body_extra="""
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;">
-          <tr><td align="center">
-            <p style="margin:0;color:#8A8480;font-size:12px;font-style:italic;">
-              Si no puedes asistir, por favor avísanos con anticipación.
-            </p>
-          </td></tr>
-        </table>""",
+        <p style="margin:20px 0 0;color:#9A9490;font-size:11px;text-align:center;
+                  line-height:1.7;font-style:italic;letter-spacing:0.03em;">
+          Si no puedes asistir, por favor avísanos con anticipación.
+        </p>""",
         appt=appt,
     )
 
 
 async def _send(to_email: str, subject: str, html: str) -> None:
-    """Calls Resend REST API to send an email."""
     if not settings.RESEND_API_KEY:
         return
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -205,5 +207,5 @@ async def send_confirmation_email(appt) -> None:
 async def send_reminder_email(appt) -> None:
     if not appt.user or not appt.user.email:
         return
-    subject = f"Recordatorio: tu cita es mañana a las {_fmt_time(appt.start_datetime)}"
+    subject = f"Recordatorio: tu cita es hoy a las {_fmt_time(appt.start_datetime)}"
     await _send(appt.user.email, subject, build_reminder_html(appt))

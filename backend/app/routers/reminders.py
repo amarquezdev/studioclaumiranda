@@ -1,4 +1,4 @@
-"""Cron endpoint — sends 24h reminder emails for upcoming appointments."""
+"""Cron endpoint — sends 3h reminder emails for upcoming appointments."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -24,10 +24,10 @@ async def send_reminders(
         raise HTTPException(status_code=401, detail="No autorizado")
 
     now   = datetime.now(timezone.utc)
-    start = now + timedelta(hours=23)
-    end   = now + timedelta(hours=25)
+    start = now + timedelta(minutes=150)
+    end   = now + timedelta(minutes=210)
 
-    # Appointments starting in the next 23–25h window, not cancelled
+    # Appointments starting in the next 2.5–3.5h window, not cancelled
     result = await db.execute(
         select(Appointment)
         .options(
