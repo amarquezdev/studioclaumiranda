@@ -3,6 +3,7 @@ import axios from 'axios'
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '/api',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 70000,
 })
 
 // Inject JWT on every request if available

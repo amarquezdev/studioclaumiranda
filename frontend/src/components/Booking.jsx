@@ -247,6 +247,7 @@ export function Booking() {
   const [blockedDates, setBlockedDates]     = useState([])
   const [loadingInit, setLoadingInit]       = useState(true)
   const [loadingSlots, setLoadingSlots]     = useState(false)
+  const [retrying, setRetrying]             = useState(false)
   const [error, setError]                   = useState('')
 
   // Cart: [{ service, options: [] }]
@@ -288,11 +289,16 @@ export function Booking() {
     }
   }
 
-  // ── Data loading ───────────────────────────────────────────────────────────
+  // ── Data loading (con reintentos para Render cold start) ──────────────────
 
   useEffect(() => {
-    Promise.all([getServices(), getBarbers(), getBusinessHours(), getBlockedDates(), getServiceTypes()])
-      .then(([s, b, h, bd, st]) => {
+    let cancelled = false
+    const load = async (attempt = 0) => {
+      try {
+        const [s, b, h, bd, st] = await Promise.all([
+          getServices(), getBarbers(), getBusinessHours(), getBlockedDates(), getServiceTypes()
+        ])
+        if (cancelled) return
         setServices(s.data)
         setBarbers(b.data)
         setBusinessHours(h.data)
@@ -301,9 +307,22 @@ export function Booking() {
         setServiceTypes(types)
         const active = b.data.find(x => x.is_active) ?? b.data[0]
         if (active) setSelectedBarber(active)
-      })
-      .catch(() => setError('No se pudo conectar con el servidor.'))
-      .finally(() => setLoadingInit(false))
+        setRetrying(false)
+        setLoadingInit(false)
+      } catch {
+        if (cancelled) return
+        if (attempt < 3) {
+          setRetrying(true)
+          setTimeout(() => load(attempt + 1), 7000)
+        } else {
+          setError('No se pudo conectar con el servidor. Recarga la página.')
+          setRetrying(false)
+          setLoadingInit(false)
+        }
+      }
+    }
+    load()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
@@ -490,6 +509,11 @@ export function Booking() {
             {/* ── Lista mobile / grid desktop ── */}
             {loadingInit ? (
               <>
+                {retrying && (
+                  <p className="text-center text-xs text-foreground/40 tracking-widest mb-6 animate-pulse">
+                    INICIANDO SERVIDOR, UN MOMENTO…
+                  </p>
+                )}
                 {/* Skeleton mobile */}
                 <div className="md:hidden border border-border divide-y divide-border">
                   {Array.from({ length: 5 }).map((_, i) => (
