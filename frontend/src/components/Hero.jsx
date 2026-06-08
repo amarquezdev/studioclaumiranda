@@ -73,7 +73,7 @@ export function Hero() {
       {/* Headline */}
       <div className="relative z-10 h-full" ref={titleRef}>
         {/* Mobile */}
-        <div className="flex h-full items-center pb-20 px-6 md:hidden">
+        <div className="flex h-full items-start pt-36 px-6 md:hidden">
           <h1 className="font-serif leading-[1.05] text-foreground">
             <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
             <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
