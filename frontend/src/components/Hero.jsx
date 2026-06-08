@@ -91,7 +91,7 @@ export function Hero() {
       </div>
 
       {/* Book button */}
-      <div ref={btnRef} className="absolute bottom-20 left-1/2 z-20 -translate-x-1/2 md:bottom-12 md:left-[71.43%]">
+      <div ref={btnRef} className="absolute bottom-36 left-1/2 z-20 -translate-x-1/2 md:bottom-12 md:left-[71.43%]">
         <a
           href="#book"
           className="inline-flex items-center bg-primary px-10 py-4 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
