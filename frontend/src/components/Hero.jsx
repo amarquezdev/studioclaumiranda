@@ -73,7 +73,7 @@ export function Hero() {
       {/* Headline */}
       <div className="relative z-10 h-full" ref={titleRef}>
         {/* Mobile */}
-        <div className="flex h-full items-center px-6 md:hidden">
+        <div className="flex h-full items-end pb-40 px-6 md:hidden">
           <h1 className="font-serif leading-[1.05] text-foreground">
             <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
             <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
@@ -91,7 +91,7 @@ export function Hero() {
       </div>
 
       {/* Book button */}
-      <div ref={btnRef} className="absolute bottom-12 left-1/2 z-20 -translate-x-1/2 md:left-[71.43%]">
+      <div ref={btnRef} className="absolute bottom-20 left-1/2 z-20 -translate-x-1/2 md:bottom-12 md:left-[71.43%]">
         <a
           href="#book"
           className="inline-flex items-center bg-primary px-10 py-4 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"

@@ -63,23 +63,25 @@ export function SiteHeader() {
         </button>
       </nav>
 
-      {open && (
-        <div className="border-t border-border bg-background/95 px-6 py-6 md:hidden">
-          <ul className="flex flex-col gap-4">
-            {[...leftLinks, ...rightLinks].map((link) => (
-              <li key={link.label}>
-                <a
-                  href={link.href}
-                  className="text-xs tracking-[0.2em] text-foreground/70"
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div
+        className={`overflow-hidden border-border bg-background/95 transition-all duration-300 ease-in-out md:hidden ${
+          open ? 'max-h-64 border-t' : 'max-h-0'
+        }`}
+      >
+        <ul className="flex flex-col gap-4 px-6 py-6">
+          {[...leftLinks, ...rightLinks].map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                className="text-xs tracking-[0.2em] text-foreground/70"
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </header>
   )
 }
