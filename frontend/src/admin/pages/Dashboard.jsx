@@ -113,9 +113,22 @@ export default function Dashboard() {
                         {a.user?.phone && <p>{a.user.phone}</p>}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{a.barber?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{a.service?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {(() => {
+                          const svcs = a.appointment_services?.length
+                            ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                            : a.service ? [a.service] : []
+                          return svcs.length ? svcs.map(s => s.name).join(', ') : '—'
+                        })()}
+                      </td>
                       <td className="px-4 py-3 text-primary text-xs font-medium">
-                        {a.service ? `$${a.service.price.toLocaleString()}` : '—'}
+                        {(() => {
+                          const svcs = a.appointment_services?.length
+                            ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                            : a.service ? [a.service] : []
+                          const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+                          return total > 0 ? `$${total.toLocaleString()}` : '—'
+                        })()}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[a.status]}`}>
@@ -148,11 +161,26 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Servicio</p>
-                      <p className="text-foreground mt-0.5">{a.service?.name ?? '—'}</p>
+                      <p className="text-foreground mt-0.5">
+                        {(() => {
+                          const svcs = a.appointment_services?.length
+                            ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                            : a.service ? [a.service] : []
+                          return svcs.length ? svcs.map(s => s.name).join(', ') : '—'
+                        })()}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
-                      <p className="text-primary font-medium mt-0.5">{a.service ? `$${a.service.price.toLocaleString()}` : '—'}</p>
+                      <p className="text-primary font-medium mt-0.5">
+                        {(() => {
+                          const svcs = a.appointment_services?.length
+                            ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                            : a.service ? [a.service] : []
+                          const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+                          return total > 0 ? `$${total.toLocaleString()}` : '—'
+                        })()}
+                      </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Estilista</p>

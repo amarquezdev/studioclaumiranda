@@ -17,13 +17,49 @@ def _fmt_time(dt) -> str:
     return dt.strftime("%H:%M")
 
 
+def _service_rows(appt) -> str:
+    """Build one row per service (multi-service aware)."""
+    services = [as_.service for as_ in (appt.appointment_services or []) if as_.service]
+    if not services and appt.service:
+        services = [appt.service]
+
+    html = ""
+    for i, svc in enumerate(services):
+        label = "Servicio" if len(services) == 1 else f"Servicio {i + 1}"
+        price = f"${svc.price:,.0f}".replace(",", ".")
+        html += f"""
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Jost',Helvetica,Arial,sans-serif;">
+            <span style="color:#9A9490;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;">{label}</span>
+          </td>
+          <td align="right" style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Cormorant Garamond',Georgia,serif;">
+            <span style="color:#2A2420;font-size:14px;">{svc.name}</span>
+            <span style="color:#9A9490;font-size:11px;margin-left:6px;">{price}</span>
+          </td>
+        </tr>"""
+
+    if len(services) > 1:
+        total = sum(svc.price for svc in services)
+        total_fmt = f"${total:,.0f}".replace(",", ".")
+        html += f"""
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Jost',Helvetica,Arial,sans-serif;">
+            <span style="color:#9A9490;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;">Total</span>
+          </td>
+          <td align="right" style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Cormorant Garamond',Georgia,serif;">
+            <span style="color:#C9A05A;font-size:15px;font-weight:600;">{total_fmt}</span>
+          </td>
+        </tr>"""
+
+    return html
+
+
 def _details_rows(appt) -> str:
     rows = [
-        ("Servicio", appt.service.name if appt.service else "—", False),
-        ("Fecha",    _fmt_date(appt.start_datetime),             False),
-        ("Hora",     _fmt_time(appt.start_datetime),             True),
+        ("Fecha", _fmt_date(appt.start_datetime), False),
+        ("Hora",  _fmt_time(appt.start_datetime), True),
     ]
-    html = ""
+    html = _service_rows(appt)
     for i, (label, value, accent) in enumerate(rows):
         border = "border-bottom:1px solid #E8E0D5;" if i < len(rows) - 1 else ""
         val_color = "#C9A05A" if accent else "#2A2420"

@@ -285,13 +285,38 @@ function AppointmentDetailsModal({ appt, onClose }) {
               <p className="text-foreground text-sm">{appt.barber?.name ?? '—'}</p>
             </div>
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Servicio</p>
-            <p className="text-foreground text-sm">{appt.service?.name ?? '—'}</p>
-            {appt.service && (
-              <p className="text-muted-foreground text-xs">{appt.service.duration_minutes} min · precio base ${appt.service.price.toLocaleString()}</p>
-            )}
-          </div>
+          {/* Services — multi-service aware */}
+          {(() => {
+            const svcs = appt.appointment_services?.length
+              ? appt.appointment_services.map(as_ => as_.service).filter(Boolean)
+              : appt.service ? [appt.service] : []
+            const total = svcs.reduce((s, sv) => s + (sv.price ?? 0), 0)
+            return (
+              <div>
+                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">
+                  {svcs.length > 1 ? 'Servicios' : 'Servicio'}
+                </p>
+                <div className="space-y-2">
+                  {svcs.map((sv, i) => (
+                    <div key={i} className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-foreground text-sm">{sv.name}</p>
+                        <p className="text-muted-foreground text-xs">{sv.duration_minutes} min</p>
+                      </div>
+                      <p className="text-primary text-sm font-medium shrink-0">${sv.price.toLocaleString()}</p>
+                    </div>
+                  ))}
+                  {svcs.length > 1 && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <p className="text-muted-foreground text-xs uppercase tracking-wider">Total</p>
+                      <p className="text-primary font-semibold">${total.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {svcs.length === 0 && <p className="text-foreground text-sm">—</p>}
+                </div>
+              </div>
+            )
+          })()}
           {options.length > 0 && (
             <div>
               <p className="text-muted-foreground text-xs uppercase tracking-wider mb-2">Opciones seleccionadas</p>
@@ -393,13 +418,26 @@ export default function Appointments() {
                   {parseTransferId(a.notes) ?? <span className="italic" style={{ fontFamily: 'inherit' }}>Sin comprobante</span>}
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-muted-foreground">{a.service?.name ?? '—'}</p>
+                  {(() => {
+                    const svcs = a.appointment_services?.length
+                      ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                      : a.service ? [a.service] : []
+                    return svcs.length > 0
+                      ? <p className="text-muted-foreground">{svcs.map(s => s.name).join(', ')}</p>
+                      : <p className="text-muted-foreground">—</p>
+                  })()}
                   {parseNotes(a.notes).options.length > 0 && (
                     <button onClick={() => setDetailAppt(a)} className="text-primary text-xs hover:underline mt-0.5">Ver detalles</button>
                   )}
                 </td>
                 <td className="px-4 py-3 text-primary text-xs font-medium">
-                  {a.service ? `$${a.service.price.toLocaleString()}` : '—'}
+                  {(() => {
+                    const svcs = a.appointment_services?.length
+                      ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                      : a.service ? [a.service] : []
+                    const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+                    return total > 0 ? `$${total.toLocaleString()}` : '—'
+                  })()}
                 </td>
                 <td className="px-4 py-3">
                   <select value={a.status} onChange={e => handleStatus(a.id, e.target.value)}
@@ -448,14 +486,29 @@ export default function Appointments() {
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Servicio</p>
-                <p className="text-foreground mt-0.5">{a.service?.name ?? '—'}</p>
-                {parseNotes(a.notes).options.length > 0 && (
-                  <button onClick={() => setDetailAppt(a)} className="text-primary text-xs hover:underline mt-0.5">Ver detalles</button>
-                )}
+                {(() => {
+                  const svcs = a.appointment_services?.length
+                    ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                    : a.service ? [a.service] : []
+                  return (
+                    <>
+                      <p className="text-foreground mt-0.5">{svcs.length ? svcs.map(s => s.name).join(', ') : '—'}</p>
+                      {parseNotes(a.notes).options.length > 0 && (
+                        <button onClick={() => setDetailAppt(a)} className="text-primary text-xs hover:underline mt-0.5">Ver detalles</button>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
-                <p className="text-primary font-medium mt-0.5">{a.service ? `$${a.service.price.toLocaleString()}` : '—'}</p>
+                {(() => {
+                  const svcs = a.appointment_services?.length
+                    ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                    : a.service ? [a.service] : []
+                  const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+                  return <p className="text-primary font-medium mt-0.5">{total > 0 ? `$${total.toLocaleString()}` : '—'}</p>
+                })()}
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Transacción</p>
