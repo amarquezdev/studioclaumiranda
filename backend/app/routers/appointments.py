@@ -162,6 +162,9 @@ async def get_my_appointments(
         .options(
             selectinload(Appointment.barber),
             selectinload(Appointment.service).selectinload(Service.options),
+            selectinload(Appointment.appointment_services)
+                .selectinload(AppointmentService.service)
+                .selectinload(Service.options),
         )
         .where(Appointment.user_id == current_user.id)
         .order_by(Appointment.start_datetime.desc())
@@ -181,6 +184,9 @@ async def list_all_appointments(
             selectinload(Appointment.user),
             selectinload(Appointment.barber),
             selectinload(Appointment.service).selectinload(Service.options),
+            selectinload(Appointment.appointment_services)
+                .selectinload(AppointmentService.service)
+                .selectinload(Service.options),
         )
         .offset(skip)
         .limit(limit)

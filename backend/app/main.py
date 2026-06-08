@@ -10,14 +10,23 @@ from app.routers import appointments, auth, availability, barbers, blocked_dates
 
 async def _run_migrations(conn):
     await conn.run_sync(Base.metadata.create_all)
-    # Add service_type_id to services if missing (create_all doesn't ALTER existing tables)
     from sqlalchemy import text
     from app.database import _db_url
     if _db_url.startswith("postgresql"):
+        # Add service_type_id to services if missing
         await conn.execute(text(
             "ALTER TABLE services ADD COLUMN IF NOT EXISTS "
             "service_type_id INTEGER REFERENCES service_types(id) ON DELETE SET NULL"
         ))
+        # Ensure appointment_services junction table exists (create_all covers new tables,
+        # but belt-and-suspenders for older deployments)
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS appointment_services (
+                id SERIAL PRIMARY KEY,
+                appointment_id INTEGER NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+                service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE
+            )
+        """))
     else:
         # SQLite: check via pragma then alter
         result = await conn.execute(text("PRAGMA table_info(services)"))
