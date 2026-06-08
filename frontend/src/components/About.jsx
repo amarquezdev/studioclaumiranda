@@ -3,12 +3,14 @@ export function About() {
     <section className="bg-background">
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Portrait */}
-        <div className="relative h-72 md:h-auto md:min-h-[680px]">
-          <img
-            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?fm=jpg&q=80&w=900&auto=format&fit=crop"
-            alt="Claudia Miranda — Fundadora y Estilista Principal"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
+        <div className="relative h-72 overflow-hidden md:h-auto md:min-h-[680px]">
+          <div className="absolute inset-0 md:left-12 lg:left-16">
+            <img
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?fm=jpg&q=80&w=900&auto=format&fit=crop"
+              alt="Claudia Miranda — Fundadora y Estilista Principal"
+              className="h-full w-full object-cover object-center"
+            />
+          </div>
         </div>
 
         {/* Content */}

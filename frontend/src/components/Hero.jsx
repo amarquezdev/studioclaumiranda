@@ -2,7 +2,7 @@ export function Hero() {
   return (
     <section className="relative h-screen min-h-[640px] w-full">
       {/* Three columns spanning full height */}
-      <div className="absolute top-0 bottom-0 left-4 right-0 md:inset-0 grid grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
+      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?fm=jpg&q=80&w=800&auto=format&fit=crop"
