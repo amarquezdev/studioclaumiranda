@@ -63,15 +63,6 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Image strip */}
-      <div className="grid grid-cols-3">
-        <img src="/footer-1.png" alt="Textura de cabello rubio ondulado" className="h-40 w-full object-cover md:h-48" />
-        <div className="flex items-center justify-center bg-background">
-          <span className="font-serif text-3xl text-foreground md:text-4xl">Studio Clau</span>
-        </div>
-        <img src="/footer-2.png" alt="Tela de seda crema suave" className="h-40 w-full object-cover md:h-48" />
-      </div>
-
       <div className="bg-background py-6 text-center">
         <p className="text-[10px] tracking-[0.2em] text-foreground/50">
           © 2026 STUDIO CLAU MIRANDA — TODOS LOS DERECHOS RESERVADOS
