@@ -2,7 +2,7 @@ export function Hero() {
   return (
     <section className="relative h-screen min-h-[640px] w-full">
       {/* Three columns spanning full height */}
-      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
+      <div className="absolute top-0 bottom-0 left-4 right-0 md:inset-0 grid grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?fm=jpg&q=80&w=800&auto=format&fit=crop"
@@ -31,16 +31,16 @@ export function Hero() {
         {/* Mobile */}
         <div className="flex h-full items-center px-6 md:hidden">
           <h1 className="font-serif text-5xl leading-[1.05] text-foreground sm:text-6xl">
-            Un cabello sano
-            <span className="mt-2 block italic">En manos expertas</span>
+            Un Cabello Sano
+            <span className="mt-2 block italic">En Manos Expertas</span>
           </h1>
         </div>
         {/* Desktop */}
         <div className="absolute inset-0 hidden md:block">
           <div className="absolute top-1/2 -translate-y-1/2 left-[28.57%] -translate-x-1/2 text-center">
             <h1 className="font-serif text-7xl leading-[1.05] text-foreground text-nowrap">
-              Un cabello sano
-              <span className="mt-2 block italic">En manos expertas</span>
+              Un Cabello Sano
+              <span className="mt-2 block italic">En Manos Expertas</span>
             </h1>
           </div>
         </div>

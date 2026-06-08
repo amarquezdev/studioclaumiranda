@@ -2,7 +2,7 @@ export function Footer() {
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-24">
-        <div className="grid gap-12 md:grid-cols-4">
+        <div className="grid gap-12 md:grid-cols-3">
           {/* Visit */}
           <div>
             <h3 className="text-[11px] tracking-[0.25em] text-primary-foreground/60">VISÍTANOS</h3>
@@ -40,26 +40,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Newsletter */}
-          <div className="bg-primary-foreground/10 p-6">
-            <p className="font-serif text-xl italic leading-snug">
-              Suscríbete para tips de belleza y ofertas exclusivas
-            </p>
-            <form className="mt-6 flex flex-col gap-3">
-              <input
-                type="email"
-                required
-                placeholder="Tu email"
-                className="border-b border-primary-foreground/30 bg-transparent pb-2 text-sm text-primary-foreground placeholder:text-primary-foreground/40 focus:border-primary-foreground focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="mt-2 self-start text-[11px] tracking-[0.25em] text-primary-foreground/70 transition-colors hover:text-primary-foreground"
-              >
-                SUSCRIBIRSE →
-              </button>
-            </form>
-          </div>
         </div>
       </div>
 
