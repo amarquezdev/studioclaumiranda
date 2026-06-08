@@ -1,7 +1,7 @@
 export function About() {
   return (
     <section id="historia" className="bg-background">
-      <div className="grid grid-cols-1 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr]">
         {/* Portrait */}
         <div className="relative h-72 overflow-hidden md:h-auto md:min-h-[680px]">
           <div className="absolute inset-0 md:left-12 lg:left-16">
