@@ -6,7 +6,7 @@ export function About() {
         <div className="relative h-72 overflow-hidden md:h-auto md:min-h-[680px]">
           <div className="absolute inset-0 md:left-12 lg:left-16">
             <img
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?fm=jpg&q=80&w=900&auto=format&fit=crop"
+              src="/estilista-claumiranda.webp"
               alt="Claudia Miranda — Fundadora y Estilista Principal"
               className="h-full w-full object-cover object-center"
             />
