@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react'
-import { Scissors, Sparkles, Palette, Droplets, ChevronLeft, ChevronRight, Check, X } from 'lucide-react'
+import { Scissors, Sparkles, Palette, Droplets, Wand2, Zap, Wind, ChevronLeft, ChevronRight, Check, X } from 'lucide-react'
 import { getServices, getBarbers, getBusinessHours, getAvailability, guestCreateAppointment, getBlockedDates, getServiceTypes } from '../api/client'
 import { cn } from '../lib/utils'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const SERVICE_ICONS = [Scissors, Palette, Droplets, Sparkles]
+function getServiceIcon(service) {
+  const text = ((service.name || '') + ' ' + (service.service_type?.name || '')).toLowerCase()
+  if (/corte|cut/.test(text))                          return Scissors
+  if (/mech|balayage|highlight|reflejo|ilumina/.test(text)) return Sparkles
+  if (/color|tintura|tinte/.test(text))               return Palette
+  if (/keratina|alisado|liso|liss|nanoplastia/.test(text)) return Zap
+  if (/ondulado|rizado|permanente|rizos/.test(text))  return Wind
+  if (/peinado|styling|recogido|brushing/.test(text)) return Wand2
+  if (/tratamiento|hidrat|nutrici|reparaci|mascaril/.test(text)) return Droplets
+  return Scissors
+}
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 function toISO(date) {
@@ -518,7 +528,7 @@ export function Booking() {
                   {services
                     .filter(s => activeType === null || s.service_type_id === activeType)
                     .map((s, i) => {
-                      const Icon   = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                      const Icon   = getServiceIcon(s)
                       const inCart = cartHasService(s.id)
                       return (
                         <button key={s.id} onClick={() => handleServiceClick(s)}
@@ -560,7 +570,7 @@ export function Booking() {
                   {services
                     .filter(s => activeType === null || s.service_type_id === activeType)
                     .map((s, i) => {
-                      const Icon   = SERVICE_ICONS[i % SERVICE_ICONS.length]
+                      const Icon   = getServiceIcon(s)
                       const inCart = cartHasService(s.id)
                       return (
                         <button key={s.id} onClick={() => handleServiceClick(s)}
