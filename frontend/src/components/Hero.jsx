@@ -26,21 +26,31 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Headline overlay */}
-      <div className="relative z-10 grid h-full grid-cols-1 md:grid-cols-[2fr_3fr_2fr]">
-        <div className="col-span-1 flex flex-col justify-center px-6 md:col-span-2 md:px-10">
-          <h1 className="font-serif text-5xl leading-[1.05] text-foreground text-nowrap sm:text-6xl md:text-7xl">
+      {/* Headline — mobile: left-aligned; desktop: centered on left/center seam (28.57%) */}
+      <div className="relative z-10 h-full">
+        {/* Mobile */}
+        <div className="flex h-full items-center px-6 md:hidden">
+          <h1 className="font-serif text-5xl leading-[1.05] text-foreground sm:text-6xl">
             Good Hair Days
             <span className="mt-2 block italic">Just Got Better</span>
           </h1>
         </div>
+        {/* Desktop */}
+        <div className="absolute inset-0 hidden md:block">
+          <div className="absolute top-1/2 -translate-y-1/2 left-[28.57%] -translate-x-1/2 text-center">
+            <h1 className="font-serif text-7xl leading-[1.05] text-foreground text-nowrap">
+              Good Hair Days
+              <span className="mt-2 block italic">Just Got Better</span>
+            </h1>
+          </div>
+        </div>
       </div>
 
-      {/* Book button */}
-      <div className="absolute bottom-12 left-1/2 z-20 -translate-x-1/2 md:left-2/3">
+      {/* Book button — mobile: centered; desktop: centered on center/right seam (71.43%) */}
+      <div className="absolute bottom-12 left-1/2 z-20 -translate-x-1/2 md:left-[71.43%]">
         <a
           href="#book"
-          className="inline-flex items-center bg-primary px-7 py-3.5 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
+          className="inline-flex items-center bg-primary px-10 py-4 text-[11px] tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
         >
           RESERVAR CITA
         </a>
