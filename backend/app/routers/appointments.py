@@ -22,7 +22,13 @@ async def _load_appointment(db: AsyncSession, appointment_id: int) -> Appointmen
             selectinload(Appointment.user),
             selectinload(Appointment.barber),
             selectinload(Appointment.service).selectinload(Service.options),
-            selectinload(Appointment.appointment_services).selectinload(AppointmentService.service).selectinload(Service.options),
+            selectinload(Appointment.service).selectinload(Service.service_type),
+            selectinload(Appointment.appointment_services)
+                .selectinload(AppointmentService.service)
+                .selectinload(Service.options),
+            selectinload(Appointment.appointment_services)
+                .selectinload(AppointmentService.service)
+                .selectinload(Service.service_type),
         )
         .where(Appointment.id == appointment_id)
     )
@@ -162,9 +168,13 @@ async def get_my_appointments(
         .options(
             selectinload(Appointment.barber),
             selectinload(Appointment.service).selectinload(Service.options),
+            selectinload(Appointment.service).selectinload(Service.service_type),
             selectinload(Appointment.appointment_services)
                 .selectinload(AppointmentService.service)
                 .selectinload(Service.options),
+            selectinload(Appointment.appointment_services)
+                .selectinload(AppointmentService.service)
+                .selectinload(Service.service_type),
         )
         .where(Appointment.user_id == current_user.id)
         .order_by(Appointment.start_datetime.desc())
@@ -184,9 +194,13 @@ async def list_all_appointments(
             selectinload(Appointment.user),
             selectinload(Appointment.barber),
             selectinload(Appointment.service).selectinload(Service.options),
+            selectinload(Appointment.service).selectinload(Service.service_type),
             selectinload(Appointment.appointment_services)
                 .selectinload(AppointmentService.service)
                 .selectinload(Service.options),
+            selectinload(Appointment.appointment_services)
+                .selectinload(AppointmentService.service)
+                .selectinload(Service.service_type),
         )
         .offset(skip)
         .limit(limit)
