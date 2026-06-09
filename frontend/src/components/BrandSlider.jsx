@@ -1,4 +1,4 @@
-const brands = ['INOAR', 'LOREAL MATRIX', 'DAVINES', 'OMNIPLEX', 'SILKEY', 'SOW']
+const brands = ['INOAR', 'LOREAL MATRIX', 'SILKEY', 'SOW', 'WELLA']
 
 export function BrandSlider() {
   const list = [...brands, ...brands]

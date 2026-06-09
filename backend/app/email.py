@@ -166,9 +166,9 @@ def _base_template(title: str, subtitle: str, body_extra: str, appt) -> str:
             <p style="margin:24px 0 0;color:#9A9490;font-size:11px;text-align:center;
                       line-height:1.8;letter-spacing:0.03em;">
               ¿Necesitas cancelar o modificar tu cita?<br>
-              <a href="mailto:contacto@studioclaumiranda.cl"
+              <a href="https://wa.me/56958306982"
                  style="color:#C9A05A;text-decoration:none;letter-spacing:0.05em;">
-                contacto@studioclaumiranda.cl
+                Escríbenos por WhatsApp
               </a>
             </p>
 
@@ -245,3 +245,136 @@ async def send_reminder_email(appt) -> None:
         return
     subject = f"Recordatorio: tu cita es hoy a las {_fmt_time(appt.start_datetime)}"
     await _send(appt.user.email, subject, build_reminder_html(appt))
+
+
+STYLIST_EMAIL = "studioclaumiranda@gmail.com"
+
+
+def build_stylist_notification_html(appt) -> str:
+    client_name  = appt.user.name  if appt.user else "Desconocido"
+    client_email = appt.user.email if appt.user else "—"
+    client_phone = (appt.user.phone or "—") if appt.user else "—"
+
+    contact_rows = f"""
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Jost',Helvetica,Arial,sans-serif;">
+            <span style="color:#9A9490;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;">Cliente</span>
+          </td>
+          <td align="right" style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Cormorant Garamond',Georgia,serif;">
+            <span style="color:#2A2420;font-size:14px;">{client_name}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Jost',Helvetica,Arial,sans-serif;">
+            <span style="color:#9A9490;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;">Correo</span>
+          </td>
+          <td align="right" style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Cormorant Garamond',Georgia,serif;">
+            <span style="color:#2A2420;font-size:14px;">{client_email}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Jost',Helvetica,Arial,sans-serif;">
+            <span style="color:#9A9490;font-size:10px;text-transform:uppercase;letter-spacing:0.18em;">Teléfono</span>
+          </td>
+          <td align="right" style="padding:10px 0;border-bottom:1px solid #E8E0D5;font-family:'Cormorant Garamond',Georgia,serif;">
+            <span style="color:#2A2420;font-size:14px;">{client_phone}</span>
+          </td>
+        </tr>"""
+
+    details  = _details_rows(appt)
+    notes    = _notes_block(appt)
+    date_str = _fmt_date(appt.start_datetime)
+    time_str = _fmt_time(appt.start_datetime)
+
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Nueva reserva</title>
+</head>
+<body style="margin:0;padding:0;background:#EDE8E0;font-family:'Jost',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#EDE8E0;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FAFAF8;">
+
+        <tr>
+          <td style="background:#2A2420;padding:30px 40px;text-align:center;">
+            <p style="margin:0;color:#F5F0EA;font-family:'Cormorant Garamond',Georgia,serif;
+                      font-size:20px;font-weight:400;letter-spacing:0.28em;text-transform:uppercase;">
+              Studio Clau Miranda
+            </p>
+            <p style="margin:6px 0 0;color:#6A6460;font-size:9px;letter-spacing:0.35em;
+                      text-transform:uppercase;font-family:'Jost',Helvetica,Arial,sans-serif;">
+              Peluquería &amp; Estética
+            </p>
+          </td>
+        </tr>
+
+        <tr><td style="height:3px;background:#C9A05A;"></td></tr>
+
+        <tr>
+          <td style="padding:44px 40px 36px;">
+
+            <h1 style="margin:0 0 10px;font-family:'Cormorant Garamond',Georgia,serif;
+                       font-size:30px;font-weight:400;color:#2A2420;text-align:center;
+                       letter-spacing:0.04em;">
+              Nueva Reserva
+            </h1>
+            <p style="margin:0 0 32px;color:#7A7470;font-size:13px;text-align:center;
+                      line-height:1.7;letter-spacing:0.02em;">
+              Tienes una nueva cita agendada para el <strong style="color:#2A2420;">{date_str}</strong> a las <strong style="color:#C9A05A;">{time_str}</strong>.
+            </p>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr><td style="border-top:1px solid #E2DBD0;"></td></tr>
+            </table>
+
+            <!-- Datos del cliente -->
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#F5F0EA;border-top:2px solid #C9A05A;margin-bottom:16px;">
+              <tr><td style="padding:18px 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  {contact_rows}
+                </table>
+              </td></tr>
+            </table>
+
+            <!-- Detalles de la cita -->
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#F5F0EA;border-top:2px solid #2A2420;">
+              <tr><td style="padding:18px 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  {details}
+                </table>
+              </td></tr>
+            </table>
+
+            {notes}
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
+              <tr><td style="border-top:1px solid #E2DBD0;"></td></tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <tr>
+          <td style="background:#2A2420;padding:16px 40px;text-align:center;">
+            <p style="margin:0;color:#6A6460;font-size:9px;letter-spacing:0.2em;
+                      text-transform:uppercase;font-family:'Jost',Helvetica,Arial,sans-serif;">
+              Studio Clau Miranda &nbsp;&mdash;&nbsp; studioclaumiranda.cl
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
+async def send_stylist_notification_email(appt) -> None:
+    subject = f"Nueva reserva — {_fmt_date(appt.start_datetime)} a las {_fmt_time(appt.start_datetime)}"
+    await _send(STYLIST_EMAIL, subject, build_stylist_notification_html(appt))

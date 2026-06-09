@@ -10,7 +10,7 @@ from app.dependencies import get_current_active_user, require_admin
 from app.models import Appointment, AppointmentService, AppointmentStatus, Barber, Service, ServiceOption, User
 from app.auth import get_password_hash
 from app.schemas import AppointmentCreate, AppointmentRead, AppointmentStatusUpdate, GuestAppointmentCreate
-from app.email import send_confirmation_email
+from app.email import send_confirmation_email, send_stylist_notification_email
 
 router = APIRouter()
 
@@ -85,6 +85,7 @@ async def create_appointment(
     await db.flush()
     loaded = await _load_appointment(db, appt.id)
     background_tasks.add_task(send_confirmation_email, loaded)
+    background_tasks.add_task(send_stylist_notification_email, loaded)
     return loaded
 
 
@@ -155,6 +156,7 @@ async def create_guest_appointment(
     await db.flush()
     loaded = await _load_appointment(db, appt.id)
     background_tasks.add_task(send_confirmation_email, loaded)
+    background_tasks.add_task(send_stylist_notification_email, loaded)
     return loaded
 
 
