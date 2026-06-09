@@ -1,8 +1,11 @@
 """Email service — sends confirmation and reminder emails via Resend API."""
 
 import httpx
+import logging
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 DAYS_ES   = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
 MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio',
@@ -219,9 +222,10 @@ def build_reminder_html(appt) -> str:
 
 async def _send(to_email: str, subject: str, html: str) -> None:
     if not settings.RESEND_API_KEY:
+        logger.warning("RESEND_API_KEY not set — skipping email to %s", to_email)
         return
     async with httpx.AsyncClient(timeout=10.0) as client:
-        await client.post(
+        response = await client.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
             json={
@@ -231,6 +235,10 @@ async def _send(to_email: str, subject: str, html: str) -> None:
                 "html": html,
             },
         )
+    if response.status_code >= 400:
+        logger.error("Resend error sending to %s: %s %s", to_email, response.status_code, response.text)
+    else:
+        logger.info("Email sent to %s (status %s)", to_email, response.status_code)
 
 
 async def send_confirmation_email(appt) -> None:
