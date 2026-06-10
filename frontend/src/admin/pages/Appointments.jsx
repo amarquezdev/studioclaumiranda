@@ -77,7 +77,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
   useEffect(() => {
     if (!form.date || !form.barber_id || !form.service_id) return
     setLoadingSlots(true); setSlots([]); setForm(f => ({ ...f, slot: null }))
-    getAvailability(form.date, form.barber_id, form.service_id)
+    getAvailability(form.date, form.barber_id, form.service_id, { showAll: true })
       .then(r => setSlots(r.data.slots))
       .catch(() => setSlots([]))
       .finally(() => setLoadingSlots(false))
@@ -203,15 +203,24 @@ function NewAppointmentModal({ onClose, onCreated }) {
               {loadingSlots && <p className="text-muted-foreground text-xs">Cargando horarios...</p>}
               {!loadingSlots && slots.length === 0 && <p className="text-muted-foreground text-xs">No hay horas disponibles para esta fecha.</p>}
               {!loadingSlots && slots.length > 0 && (
-                <div className={`grid grid-cols-3 sm:grid-cols-4 gap-2 mt-1 rounded-sm transition-colors ${fieldErrors.slot ? 'border border-red-500 p-2' : ''}`}>
-                  {slots.map((slot, i) => (
-                    <button type="button" key={i} onClick={() => { set('slot', slot); setFieldErrors(f => ({ ...f, slot: '' })) }}
-                      className={`py-1.5 text-xs border rounded-sm transition-all ${
-                        form.slot === slot ? 'bg-primary text-primary-foreground border-primary font-bold' : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
-                      }`}>
-                      {formatTime(slot.start)}
-                    </button>
-                  ))}
+                <div className={`grid grid-cols-4 sm:grid-cols-6 gap-1.5 mt-1 rounded-sm transition-colors ${fieldErrors.slot ? 'border border-red-500 p-2' : ''}`}>
+                  {slots.map((slot, i) => {
+                    const isSelected = form.slot === slot
+                    return (
+                      <button type="button" key={i}
+                        disabled={!slot.available}
+                        onClick={() => { if (slot.available) { set('slot', slot); setFieldErrors(f => ({ ...f, slot: '' })) } }}
+                        className={`py-1.5 text-xs border rounded-sm transition-all ${
+                          !slot.available
+                            ? 'border-border/30 text-muted-foreground/30 line-through cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-primary text-primary-foreground border-primary font-bold'
+                              : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
+                        }`}>
+                        {formatTime(slot.start)}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
               {fieldErrors.slot && <p className="text-red-400 text-xs mt-1">{fieldErrors.slot}</p>}
@@ -293,7 +302,7 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
     if (!form.date || !form.barber_id || !form.service_id) return
     if (didInitSlots.current) setForm(f => ({ ...f, slot: null }))
     setLoadingSlots(true); setSlots([])
-    getAvailability(form.date, form.barber_id, form.service_id, appt.id)
+    getAvailability(form.date, form.barber_id, form.service_id, { excludeId: appt.id, showAll: true })
       .then(r => {
         const available = r.data.slots ?? []
         if (!didInitSlots.current) {
@@ -413,13 +422,19 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
               {loadingSlots && <p className="text-muted-foreground text-xs">Cargando horarios...</p>}
               {!loadingSlots && slots.length === 0 && <p className="text-muted-foreground text-xs">No hay horas disponibles para esta fecha.</p>}
               {!loadingSlots && slots.length > 0 && (
-                <div className={`grid grid-cols-3 sm:grid-cols-4 gap-2 mt-1 rounded-sm transition-colors ${fieldErrors.slot ? 'border border-red-500 p-2' : ''}`}>
+                <div className={`grid grid-cols-4 sm:grid-cols-6 gap-1.5 mt-1 rounded-sm transition-colors ${fieldErrors.slot ? 'border border-red-500 p-2' : ''}`}>
                   {slots.map((slot, i) => {
                     const isSelected = form.slot && slot.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === form.slot.start?.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16)
                     return (
-                      <button type="button" key={i} onClick={() => { set('slot', slot) }}
+                      <button type="button" key={i}
+                        disabled={!slot.available}
+                        onClick={() => { if (slot.available) set('slot', slot) }}
                         className={`py-1.5 text-xs border rounded-sm transition-all ${
-                          isSelected ? 'bg-primary text-primary-foreground border-primary font-bold' : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
+                          !slot.available
+                            ? 'border-border/30 text-muted-foreground/30 line-through cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-primary text-primary-foreground border-primary font-bold'
+                              : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
                         }`}>
                         {formatTime(slot.start)}
                       </button>

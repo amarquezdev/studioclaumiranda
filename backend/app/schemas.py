@@ -307,6 +307,7 @@ class AppointmentRead(OrmBase):
 class TimeSlot(BaseModel):
     start: datetime
     end: datetime
+    available: bool = True
 
 
 class AvailabilityResponse(BaseModel):

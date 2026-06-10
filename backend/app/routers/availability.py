@@ -18,6 +18,7 @@ async def get_availability(
     service_id: int | None = Query(None),
     service_ids: str | None = Query(None, description="IDs separados por coma: 1,2,3"),
     exclude_appointment_id: int | None = Query(None, description="ID de cita a excluir del chequeo de conflictos (usado al editar)"),
+    show_all: bool = Query(False, description="Si es true, devuelve todos los slots marcando los ocupados con available=false"),
     db: AsyncSession = Depends(get_db),
 ):
     # Resolve which service IDs to use
@@ -91,7 +92,7 @@ async def get_availability(
 
     booked_ranges = [(naive(a.start_datetime), naive(a.end_datetime)) for a in bookings]
 
-    STEP   = timedelta(minutes=30)
+    STEP   = timedelta(minutes=15)
     slots: list[TimeSlot] = []
     cursor = day_open
     now    = datetime.now()
@@ -105,8 +106,10 @@ async def get_availability(
                 cursor < b_end and slot_end > b_start
                 for b_start, b_end in booked_ranges
             )
-            if not overlap:
-                slots.append(TimeSlot(start=cursor, end=slot_end))
+            if show_all:
+                slots.append(TimeSlot(start=cursor, end=slot_end, available=not overlap))
+            elif not overlap:
+                slots.append(TimeSlot(start=cursor, end=slot_end, available=True))
         cursor += STEP
 
     return AvailabilityResponse(

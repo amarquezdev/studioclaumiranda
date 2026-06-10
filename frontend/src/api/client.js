@@ -17,10 +17,11 @@ client.interceptors.request.use((config) => {
 export const getServices      = () => client.get('/services/')
 export const getBarbers       = () => client.get('/barbers/')
 export const getBusinessHours = () => client.get('/business-hours/')
-export const getAvailability  = (date, barberId, serviceIds, excludeAppointmentId = null) => {
+export const getAvailability  = (date, barberId, serviceIds, { excludeId = null, showAll = false } = {}) => {
   const ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds]
   const params = { date, barber_id: barberId, service_ids: ids.join(',') }
-  if (excludeAppointmentId) params.exclude_appointment_id = excludeAppointmentId
+  if (excludeId)  params.exclude_appointment_id = excludeId
+  if (showAll)    params.show_all = true
   return client.get('/availability/', { params })
 }
 export const getReviews       = () => client.get('/reviews/')
