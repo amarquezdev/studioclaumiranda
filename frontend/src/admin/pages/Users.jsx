@@ -17,13 +17,14 @@ const EMPTY = { name: '', email: '', phone: '', password: '', role: 'client' }
 export default function Users() {
   const { user: me }          = useAuth()
   const [users, setUsers]     = useState([])
+  const [loading, setLoading] = useState(true)
   const [confirm, setConfirm] = useState(null)
   const [modal, setModal]     = useState(false)
   const [form, setForm]       = useState(EMPTY)
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
 
-  const load = () => adminGetUsers().then(r => setUsers(r.data)).catch(() => {})
+  const load = () => adminGetUsers().then(r => setUsers(r.data)).catch(() => {}).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
 
   const openCreate = () => { setForm(EMPTY); setError(''); setModal(true) }
@@ -100,7 +101,10 @@ export default function Users() {
                 </td>
               </tr>
             ))}
-            {users.length === 0 && (
+            {loading && users.length === 0 && (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground text-sm">Cargando usuarios...</td></tr>
+            )}
+            {!loading && users.length === 0 && (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay usuarios registrados</td></tr>
             )}
           </tbody>
@@ -109,7 +113,8 @@ export default function Users() {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {users.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No hay usuarios registrados</p>}
+        {loading && users.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">Cargando usuarios...</p>}
+        {!loading && users.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No hay usuarios registrados</p>}
         {users.map(u => (
           <div key={u.id} className="bg-card border border-border rounded-sm p-4">
             <div className="flex items-start justify-between">

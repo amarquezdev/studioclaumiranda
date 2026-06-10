@@ -20,6 +20,53 @@ function fmtDt(iso, opts) {
   return new Date(local).toLocaleString('es-CL', opts)
 }
 
+function parseOptNames(notes) {
+  if (!notes) return []
+  const cleaned = notes.replace(/^Precio:\s*\d+\n?/m, '')
+  const m = cleaned.match(/^Opciones:\s*(.+?)(\n|$)/)
+  return m ? m[1].split(',').map(s => s.trim()).filter(Boolean) : []
+}
+
+function calcTotal(a) {
+  // Custom price overrides everything
+  if (a.notes) {
+    const pm = a.notes.match(/(?:^|\n)Precio:\s*(\d+)/)
+    if (pm) return parseInt(pm[1], 10)
+  }
+  const optNames = parseOptNames(a.notes)
+  const svcs = a.appointment_services?.length
+    ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+    : a.service ? [a.service] : []
+  const allOptions = svcs.flatMap(sv => sv.options ?? [])
+  const norm = s => s.trim().toLowerCase()
+
+  // Pass 1: "Opciones:" format
+  if (optNames.length > 0 && allOptions.length > 0) {
+    const matched = optNames
+      .map(name => allOptions.find(o => o.name === name) ?? allOptions.find(o => norm(o.name) === norm(name)))
+      .filter(Boolean)
+    if (matched.length > 0) return matched.reduce((s, o) => s + o.price, 0)
+  }
+  // Pass 2: old public-booking "Service: option" token scan
+  if (allOptions.length > 0 && a.notes) {
+    const tokens = a.notes
+      .replace(/Comprobante transferencia:[^\n]*/g, '')
+      .split(/[:,\n]+/).map(s => s.trim()).filter(Boolean)
+    const seen = new Map()
+    for (const token of tokens) {
+      const opt = allOptions.find(o => o.name === token) ?? allOptions.find(o => norm(o.name) === norm(token))
+      if (opt && !seen.has(opt.id)) seen.set(opt.id, opt)
+    }
+    if (seen.size > 0) return [...seen.values()].reduce((s, o) => s + o.price, 0)
+  }
+  if (svcs.some(sv => sv.price_from)) return null
+  return svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+}
+
+function fmtTotal(t) {
+  return t !== null && t !== undefined && t > 0 ? `$${t.toLocaleString('es-CL')}` : '—'
+}
+
 const STATUS_COLORS = {
   pending:   'bg-yellow-500/20 text-yellow-400',
   confirmed: 'bg-green-500/20 text-green-400',
@@ -31,11 +78,13 @@ const STATUS_LABELS = { pending:'Pendiente', confirmed:'Confirmada', cancelled:'
 export default function Dashboard() {
   const [services, setServices]         = useState([])
   const [appointments, setAppointments] = useState([])
+  const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
     Promise.all([adminGetServices(), adminGetAppointments()])
       .then(([s, a]) => { setServices(s.data); setAppointments(a.data) })
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   const now   = new Date()
@@ -53,7 +102,7 @@ export default function Dashboard() {
 
   const revenueToday = todayAppts
     .filter(a => countableStatuses.includes(a.status))
-    .reduce((sum, a) => sum + (a.service?.price ?? 0), 0)
+    .reduce((sum, a) => sum + (calcTotal(a) ?? 0), 0)
 
   const revenueMonth = appointments
     .filter(a => {
@@ -62,7 +111,7 @@ export default function Dashboard() {
         && d.getFullYear() === now.getFullYear()
         && countableStatuses.includes(a.status)
     })
-    .reduce((sum, a) => sum + (a.service?.price ?? 0), 0)
+    .reduce((sum, a) => sum + (calcTotal(a) ?? 0), 0)
 
   const fmt = (n) => `$${Math.round(n).toLocaleString('es-CL')}`
 
@@ -87,7 +136,9 @@ export default function Dashboard() {
       {/* Upcoming appointments */}
       <div>
         <h2 className="text-foreground font-light tracking-widest text-xs uppercase mb-4">Próximas citas</h2>
-        {upcoming.length === 0 ? (
+        {loading ? (
+          <p className="text-muted-foreground text-sm">Cargando próximas citas...</p>
+        ) : upcoming.length === 0 ? (
           <p className="text-muted-foreground text-sm">No hay citas próximas.</p>
         ) : (
           <>
@@ -122,13 +173,7 @@ export default function Dashboard() {
                         })()}
                       </td>
                       <td className="px-4 py-3 text-primary text-xs font-medium">
-                        {(() => {
-                          const svcs = a.appointment_services?.length
-                            ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
-                            : a.service ? [a.service] : []
-                          const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
-                          return total > 0 ? `$${total.toLocaleString()}` : '—'
-                        })()}
+                        {fmtTotal(calcTotal(a))}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[a.status]}`}>
@@ -172,15 +217,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
-                      <p className="text-primary font-medium mt-0.5">
-                        {(() => {
-                          const svcs = a.appointment_services?.length
-                            ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
-                            : a.service ? [a.service] : []
-                          const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
-                          return total > 0 ? `$${total.toLocaleString()}` : '—'
-                        })()}
-                      </p>
+                      <p className="text-primary font-medium mt-0.5">{fmtTotal(calcTotal(a))}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Estilista</p>
