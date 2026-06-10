@@ -365,8 +365,9 @@ export default function Appointments() {
   const [confirm, setConfirm]           = useState(null)
   const [showNew, setShowNew]           = useState(false)
   const [detailAppt, setDetailAppt]     = useState(null)
+  const [loading, setLoading]           = useState(true)
 
-  const load = () => adminGetAppointments().then(r => setAppointments(r.data)).catch(() => {})
+  const load = () => { setLoading(true); adminGetAppointments().then(r => setAppointments(r.data)).catch(() => {}).finally(() => setLoading(false)) }
   useEffect(() => { load() }, [])
 
   const handleStatus = async (id, status) => {
@@ -457,7 +458,10 @@ export default function Appointments() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {loading && (
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground text-sm">Cargando citas...</td></tr>
+            )}
+            {!loading && filtered.length === 0 && (
               <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay citas</td></tr>
             )}
           </tbody>
@@ -466,7 +470,8 @@ export default function Appointments() {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {filtered.length === 0 && (
+        {loading && <p className="text-muted-foreground text-sm text-center py-8">Cargando citas...</p>}
+        {!loading && filtered.length === 0 && (
           <p className="text-muted-foreground text-sm text-center py-8">No hay citas</p>
         )}
         {filtered.map(a => (

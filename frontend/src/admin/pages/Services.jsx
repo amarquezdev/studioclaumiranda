@@ -165,8 +165,8 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
                       className="flex-1 bg-input border border-border text-foreground px-3 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground" />
                     <div className="relative">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                      <input type="number" min={0} step={100} value={opt.price} onChange={e => updateExisting(i, 'price', e.target.value)} placeholder="Precio"
-                        className="w-24 bg-input border border-border text-foreground pl-5 pr-2 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors" />
+                      <input type="text" inputMode="numeric" value={fmtClp(opt.price)} onChange={e => updateExisting(i, 'price', parseClp(e.target.value))} placeholder="0"
+                        className="w-28 bg-input border border-border text-foreground pl-5 pr-2 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors" />
                     </div>
                     <button type="button" onClick={() => removeExisting(opt)} className="text-muted-foreground hover:text-red-400 transition-colors text-lg leading-none shrink-0">&times;</button>
                   </div>
@@ -183,8 +183,8 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
                       className="flex-1 bg-input border border-primary/40 text-foreground px-3 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground" />
                     <div className="relative">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                      <input type="number" min={0} step={100} value={opt.price} onChange={e => updateNew(i, 'price', e.target.value)} placeholder="Precio"
-                        className="w-24 bg-input border border-primary/40 text-foreground pl-5 pr-2 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors" />
+                      <input type="text" inputMode="numeric" value={fmtClp(opt.price)} onChange={e => updateNew(i, 'price', parseClp(e.target.value))} placeholder="0"
+                        className="w-28 bg-input border border-primary/40 text-foreground pl-5 pr-2 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors" />
                     </div>
                     <button type="button" onClick={() => removeNew(i)} className="text-muted-foreground hover:text-red-400 transition-colors text-lg leading-none shrink-0">&times;</button>
                   </div>
@@ -217,8 +217,9 @@ export default function Services() {
   const [confirm, setConfirm]           = useState(null)
   const [newTypeName, setNewTypeName]   = useState('')
   const [showTypePanel, setShowTypePanel] = useState(false)
+  const [loading, setLoading]           = useState(true)
 
-  const load = () => adminGetServices().then(r => setServices(r.data)).catch(() => {})
+  const load = () => { setLoading(true); adminGetServices().then(r => setServices(r.data)).catch(() => {}).finally(() => setLoading(false)) }
   const loadTypes = () => getServiceTypes().then(r => setServiceTypes(r.data)).catch(() => {})
   useEffect(() => { load(); loadTypes() }, [])
 
@@ -314,7 +315,10 @@ export default function Services() {
                 </td>
               </tr>
             ))}
-            {services.length === 0 && (
+            {loading && (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground text-sm">Cargando servicios...</td></tr>
+            )}
+            {!loading && services.length === 0 && (
               <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground text-sm">No hay servicios registrados</td></tr>
             )}
           </tbody>
@@ -323,7 +327,8 @@ export default function Services() {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {services.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No hay servicios registrados</p>}
+        {loading && <p className="text-muted-foreground text-sm text-center py-8">Cargando servicios...</p>}
+        {!loading && services.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No hay servicios registrados</p>}
         {services.map(s => (
           <div key={s.id} className="bg-card border border-border rounded-sm p-4">
             <div className="flex items-start justify-between mb-2">
