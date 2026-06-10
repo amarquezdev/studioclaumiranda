@@ -25,6 +25,8 @@ function fmtDt(iso, opts) {
   const local = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
   return new Date(local).toLocaleString('es-CL', opts)
 }
+const fmtClp  = v => { const n = parseInt(String(v).replace(/\D/g,''),10); return isNaN(n)||n===0 ? '' : `$${n.toLocaleString('es-CL')}` }
+const parseClp = s => { const n = parseInt(String(s).replace(/\D/g,''),10); return isNaN(n) ? 0 : n }
 
 // ── New appointment modal ────────────────────────────────────────────────────
 
@@ -36,7 +38,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
 
   const [form, setForm] = useState({
     name: '', email: '', phone: '',
-    barber_id: '', service_id: '', date: '', slot: null, notes: '',
+    barber_id: '', service_id: '', date: '', slot: null, notes: '', customPrice: '',
   })
   const [selectedOptions, setSelectedOptions] = useState([])
   const [saving, setSaving]       = useState(false)
@@ -95,11 +97,12 @@ function NewAppointmentModal({ onClose, onCreated }) {
     if (hasErrors) { setFieldErrors(errors); setError(message); return }
     setSaving(true); setError('')
     try {
-      let notes = form.notes || null
-      if (selectedOptions.length > 0) {
-        const optLine = `Opciones: ${selectedOptions.map(o => o.name).join(', ')}`
-        notes = notes ? `${optLine}\n${notes}` : optLine
-      }
+      const rawPrice = parseClp(form.customPrice)
+      const parts = []
+      if (rawPrice > 0) parts.push(`Precio: ${rawPrice}`)
+      if (selectedOptions.length > 0) parts.push(`Opciones: ${selectedOptions.map(o => o.name).join(', ')}`)
+      if (form.notes) parts.push(form.notes)
+      const notes = parts.length > 0 ? parts.join('\n') : null
       await adminCreateAppointment({
         name: form.name, email: form.email, phone: form.phone || null,
         barber_id: Number(form.barber_id), service_id: Number(form.service_id),
@@ -228,6 +231,18 @@ function NewAppointmentModal({ onClose, onCreated }) {
           )}
 
           <div>
+            <label className={labelCls}>Precio personalizado <span className="text-muted-foreground normal-case tracking-normal font-normal">(opcional — solo si difiere del precio estándar)</span></label>
+            <input
+              type="text" inputMode="numeric"
+              className={inputCls('customPrice')}
+              value={form.customPrice}
+              onChange={e => set('customPrice', e.target.value)}
+              onBlur={e => { const n = parseClp(e.target.value); set('customPrice', n > 0 ? fmtClp(n) : '') }}
+              placeholder="Ej: $45.000"
+            />
+          </div>
+
+          <div>
             <label className={labelCls}>Notas</label>
             <textarea className={`${inputCls('notes')} resize-none`} rows={2} value={form.notes}
               onChange={e => set('notes', e.target.value)} placeholder="Indicaciones adicionales..." />
@@ -262,8 +277,10 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
     start: appt.start_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
     end:   appt.end_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
   }
-  const initOptNames  = appt.notes ? (appt.notes.match(/^Opciones:\s*(.+?)(\n|$)/) ?? [])[1]?.split(',').map(s => s.trim()).filter(Boolean) ?? [] : []
-  const initExtra     = appt.notes ? (appt.notes.replace(/^Opciones:[^\n]*\n?/, '').trim()) : ''
+  const initCustomPriceRaw = appt.notes ? (appt.notes.match(/(?:^|\n)Precio:\s*(\d+)/)?.[1] ?? '') : ''
+  const initCustomPrice    = initCustomPriceRaw ? fmtClp(initCustomPriceRaw) : ''
+  const initOptNames  = appt.notes ? (appt.notes.replace(/^Precio:[^\n]*\n?/m,'').match(/^Opciones:\s*(.+?)(\n|$)/) ?? [])[1]?.split(',').map(s => s.trim()).filter(Boolean) ?? [] : []
+  const initExtra     = appt.notes ? (appt.notes.replace(/^Precio:[^\n]*\n?/m,'').replace(/^Opciones:[^\n]*\n?/, '').trim()) : ''
 
   const [form, setForm] = useState({
     barber_id: String(appt.barber_id ?? ''),
@@ -271,6 +288,7 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
     date: initDate,
     slot: initSlot,
     notes: initExtra,
+    customPrice: initCustomPrice,
   })
   const [selectedOptions, setSelectedOptions] = useState([])
   const [saving, setSaving]   = useState(false)
@@ -334,11 +352,12 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
     if (labels.length > 0) { setFieldErrors(errors); setError(`Corrige: ${labels.join(', ')}`); return }
     setSaving(true); setError('')
     try {
-      let notes = form.notes || null
-      if (selectedOptions.length > 0) {
-        const optLine = `Opciones: ${selectedOptions.map(o => o.name).join(', ')}`
-        notes = notes ? `${optLine}\n${notes}` : optLine
-      }
+      const rawPrice = parseClp(form.customPrice)
+      const parts = []
+      if (rawPrice > 0) parts.push(`Precio: ${rawPrice}`)
+      if (selectedOptions.length > 0) parts.push(`Opciones: ${selectedOptions.map(o => o.name).join(', ')}`)
+      if (form.notes) parts.push(form.notes)
+      const notes = parts.length > 0 ? parts.join('\n') : null
       await adminUpdateAppointment(appt.id, {
         barber_id: Number(form.barber_id),
         service_id: Number(form.service_id),
@@ -447,6 +466,18 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
           )}
 
           <div>
+            <label className={labelCls}>Precio personalizado <span className="text-muted-foreground normal-case tracking-normal font-normal">(opcional — solo si difiere del precio estándar)</span></label>
+            <input
+              type="text" inputMode="numeric"
+              className={inputCls('customPrice')}
+              value={form.customPrice}
+              onChange={e => set('customPrice', e.target.value)}
+              onBlur={e => { const n = parseClp(e.target.value); set('customPrice', n > 0 ? fmtClp(n) : '') }}
+              placeholder="Ej: $45.000"
+            />
+          </div>
+
+          <div>
             <label className={labelCls}>Notas</label>
             <textarea className={`${inputCls('notes')} resize-none`} rows={2} value={form.notes}
               onChange={e => set('notes', e.target.value)} placeholder="Indicaciones adicionales..." />
@@ -471,8 +502,9 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
 
 function parseNotes(notes) {
   if (!notes) return { options: [], extra: '' }
-  const match = notes.match(/^Opciones:\s*(.+?)(\n([\s\S]*))?$/)
-  if (!match) return { options: [], extra: notes.trim() }
+  const cleaned = notes.replace(/^Precio:\s*\d+\n?/m, '')
+  const match = cleaned.match(/^Opciones:\s*(.+?)(\n([\s\S]*))?$/)
+  if (!match) return { options: [], extra: cleaned.trim() }
   const options = match[1].split(',').map(s => s.trim()).filter(Boolean)
   const extra   = match[3]?.trim() ?? ''
   return { options, extra }
@@ -485,6 +517,10 @@ function parseTransferId(notes) {
 }
 
 function calcTotal(a) {
+  if (a.notes) {
+    const pm = a.notes.match(/(?:^|\n)Precio:\s*(\d+)/)
+    if (pm) return parseInt(pm[1], 10)
+  }
   const { options: optNames } = parseNotes(a.notes)
   const svcs = a.appointment_services?.length
     ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
