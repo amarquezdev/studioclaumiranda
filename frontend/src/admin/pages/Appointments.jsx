@@ -293,16 +293,13 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
     if (!form.date || !form.barber_id || !form.service_id) return
     if (didInitSlots.current) setForm(f => ({ ...f, slot: null }))
     setLoadingSlots(true); setSlots([])
-    getAvailability(form.date, form.barber_id, form.service_id)
+    getAvailability(form.date, form.barber_id, form.service_id, appt.id)
       .then(r => {
-        let available = r.data.slots ?? []
+        const available = r.data.slots ?? []
         if (!didInitSlots.current) {
           const currentStart = initSlot.start.slice(0, 16)
-          const alreadyThere = available.some(s => s.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === currentStart)
-          if (!alreadyThere && initSlot.start) {
-            available = [...available, initSlot].sort((a, b) => a.start.localeCompare(b.start))
-          }
-          setForm(f => ({ ...f, slot: available.find(s => s.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === currentStart) ?? initSlot }))
+          const currentSlot = available.find(s => s.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === currentStart) ?? initSlot
+          setForm(f => ({ ...f, slot: currentSlot }))
           didInitSlots.current = true
         }
         setSlots(available)

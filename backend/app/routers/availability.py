@@ -17,6 +17,7 @@ async def get_availability(
     barber_id: int = Query(...),
     service_id: int | None = Query(None),
     service_ids: str | None = Query(None, description="IDs separados por coma: 1,2,3"),
+    exclude_appointment_id: int | None = Query(None, description="ID de cita a excluir del chequeo de conflictos (usado al editar)"),
     db: AsyncSession = Depends(get_db),
 ):
     # Resolve which service IDs to use
@@ -71,13 +72,17 @@ async def get_availability(
     day_close = datetime.combine(date, bh.close_time)
     duration  = timedelta(minutes=total_duration)
 
+    conflict_filters = [
+        Appointment.barber_id == barber_id,
+        Appointment.status.not_in([AppointmentStatus.cancelled]),
+        Appointment.start_datetime >= day_open,
+        Appointment.start_datetime <= day_close,
+    ]
+    if exclude_appointment_id:
+        conflict_filters.append(Appointment.id != exclude_appointment_id)
+
     existing_result = await db.execute(
-        select(Appointment).where(
-            Appointment.barber_id == barber_id,
-            Appointment.status.not_in([AppointmentStatus.cancelled]),
-            Appointment.start_datetime >= day_open,
-            Appointment.start_datetime <= day_close,
-        )
+        select(Appointment).where(*conflict_filters)
     )
     bookings = existing_result.scalars().all()
 
