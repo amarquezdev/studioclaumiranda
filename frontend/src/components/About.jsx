@@ -1,11 +1,13 @@
 import { useReveal } from '../hooks/useReveal'
 
 export function About() {
-  const imgRef     = useReveal({ y: 50, duration: 1.0 })
-  const labelRef   = useReveal({ y: 20, duration: 0.7 })
-  const headingRef = useReveal({ y: 35, delay: 0.1, duration: 0.9 })
-  const textRef    = useReveal({ y: 25, delay: 0.2, duration: 0.8 })
-  const statsRef   = useReveal({ y: 25, delay: 0.3, duration: 0.8 })
+  const imgRef      = useReveal({ y: 50, duration: 1.0 })
+  const labelRef    = useReveal({ y: 20, duration: 0.7 })
+  const headingRef  = useReveal({ y: 35, delay: 0.1, duration: 0.9 })
+  const textRef     = useReveal({ y: 25, delay: 0.25, duration: 0.8 })
+  const text2Ref    = useReveal({ y: 25, delay: 0.4,  duration: 0.8 })
+  const claudiaRef  = useReveal({ y: 20, delay: 0.55, duration: 0.8 })
+  const statsRef    = useReveal({ y: 25, delay: 0.7,  duration: 0.8 })
 
   return (
     <section id="historia" className="bg-background">
@@ -37,19 +39,20 @@ export function About() {
             artesanía se encuentra con el cuidado personalizado.
           </p>
 
-          <p className="mt-4 text-sm leading-relaxed text-foreground/70">
+          <p ref={text2Ref} className="mt-4 text-sm leading-relaxed text-foreground/70">
             Creemos que el cabello es una extensión de quién eres. Por eso cada corte, coloración y
             tratamiento se diseña a tu medida, utilizando técnicas refinadas y productos de la más
             alta calidad — disponible para ti en San Vicente de Tagua Tagua.
           </p>
 
-          <hr className="mt-10 border-foreground/15" />
-
-          <div className="mt-8">
-            <p className="font-serif text-xl italic text-[#c9a05a]">Claudia Miranda</p>
-            <p className="mt-1 text-[10px] tracking-[0.25em] text-foreground/45">
-              FUNDADORA &amp; ESTILISTA PRINCIPAL
-            </p>
+          <div ref={claudiaRef}>
+            <hr className="mt-10 border-foreground/15" />
+            <div className="mt-8">
+              <p className="font-serif text-xl italic text-[#c9a05a]">Claudia Miranda</p>
+              <p className="mt-1 text-[10px] tracking-[0.25em] text-foreground/45">
+                FUNDADORA &amp; ESTILISTA PRINCIPAL
+              </p>
+            </div>
           </div>
 
           <div ref={statsRef} className="mt-10 grid grid-cols-3 gap-4">

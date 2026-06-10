@@ -30,6 +30,16 @@ export function Hero() {
           delay: 0.2,
         })
       }
+      const locationEls = titleRef.current?.querySelectorAll('.gsap-location')
+      if (locationEls?.length) {
+        gsap.from(locationEls, {
+          opacity: 0,
+          y: 12,
+          duration: 0.7,
+          ease: 'power3.out',
+          delay: 1.3,
+        })
+      }
       if (btnRef.current) {
         gsap.from(btnRef.current, {
           opacity: 0,
@@ -79,7 +89,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
             </h1>
-            <p className="mt-4 text-xs tracking-[0.25em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
+            <p className="gsap-location mt-4 text-xs tracking-[0.25em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
           </div>
         </div>
         {/* Desktop */}
@@ -89,7 +99,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-7xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-7xl italic" />
             </h1>
-            <p className="mt-5 text-xs tracking-[0.3em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
+            <p className="gsap-location mt-5 text-xs tracking-[0.3em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
           </div>
         </div>
       </div>

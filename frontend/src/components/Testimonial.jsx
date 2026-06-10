@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Star, ArrowLeft, ArrowRight } from 'lucide-react'
+import gsap from 'gsap'
 import { getReviews } from '../api/client'
 import { useReveal } from '../hooks/useReveal'
 
@@ -54,6 +55,16 @@ export function Testimonial() {
     return () => clearInterval(id)
   }, [next])
 
+  const reviewRef = useRef(null)
+
+  useEffect(() => {
+    if (!reviewRef.current) return
+    gsap.fromTo(reviewRef.current,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }
+    )
+  }, [index, reviews])
+
   const labelRef = useReveal({ y: 20, duration: 0.7 })
   const headingRef = useReveal({ y: 30, delay: 0.1, duration: 0.9 })
 
@@ -80,13 +91,12 @@ export function Testimonial() {
 
         {/* Slider */}
         <div className="relative mt-12 w-full">
-          <p
-            key={index}
-            className="mx-auto max-w-2xl font-serif text-2xl leading-relaxed text-foreground/90 md:text-[26px] md:leading-relaxed text-balance"
-          >
-            {`"${reviews[index].quote}"`}
-          </p>
-          <p className="mt-8 text-[11px] tracking-[0.25em] text-foreground/60">{reviews[index].name}</p>
+          <div ref={reviewRef}>
+            <p className="mx-auto max-w-2xl font-serif text-2xl leading-relaxed text-foreground/90 md:text-[26px] md:leading-relaxed text-balance">
+              {`"${reviews[index].quote}"`}
+            </p>
+            <p className="mt-8 text-[11px] tracking-[0.25em] text-foreground/60">{reviews[index].name}</p>
+          </div>
 
           {/* Arrows */}
           <div className="mt-10 flex items-center justify-center gap-4">
