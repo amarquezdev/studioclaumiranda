@@ -84,9 +84,9 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
       let serviceId = form.id
       if (serviceId) { await adminUpdateService(serviceId, payload) }
       else { const res = await adminCreateService(payload); serviceId = res.data.id }
-      await Promise.all(deleted.map(optId => adminDeleteServiceOption(serviceId, optId).catch(() => {})))
-      await Promise.all(options.map((o, i) => adminUpdateServiceOption(serviceId, o.id, { name: o.name, price: Number(o.price), is_active: o.is_active ?? true, price_from: o.price_from ?? false, sort_order: i }).catch(() => {})))
-      await Promise.all(newOpts.map((o, i) => adminCreateServiceOption(serviceId, { name: o.name, price: Number(o.price), price_from: o.price_from ?? false, sort_order: options.length + i })))
+      for (const optId of deleted) await adminDeleteServiceOption(serviceId, optId).catch(() => {})
+      for (const [i, o] of options.entries()) await adminUpdateServiceOption(serviceId, o.id, { name: o.name, price: Number(o.price), is_active: o.is_active ?? true, price_from: o.price_from ?? false, sort_order: i }).catch(() => {})
+      for (const [i, o] of newOpts.entries()) await adminCreateServiceOption(serviceId, { name: o.name, price: Number(o.price), price_from: o.price_from ?? false, sort_order: options.length + i })
       onSaved()
     } catch (err) { setError(err.response?.data?.detail || 'Error al guardar') }
     finally { setSaving(false) }
