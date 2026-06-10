@@ -165,7 +165,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
               <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
               <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
                 <option value="">Seleccionar...</option>
-                {services.map(s => <option key={s.id} value={s.id}>{s.name} — ${s.price.toLocaleString()}</option>)}
+                {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
               </select>
               {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
             </div>
@@ -384,7 +384,7 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
               <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
               <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
                 <option value="">Seleccionar...</option>
-                {services.map(s => <option key={s.id} value={s.id}>{s.name} — ${s.price.toLocaleString()}</option>)}
+                {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
               </select>
               {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
             </div>
@@ -491,10 +491,19 @@ function calcTotal(a) {
     : a.service ? [a.service] : []
   if (optNames.length > 0) {
     const allOptions = svcs.flatMap(sv => sv.options ?? [])
-    const matched = optNames.map(name => allOptions.find(o => o.name === name)).filter(Boolean)
+    const norm = s => s.trim().toLowerCase()
+    const matched = optNames
+      .map(name => allOptions.find(o => o.name === name) ?? allOptions.find(o => norm(o.name) === norm(name)))
+      .filter(Boolean)
     if (matched.length > 0) return matched.reduce((s, o) => s + o.price, 0)
   }
+  // price_from means real price depends on an option — don't show the misleading base price
+  if (svcs.some(sv => sv.price_from)) return null
   return svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+}
+
+function fmtTotal(t) {
+  return t !== null && t > 0 ? `$${t.toLocaleString()}` : '—'
 }
 
 // ── Appointment details modal ────────────────────────────────────────────────
@@ -549,7 +558,7 @@ function AppointmentDetailsModal({ appt, onClose }) {
                   ))}
                   <div className="flex items-center justify-between pt-2 border-t border-border/50">
                     <p className="text-muted-foreground text-xs uppercase tracking-wider">Total</p>
-                    <p className="text-primary font-semibold">${realTotal.toLocaleString()}</p>
+                    <p className="text-primary font-semibold">{fmtTotal(realTotal)}</p>
                   </div>
                   {svcs.length === 0 && <p className="text-foreground text-sm">—</p>}
                 </div>
@@ -672,7 +681,7 @@ export default function Appointments() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-primary text-xs font-medium">
-                  {(() => { const t = calcTotal(a); return t > 0 ? `$${t.toLocaleString()}` : '—' })()}
+                  {fmtTotal(calcTotal(a))}
                 </td>
                 <td className="px-4 py-3">
                   <select value={a.status} onChange={e => handleStatus(a.id, e.target.value)}
@@ -742,7 +751,7 @@ export default function Appointments() {
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
-                {(() => { const t = calcTotal(a); return <p className="text-primary font-medium mt-0.5">{t > 0 ? `$${t.toLocaleString()}` : '—'}</p> })()}
+                <p className="text-primary font-medium mt-0.5">{fmtTotal(calcTotal(a))}</p>
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Transacción</p>
