@@ -83,7 +83,7 @@ function OptionsModal({ service, onAdd, onCancel }) {
         <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-0.5">Opciones del servicio</p>
-            <h3 className="font-serif text-lg text-foreground">{service.name}</h3>
+            <h3 className="font-serif text-2xl text-foreground">{service.name}</h3>
             <p className="text-xs text-muted-foreground mt-1">Selecciona el largo de tu cabello actual para calcular el precio correcto.</p>
           </div>
           <button onClick={onCancel} className="text-muted-foreground hover:text-primary transition-colors text-xl leading-none ml-4 shrink-0">&times;</button>
@@ -105,12 +105,12 @@ function OptionsModal({ service, onAdd, onCancel }) {
                   )}>
                     {checked && <div className="w-2 h-2 rounded-full bg-primary" />}
                   </div>
-                  <span className={cn('text-sm tracking-wide', checked ? 'text-foreground' : 'text-muted-foreground')}>
+                  <span className={cn('text-base tracking-wide', checked ? 'text-foreground' : 'text-muted-foreground')}>
                     {opt.name}
                   </span>
                 </div>
-                <span className="text-primary font-medium text-sm">
-                  {opt.price_from && <span className="text-xs font-normal mr-0.5">desde </span>}
+                <span className="text-primary font-medium text-base">
+                  {opt.price_from && <span className="text-sm font-normal mr-0.5">desde </span>}
                   ${opt.price.toLocaleString()}
                 </span>
               </button>
@@ -120,7 +120,7 @@ function OptionsModal({ service, onAdd, onCancel }) {
 
         {selected.length > 0 && (
           <div className="px-6 py-3 border-t border-border/50 flex justify-between items-center">
-            <span className="text-muted-foreground text-xs uppercase tracking-wider">Total opciones</span>
+            <span className="text-muted-foreground text-xs uppercase tracking-wider">Total</span>
             <span className="text-primary font-medium">${optTotal.toLocaleString()}</span>
           </div>
         )}
@@ -574,19 +574,19 @@ export function Booking() {
                             }
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={cn('text-sm font-medium leading-tight', inCart ? 'text-primary' : 'text-foreground')}>
+                            <p className={cn('text-base font-medium leading-tight', inCart ? 'text-primary' : 'text-foreground')}>
                               {s.name}
                             </p>
                             {s.description && (
-                              <p className="text-muted-foreground text-xs mt-0.5 truncate">{s.description}</p>
+                              <p className="text-muted-foreground text-sm mt-0.5 truncate">{s.description}</p>
                             )}
                           </div>
                           <div className="text-right shrink-0 ml-2">
-                            <p className={cn('text-sm font-medium', inCart ? 'text-primary' : 'text-foreground')}>
-                              {s.price_from && <span className="text-xs font-normal">Desde </span>}
+                            <p className={cn('text-base font-medium', inCart ? 'text-primary' : 'text-foreground')}>
+                              {s.price_from && <span className="text-sm font-normal">Desde </span>}
                               ${s.price.toLocaleString('es-CL')}
                             </p>
-                            <p className="text-muted-foreground text-xs">{s.duration_minutes} min</p>
+                            <p className="text-muted-foreground text-sm">{s.duration_minutes} min</p>
                           </div>
                         </button>
                       )
@@ -612,11 +612,11 @@ export function Booking() {
                             </div>
                           )}
                           <Icon className={cn('size-7', inCart ? 'text-primary' : 'text-foreground/80')} strokeWidth={1.25} />
-                          <h3 className={cn('mt-6 font-serif text-2xl transition-colors', inCart ? 'text-primary' : 'text-foreground group-hover:text-primary')}>
+                          <h3 className={cn('mt-6 font-serif text-3xl transition-colors', inCart ? 'text-primary' : 'text-foreground group-hover:text-primary')}>
                             {s.name}
                           </h3>
-                          <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
-                          <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs tracking-wide text-foreground/70">
+                          <p className="mt-3 flex-1 text-base leading-relaxed text-muted-foreground">{s.description}</p>
+                          <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-sm tracking-wide text-foreground/70">
                             <span>
                               {s.price_from && <span className="mr-0.5">Desde </span>}
                               ${s.price.toLocaleString('es-CL')}
