@@ -7,8 +7,10 @@ import { BrandSlider } from './components/BrandSlider'
 import { Gallery } from './components/Gallery'
 import { Footer } from './components/Footer'
 import WhatsAppButton from './components/WhatsAppButton'
+import { useFullPageScroll } from './hooks/useFullPageScroll'
 
 export default function PublicSite() {
+  useFullPageScroll()
   return (
     <main className="bg-background">
       <SiteHeader />
