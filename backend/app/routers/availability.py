@@ -76,7 +76,7 @@ async def get_availability(
             Appointment.barber_id == barber_id,
             Appointment.status.not_in([AppointmentStatus.cancelled]),
             Appointment.start_datetime >= day_open,
-            Appointment.start_datetime < day_close,
+            Appointment.start_datetime <= day_close,
         )
     )
     bookings = existing_result.scalars().all()
@@ -91,7 +91,9 @@ async def get_availability(
     cursor = day_open
     now    = datetime.now()
 
-    while cursor + duration <= day_close:
+    # Slots are valid as long as they START within the booking window (close_time = last start time).
+    # A service may extend past close_time; only the start must fall within 09:00–18:00.
+    while cursor <= day_close:
         slot_end = cursor + duration
         if slot_end > now:
             overlap = any(

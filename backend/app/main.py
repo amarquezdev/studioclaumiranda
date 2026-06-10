@@ -30,6 +30,10 @@ async def _run_migrations(conn):
         await conn.execute(text(
             "ALTER TABLE service_options ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0"
         ))
+        # Update booking window: last start slot is 18:00, not 19:00
+        await conn.execute(text(
+            "UPDATE business_hours SET close_time = '18:00:00' WHERE close_time = '19:00:00'"
+        ))
     else:
         # SQLite: check via pragma then alter
         result = await conn.execute(text("PRAGMA table_info(services)"))
