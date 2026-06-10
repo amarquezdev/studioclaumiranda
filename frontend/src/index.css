@@ -24,11 +24,6 @@
 
 @layer base {
   html { scroll-behavior: smooth; }
-  /* Touch devices: gentle CSS snap (no wheel events available) */
-  @media (pointer: coarse) {
-    html { scroll-snap-type: y proximity; }
-    section, footer { scroll-snap-align: start; }
-  }
   body {
     background-color: oklch(0.97 0.006 85);
     color: oklch(0.28 0.008 60);
