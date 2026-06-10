@@ -84,7 +84,7 @@ function OptionsModal({ service, onAdd, onCancel }) {
           <div>
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-0.5">Opciones del servicio</p>
             <h3 className="font-serif text-lg text-foreground">{service.name}</h3>
-            <p className="text-xs text-muted-foreground mt-1">Selecciona el largo de cabello actual para calcular el precio correcto.</p>
+            <p className="text-xs text-muted-foreground mt-1">Selecciona el largo de tu cabello actual para calcular el precio correcto.</p>
           </div>
           <button onClick={onCancel} className="text-muted-foreground hover:text-primary transition-colors text-xl leading-none ml-4 shrink-0">&times;</button>
         </div>
