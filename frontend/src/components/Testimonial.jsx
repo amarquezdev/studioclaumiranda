@@ -60,13 +60,13 @@ export function Testimonial() {
   useEffect(() => {
     if (!reviewRef.current) return
     gsap.fromTo(reviewRef.current,
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }
     )
   }, [index, reviews])
 
-  const labelRef = useReveal({ y: 20, duration: 0.7 })
-  const headingRef = useReveal({ y: 30, delay: 0.1, duration: 0.9 })
+  const labelRef = useReveal({ y: 15, duration: 1.2 })
+  const headingRef = useReveal({ y: 25, delay: 0.15, duration: 1.4 })
 
   return (
     <section id="resenas" className="bg-background">

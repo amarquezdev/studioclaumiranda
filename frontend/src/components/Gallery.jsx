@@ -11,9 +11,9 @@ const items = [
 
 export function Gallery() {
   const [active, setActive] = useState(null)
-  const labelRef   = useReveal({ y: 20, duration: 0.7 })
-  const headingRef = useReveal({ y: 30, delay: 0.1, duration: 0.9 })
-  const gridRef    = useReveal({ y: 40, delay: 0.2, duration: 1.0 })
+  const labelRef   = useReveal({ y: 15, duration: 1.2 })
+  const headingRef = useReveal({ y: 25, delay: 0.15, duration: 1.4 })
+  const gridRef    = useReveal({ y: 30, delay: 0.3,  duration: 1.5 })
 
   const prev = useCallback(() =>
     setActive(i => (i - 1 + items.length) % items.length), [])

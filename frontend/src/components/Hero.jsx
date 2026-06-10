@@ -23,30 +23,30 @@ export function Hero() {
       if (chars?.length) {
         gsap.from(chars, {
           opacity: 0,
-          y: 18,
-          duration: 0.35,
-          stagger: 0.03,
+          y: 16,
+          duration: 0.55,
+          stagger: 0.035,
           ease: 'power2.out',
-          delay: 0.2,
+          delay: 0.3,
         })
       }
       const locationEls = titleRef.current?.querySelectorAll('.gsap-location')
       if (locationEls?.length) {
         gsap.from(locationEls, {
           opacity: 0,
-          y: 12,
-          duration: 0.7,
-          ease: 'power3.out',
-          delay: 1.3,
+          y: 10,
+          duration: 1.1,
+          ease: 'power2.out',
+          delay: 1.7,
         })
       }
       if (btnRef.current) {
         gsap.from(btnRef.current, {
           opacity: 0,
-          y: 36,
-          duration: 0.8,
-          ease: 'power3.out',
-          delay: 1.1,
+          y: 28,
+          duration: 1.1,
+          ease: 'power2.out',
+          delay: 1.9,
         })
       }
     })

@@ -1,13 +1,13 @@
 import { useReveal } from '../hooks/useReveal'
 
 export function About() {
-  const imgRef      = useReveal({ y: 50, duration: 1.0 })
-  const labelRef    = useReveal({ y: 20, duration: 0.7 })
-  const headingRef  = useReveal({ y: 35, delay: 0.1, duration: 0.9 })
-  const textRef     = useReveal({ y: 25, delay: 0.25, duration: 0.8 })
-  const text2Ref    = useReveal({ y: 25, delay: 0.4,  duration: 0.8 })
-  const claudiaRef  = useReveal({ y: 20, delay: 0.55, duration: 0.8 })
-  const statsRef    = useReveal({ y: 25, delay: 0.7,  duration: 0.8 })
+  const imgRef      = useReveal({ y: 35, duration: 1.6 })
+  const labelRef    = useReveal({ y: 15, duration: 1.2 })
+  const headingRef  = useReveal({ y: 28, delay: 0.15, duration: 1.4 })
+  const textRef     = useReveal({ y: 20, delay: 0.3,  duration: 1.3 })
+  const text2Ref    = useReveal({ y: 20, delay: 0.45, duration: 1.3 })
+  const claudiaRef  = useReveal({ y: 15, delay: 0.6,  duration: 1.2 })
+  const statsRef    = useReveal({ y: 20, delay: 0.75, duration: 1.2 })
 
   return (
     <section id="historia" className="bg-background">

@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger)
  * Fade-up reveal on scroll for a single element.
  * Returns a ref to attach to the element.
  */
-export function useReveal({ delay = 0, y = 40, duration = 0.9 } = {}) {
+export function useReveal({ delay = 0, y = 24, duration = 1.4 } = {}) {
   const ref = useRef(null)
   useEffect(() => {
     if (!ref.current) return
@@ -18,10 +18,10 @@ export function useReveal({ delay = 0, y = 40, duration = 0.9 } = {}) {
       y,
       duration,
       delay,
-      ease: 'power3.out',
+      ease: 'power2.out',
       scrollTrigger: {
         trigger: el,
-        start: 'top 88%',
+        start: 'top 85%',
         once: true,
       },
     })
