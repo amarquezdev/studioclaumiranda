@@ -489,14 +489,33 @@ function calcTotal(a) {
   const svcs = a.appointment_services?.length
     ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
     : a.service ? [a.service] : []
-  if (optNames.length > 0) {
-    const allOptions = svcs.flatMap(sv => sv.options ?? [])
-    const norm = s => s.trim().toLowerCase()
+  const allOptions = svcs.flatMap(sv => sv.options ?? [])
+  const norm = s => s.trim().toLowerCase()
+
+  // Pass 1: match option names extracted by parseNotes (admin "Opciones:" format)
+  if (optNames.length > 0 && allOptions.length > 0) {
     const matched = optNames
       .map(name => allOptions.find(o => o.name === name) ?? allOptions.find(o => norm(o.name) === norm(name)))
       .filter(Boolean)
     if (matched.length > 0) return matched.reduce((s, o) => s + o.price, 0)
   }
+
+  // Pass 2: fallback for old public-booking format "Service name: option, option"
+  // Tokenise the notes (split on : , \n) and look for any token matching an option name
+  if (allOptions.length > 0 && a.notes) {
+    const tokens = a.notes
+      .replace(/Comprobante transferencia:[^\n]*/g, '')
+      .split(/[:,\n]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+    const seen = new Map()
+    for (const token of tokens) {
+      const opt = allOptions.find(o => o.name === token) ?? allOptions.find(o => norm(o.name) === norm(token))
+      if (opt && !seen.has(opt.id)) seen.set(opt.id, opt)
+    }
+    if (seen.size > 0) return [...seen.values()].reduce((s, o) => s + o.price, 0)
+  }
+
   // price_from means real price depends on an option — don't show the misleading base price
   if (svcs.some(sv => sv.price_from)) return null
   return svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)

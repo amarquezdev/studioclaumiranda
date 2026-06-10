@@ -351,10 +351,8 @@ export function Booking() {
     setSubmitting(true); setError('')
     try {
       const serviceIds = cart.map(item => item.service.id)
-      const optLines = cart
-        .filter(item => item.options.length > 0)
-        .map(item => `${item.service.name}: ${item.options.map(o => o.name).join(', ')}`)
-      let notes = optLines.length > 0 ? optLines.join('\n') : null
+      const selectedOptNames = cart.flatMap(item => item.options.map(o => o.name))
+      let notes = selectedOptNames.length > 0 ? `Opciones: ${selectedOptNames.join(', ')}` : null
       if (guestNotes.trim()) notes = notes ? `${notes}\n${guestNotes.trim()}` : guestNotes.trim()
       if (totalDeposit > 0 && transferId.trim()) {
         const tLine = `Comprobante transferencia: ${transferId.trim()}`
