@@ -73,7 +73,7 @@ function OptionsModal({ service, onAdd, onCancel }) {
   const activeOpts = service.options?.filter(o => o.is_active) ?? []
 
   const toggle = (opt) =>
-    setSelected(prev => prev.find(o => o.id === opt.id) ? prev.filter(o => o.id !== opt.id) : [...prev, opt])
+    setSelected(prev => prev.find(o => o.id === opt.id) ? [] : [opt])
 
   const optTotal = selected.reduce((s, o) => s + o.price, 0)
 
@@ -99,10 +99,10 @@ function OptionsModal({ service, onAdd, onCancel }) {
                 )}>
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    'w-4 h-4 border flex items-center justify-center shrink-0 transition-colors',
-                    checked ? 'bg-primary border-primary' : 'border-border'
+                    'w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors',
+                    checked ? 'border-primary' : 'border-border'
                   )}>
-                    {checked && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                    {checked && <div className="w-2 h-2 rounded-full bg-primary" />}
                   </div>
                   <span className={cn('text-sm tracking-wide', checked ? 'text-foreground' : 'text-muted-foreground')}>
                     {opt.name}
@@ -134,7 +134,7 @@ function OptionsModal({ service, onAdd, onCancel }) {
           </button>
           <button onClick={() => onAdd(selected)} disabled={selected.length === 0}
             className="btn-gold disabled:opacity-40 disabled:cursor-not-allowed">
-            {`Agregar (${selected.length} opciones)`}
+            {selected.length === 1 ? `Agregar — ${selected[0].name}` : 'Agregar opción'}
           </button>
         </div>
       </div>
