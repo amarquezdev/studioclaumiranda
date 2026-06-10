@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time as time_t, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,19 +58,23 @@ async def get_availability(
             service_id=primary_id, duration_minutes=total_duration, slots=[],
         )
 
-    day_of_week = date.weekday()
-    bh_result = await db.execute(
-        select(BusinessHours).where(BusinessHours.day_of_week == day_of_week)
-    )
-    bh = bh_result.scalar_one_or_none()
-    if not bh or not bh.is_open:
-        return AvailabilityResponse(
-            date=str(date), barber_id=barber_id,
-            service_id=primary_id, duration_minutes=total_duration, slots=[],
+    if show_all:
+        # Admin context: always use 09:00–18:00 regardless of business hours config.
+        day_open  = datetime.combine(date, time_t(9, 0))
+        day_close = datetime.combine(date, time_t(18, 0))
+    else:
+        day_of_week = date.weekday()
+        bh_result = await db.execute(
+            select(BusinessHours).where(BusinessHours.day_of_week == day_of_week)
         )
-
-    day_open  = datetime.combine(date, bh.open_time)
-    day_close = datetime.combine(date, bh.close_time)
+        bh = bh_result.scalar_one_or_none()
+        if not bh or not bh.is_open:
+            return AvailabilityResponse(
+                date=str(date), barber_id=barber_id,
+                service_id=primary_id, duration_minutes=total_duration, slots=[],
+            )
+        day_open  = datetime.combine(date, bh.open_time)
+        day_close = datetime.combine(date, bh.close_time)
     duration  = timedelta(minutes=total_duration)
 
     conflict_filters = [
