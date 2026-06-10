@@ -82,7 +82,6 @@ function OptionsModal({ service, onAdd, onCancel }) {
       <div className="bg-card border border-border rounded-sm w-full max-w-md max-h-[85vh] flex flex-col">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-0.5">Opciones del servicio</p>
             <h3 className="font-serif text-2xl text-foreground">{service.name}</h3>
             <p className="text-sm text-muted-foreground mt-1.5">Selecciona el largo de tu cabello actual para calcular el precio correcto.</p>
           </div>
