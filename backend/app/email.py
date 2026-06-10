@@ -258,7 +258,7 @@ async def send_reminder_email(appt) -> None:
 STYLIST_EMAIL = "studioclaumiranda@gmail.com"
 
 
-def build_stylist_notification_html(appt) -> str:
+def _build_stylist_html(appt, title: str, intro: str) -> str:
     client_name  = appt.user.name  if appt.user else "Desconocido"
     client_email = appt.user.email if appt.user else "—"
     client_phone = (appt.user.phone or "—") if appt.user else "—"
@@ -291,15 +291,13 @@ def build_stylist_notification_html(appt) -> str:
 
     details  = _details_rows(appt)
     notes    = _notes_block(appt)
-    date_str = _fmt_date(appt.start_datetime)
-    time_str = _fmt_time(appt.start_datetime)
 
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Nueva reserva</title>
+  <title>{title}</title>
 </head>
 <body style="margin:0;padding:0;background:#EDE8E0;font-family:'Jost',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#EDE8E0;padding:40px 16px;">
@@ -327,18 +325,17 @@ def build_stylist_notification_html(appt) -> str:
             <h1 style="margin:0 0 10px;font-family:'Cormorant Garamond',Georgia,serif;
                        font-size:30px;font-weight:400;color:#2A2420;text-align:center;
                        letter-spacing:0.04em;">
-              Nueva Reserva
+              {title}
             </h1>
             <p style="margin:0 0 32px;color:#7A7470;font-size:13px;text-align:center;
                       line-height:1.7;letter-spacing:0.02em;">
-              Tienes una nueva cita agendada para el <strong style="color:#2A2420;">{date_str}</strong> a las <strong style="color:#C9A05A;">{time_str}</strong>.
+              {intro}
             </p>
 
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
               <tr><td style="border-top:1px solid #E2DBD0;"></td></tr>
             </table>
 
-            <!-- Datos del cliente -->
             <table width="100%" cellpadding="0" cellspacing="0"
                    style="background:#F5F0EA;border-top:2px solid #C9A05A;margin-bottom:16px;">
               <tr><td style="padding:18px 24px;">
@@ -348,7 +345,6 @@ def build_stylist_notification_html(appt) -> str:
               </td></tr>
             </table>
 
-            <!-- Detalles de la cita -->
             <table width="100%" cellpadding="0" cellspacing="0"
                    style="background:#F5F0EA;border-top:2px solid #2A2420;">
               <tr><td style="padding:18px 24px;">
@@ -383,6 +379,52 @@ def build_stylist_notification_html(appt) -> str:
 </html>"""
 
 
+def build_stylist_notification_html(appt) -> str:
+    date_str = _fmt_date(appt.start_datetime)
+    time_str = _fmt_time(appt.start_datetime)
+    return _build_stylist_html(
+        appt,
+        title="Nueva Reserva",
+        intro=f"Tienes una nueva cita agendada para el <strong style=\"color:#2A2420;\">{date_str}</strong> a las <strong style=\"color:#C9A05A;\">{time_str}</strong>.",
+    )
+
+
+def build_stylist_modification_html(appt) -> str:
+    date_str = _fmt_date(appt.start_datetime)
+    time_str = _fmt_time(appt.start_datetime)
+    return _build_stylist_html(
+        appt,
+        title="Cita Modificada",
+        intro=f"Una cita ha sido modificada. Nueva fecha: <strong style=\"color:#2A2420;\">{date_str}</strong> a las <strong style=\"color:#C9A05A;\">{time_str}</strong>.",
+    )
+
+
+def build_modification_client_html(appt) -> str:
+    name = appt.user.name if appt.user else "Cliente"
+    return _base_template(
+        title="Cita Modificada",
+        subtitle=f"Hola <strong style='color:#2A2420;font-weight:500;'>{name}</strong>, los detalles de tu cita han sido actualizados.",
+        body_extra="",
+        appt=appt,
+    )
+
+
 async def send_stylist_notification_email(appt) -> None:
     subject = f"Nueva reserva — {_fmt_date(appt.start_datetime)} a las {_fmt_time(appt.start_datetime)}"
     await _send(STYLIST_EMAIL, subject, build_stylist_notification_html(appt))
+
+
+async def send_modification_emails(appt) -> None:
+    date_str = _fmt_date(appt.start_datetime)
+    time_str = _fmt_time(appt.start_datetime)
+    if appt.user and appt.user.email:
+        await _send(
+            appt.user.email,
+            f"Cita modificada — {date_str} a las {time_str}",
+            build_modification_client_html(appt),
+        )
+    await _send(
+        STYLIST_EMAIL,
+        f"Cita modificada — {date_str} a las {time_str}",
+        build_stylist_modification_html(appt),
+    )

@@ -10,7 +10,7 @@ from app.dependencies import get_current_active_user, require_admin
 from app.models import Appointment, AppointmentService, AppointmentStatus, Barber, Service, ServiceOption, User
 from app.auth import get_password_hash
 from app.schemas import AppointmentCreate, AppointmentRead, AppointmentStatusUpdate, AppointmentUpdate, GuestAppointmentCreate
-from app.email import send_confirmation_email, send_stylist_notification_email
+from app.email import send_confirmation_email, send_modification_emails, send_stylist_notification_email
 
 router = APIRouter()
 
@@ -248,6 +248,7 @@ async def update_appointment_status(
 async def update_appointment(
     appointment_id: int,
     payload: AppointmentUpdate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     appt = await _load_appointment(db, appointment_id)
@@ -306,7 +307,9 @@ async def update_appointment(
             db.add(AppointmentService(appointment_id=appt.id, service_id=svc.id))
 
     await db.flush()
-    return await _load_appointment(db, appointment_id)
+    loaded = await _load_appointment(db, appointment_id)
+    background_tasks.add_task(send_modification_emails, loaded)
+    return loaded
 
 
 @router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
