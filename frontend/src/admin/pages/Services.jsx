@@ -21,6 +21,13 @@ const parseClp = (str) => {
 }
 const EMPTY_OPTION = { name: '', price: '' }
 
+const HAIR_LENGTHS = [
+  'Corto (Sobre los Hombros)',
+  'Medio (A la Altura del Hombro)',
+  'Largo (Antes de Mitad de Espalda)',
+  'Extra Largo (Hasta la Cintura)',
+]
+
 function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
   const [form, setForm]       = useState(initial)
   const [options, setOptions] = useState(initial.options || [])
@@ -32,6 +39,11 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const addNewOpt = () => setNewOpts(o => [...o, { ...EMPTY_OPTION }])
+  const addLengthPresets = () => {
+    const existingNames = new Set([...options, ...newOpts].map(o => o.name))
+    const missing = HAIR_LENGTHS.filter(name => !existingNames.has(name))
+    if (missing.length > 0) setNewOpts(o => [...o, ...missing.map(name => ({ name, price: '' }))])
+  }
   const updateExisting = (idx, k, v) => setOptions(o => o.map((x, i) => i === idx ? { ...x, [k]: v } : x))
   const removeExisting = (opt) => { setOptions(o => o.filter(x => x.id !== opt.id)); setDeleted(d => [...d, opt.id]) }
   const updateNew = (idx, k, v) => setNewOpts(o => o.map((x, i) => i === idx ? { ...x, [k]: v } : x))
@@ -151,7 +163,13 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
           </div>
           {form.has_options && (
             <div className="border border-border rounded-sm p-4 space-y-3">
-              <p className="text-muted-foreground text-xs uppercase tracking-wider">Opciones del servicio</p>
+              <div className="flex items-center justify-between">
+                <p className="text-muted-foreground text-xs uppercase tracking-wider">Opciones del servicio</p>
+                <button type="button" onClick={addLengthPresets}
+                  className="text-xs text-primary border border-primary/40 px-2.5 py-1 rounded-sm hover:bg-primary/10 transition-colors">
+                  + Precio por largo
+                </button>
+              </div>
               {options.map((opt, i) => (
                 <div key={opt.id} className="flex flex-col gap-1.5"
                   draggable
