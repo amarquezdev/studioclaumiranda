@@ -18,8 +18,7 @@ async def _run_migrations(conn):
             "ALTER TABLE services ADD COLUMN IF NOT EXISTS "
             "service_type_id INTEGER REFERENCES service_types(id) ON DELETE SET NULL"
         ))
-        # Ensure appointment_services junction table exists (create_all covers new tables,
-        # but belt-and-suspenders for older deployments)
+        # Ensure appointment_services junction table exists
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS appointment_services (
                 id SERIAL PRIMARY KEY,
@@ -27,6 +26,10 @@ async def _run_migrations(conn):
                 service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE
             )
         """))
+        # Add sort_order to service_options if missing
+        await conn.execute(text(
+            "ALTER TABLE service_options ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0"
+        ))
     else:
         # SQLite: check via pragma then alter
         result = await conn.execute(text("PRAGMA table_info(services)"))
@@ -35,6 +38,12 @@ async def _run_migrations(conn):
             await conn.execute(text(
                 "ALTER TABLE services ADD COLUMN service_type_id INTEGER "
                 "REFERENCES service_types(id) ON DELETE SET NULL"
+            ))
+        result = await conn.execute(text("PRAGMA table_info(service_options)"))
+        opt_cols = [row[1] for row in result.fetchall()]
+        if "sort_order" not in opt_cols:
+            await conn.execute(text(
+                "ALTER TABLE service_options ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0"
             ))
 
 

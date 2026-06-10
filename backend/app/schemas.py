@@ -109,6 +109,7 @@ class ServiceOptionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     price: float = Field(..., ge=0)
     price_from: bool = False
+    sort_order: int = 0
 
 
 class ServiceOptionUpdate(BaseModel):
@@ -116,6 +117,7 @@ class ServiceOptionUpdate(BaseModel):
     price: float | None = Field(None, ge=0)
     is_active: bool | None = None
     price_from: bool | None = None
+    sort_order: int | None = None
 
 
 class ServiceOptionRead(OrmBase):
@@ -125,6 +127,7 @@ class ServiceOptionRead(OrmBase):
     price: float
     is_active: bool
     price_from: bool
+    sort_order: int
 
 
 class ServiceCreate(BaseModel):

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   adminGetServices, adminCreateService, adminUpdateService, adminDeleteService,
   adminCreateServiceOption, adminUpdateServiceOption, adminDeleteServiceOption,
@@ -28,6 +28,7 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
   const [deleted, setDeleted] = useState([])
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
+  const dragIdx = useRef(null)
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const addNewOpt = () => setNewOpts(o => [...o, { ...EMPTY_OPTION }])
@@ -35,6 +36,20 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
   const removeExisting = (opt) => { setOptions(o => o.filter(x => x.id !== opt.id)); setDeleted(d => [...d, opt.id]) }
   const updateNew = (idx, k, v) => setNewOpts(o => o.map((x, i) => i === idx ? { ...x, [k]: v } : x))
   const removeNew = (idx) => setNewOpts(o => o.filter((_, i) => i !== idx))
+
+  const handleDragStart = (i) => { dragIdx.current = i }
+  const handleDragOver  = (e, i) => {
+    e.preventDefault()
+    if (dragIdx.current === null || dragIdx.current === i) return
+    setOptions(prev => {
+      const next = [...prev]
+      const [moved] = next.splice(dragIdx.current, 1)
+      next.splice(i, 0, moved)
+      dragIdx.current = i
+      return next
+    })
+  }
+  const handleDragEnd = () => { dragIdx.current = null }
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setSaving(true); setError('')
@@ -58,8 +73,8 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
       if (serviceId) { await adminUpdateService(serviceId, payload) }
       else { const res = await adminCreateService(payload); serviceId = res.data.id }
       await Promise.all(deleted.map(optId => adminDeleteServiceOption(serviceId, optId).catch(() => {})))
-      await Promise.all(options.map(o => adminUpdateServiceOption(serviceId, o.id, { name: o.name, price: Number(o.price), is_active: o.is_active ?? true, price_from: o.price_from ?? false }).catch(() => {})))
-      await Promise.all(newOpts.map(o => adminCreateServiceOption(serviceId, { name: o.name, price: Number(o.price), price_from: o.price_from ?? false })))
+      await Promise.all(options.map((o, i) => adminUpdateServiceOption(serviceId, o.id, { name: o.name, price: Number(o.price), is_active: o.is_active ?? true, price_from: o.price_from ?? false, sort_order: i }).catch(() => {})))
+      await Promise.all(newOpts.map((o, i) => adminCreateServiceOption(serviceId, { name: o.name, price: Number(o.price), price_from: o.price_from ?? false, sort_order: options.length + i })))
       onSaved()
     } catch (err) { setError(err.response?.data?.detail || 'Error al guardar') }
     finally { setSaving(false) }
@@ -138,8 +153,14 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
             <div className="border border-border rounded-sm p-4 space-y-3">
               <p className="text-muted-foreground text-xs uppercase tracking-wider">Opciones del servicio</p>
               {options.map((opt, i) => (
-                <div key={opt.id} className="flex flex-col gap-1.5">
+                <div key={opt.id} className="flex flex-col gap-1.5"
+                  draggable
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={e => handleDragOver(e, i)}
+                  onDragEnd={handleDragEnd}
+                >
                   <div className="flex items-center gap-2">
+                    <span className="cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground transition-colors shrink-0 select-none" title="Arrastrar para reordenar">⠿</span>
                     <input value={opt.name} onChange={e => updateExisting(i, 'name', e.target.value)} placeholder="Nombre"
                       className="flex-1 bg-input border border-border text-foreground px-3 py-1.5 text-sm rounded-sm focus:outline-none focus:border-primary transition-colors placeholder:text-muted-foreground" />
                     <div className="relative">
@@ -149,7 +170,7 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
                     </div>
                     <button type="button" onClick={() => removeExisting(opt)} className="text-muted-foreground hover:text-red-400 transition-colors text-lg leading-none shrink-0">&times;</button>
                   </div>
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none pl-1">
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none pl-5">
                     <input type="checkbox" checked={opt.price_from ?? false} onChange={e => updateExisting(i, 'price_from', e.target.checked)} className="accent-primary w-3.5 h-3.5" />
                     <span className="text-muted-foreground text-xs">Mostrar "desde"</span>
                   </label>

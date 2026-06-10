@@ -88,7 +88,8 @@ class Service(Base):
 
     appointments: Mapped[list["Appointment"]] = relationship("Appointment", back_populates="service")
     options: Mapped[list["ServiceOption"]] = relationship(
-        "ServiceOption", back_populates="service", cascade="all, delete-orphan"
+        "ServiceOption", back_populates="service", cascade="all, delete-orphan",
+        order_by="ServiceOption.sort_order",
     )
     service_type: Mapped["ServiceType | None"] = relationship("ServiceType", back_populates="services")
 
@@ -104,6 +105,7 @@ class ServiceOption(Base):
     price: Mapped[float] = mapped_column(Float, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     price_from: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default='0')
 
     service: Mapped["Service"] = relationship("Service", back_populates="options")
 

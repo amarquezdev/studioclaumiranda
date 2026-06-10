@@ -256,10 +256,24 @@ function parseTransferId(notes) {
   return match ? match[1].trim() : null
 }
 
+function calcTotal(a) {
+  const { options: optNames } = parseNotes(a.notes)
+  const svcs = a.appointment_services?.length
+    ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+    : a.service ? [a.service] : []
+  if (optNames.length > 0) {
+    const allOptions = svcs.flatMap(sv => sv.options ?? [])
+    const matched = optNames.map(name => allOptions.find(o => o.name === name)).filter(Boolean)
+    if (matched.length > 0) return matched.reduce((s, o) => s + o.price, 0)
+  }
+  return svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+}
+
 // ── Appointment details modal ────────────────────────────────────────────────
 
 function AppointmentDetailsModal({ appt, onClose }) {
   const { options, extra } = parseNotes(appt.notes)
+  const realTotal = calcTotal(appt)
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
@@ -303,15 +317,12 @@ function AppointmentDetailsModal({ appt, onClose }) {
                         <p className="text-foreground text-sm">{sv.name}</p>
                         <p className="text-muted-foreground text-xs">{sv.duration_minutes} min</p>
                       </div>
-                      <p className="text-primary text-sm font-medium shrink-0">${sv.price.toLocaleString()}</p>
                     </div>
                   ))}
-                  {svcs.length > 1 && (
-                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                      <p className="text-muted-foreground text-xs uppercase tracking-wider">Total</p>
-                      <p className="text-primary font-semibold">${total.toLocaleString()}</p>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider">Total</p>
+                    <p className="text-primary font-semibold">${realTotal.toLocaleString()}</p>
+                  </div>
                   {svcs.length === 0 && <p className="text-foreground text-sm">—</p>}
                 </div>
               </div>
@@ -431,13 +442,7 @@ export default function Appointments() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-primary text-xs font-medium">
-                  {(() => {
-                    const svcs = a.appointment_services?.length
-                      ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
-                      : a.service ? [a.service] : []
-                    const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
-                    return total > 0 ? `$${total.toLocaleString()}` : '—'
-                  })()}
+                  {(() => { const t = calcTotal(a); return t > 0 ? `$${t.toLocaleString()}` : '—' })()}
                 </td>
                 <td className="px-4 py-3">
                   <select value={a.status} onChange={e => handleStatus(a.id, e.target.value)}
@@ -502,13 +507,7 @@ export default function Appointments() {
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
-                {(() => {
-                  const svcs = a.appointment_services?.length
-                    ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
-                    : a.service ? [a.service] : []
-                  const total = svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
-                  return <p className="text-primary font-medium mt-0.5">{total > 0 ? `$${total.toLocaleString()}` : '—'}</p>
-                })()}
+                {(() => { const t = calcTotal(a); return <p className="text-primary font-medium mt-0.5">{t > 0 ? `$${t.toLocaleString()}` : '—'}</p> })()}
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Transacción</p>
