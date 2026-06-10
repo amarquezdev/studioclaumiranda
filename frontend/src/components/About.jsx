@@ -31,15 +31,16 @@ export function About() {
           </h2>
 
           <p ref={textRef} className="mt-6 text-sm leading-relaxed text-foreground/70">
-            Fundado en 2014, Studio Clau Miranda nació de una idea simple: que cada visita al salón
-            debía sentirse como un ritual. Lo que comenzó como un pequeño estudio se ha convertido
-            en un referente de estilo, donde la artesanía se encuentra con el cuidado personalizado.
+            Fundado en 2014, Studio Clau Miranda nació de una idea simple: que cada visita a la
+            peluquería debía sentirse como un ritual. Lo que comenzó como un pequeño estudio en
+            San Vicente de Tagua Tagua se ha convertido en un referente de estilo, donde la
+            artesanía se encuentra con el cuidado personalizado.
           </p>
 
           <p className="mt-4 text-sm leading-relaxed text-foreground/70">
-            Creemos que el cabello es una extensión de quién eres. Por eso cada corte, color y
+            Creemos que el cabello es una extensión de quién eres. Por eso cada corte, coloración y
             tratamiento se diseña a tu medida, utilizando técnicas refinadas y productos de la más
-            alta calidad.
+            alta calidad — disponible para ti en San Vicente de Tagua Tagua.
           </p>
 
           <hr className="mt-10 border-foreground/15" />

@@ -6,11 +6,12 @@ export function Footer() {
           {/* Visit */}
           <div>
             <h3 className="text-[11px] tracking-[0.25em] text-primary-foreground/60">VISÍTANOS</h3>
-            <div className="mt-6 space-y-2 text-sm leading-relaxed text-primary-foreground/80">
+            <address className="mt-6 not-italic space-y-2 text-sm leading-relaxed text-primary-foreground/80">
+              <p>Peluquería Studio Clau Miranda</p>
               <p>Pje. San Sebastián Mártir 1734</p>
               <p>San Vicente de Tagua Tagua</p>
               <p>Región de O'Higgins, Chile</p>
-            </div>
+            </address>
           </div>
 
           {/* Book */}

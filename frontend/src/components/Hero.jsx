@@ -50,21 +50,21 @@ export function Hero() {
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?fm=jpg&q=80&w=800&auto=format&fit=crop"
-            alt=""
+            alt="Servicio de coloración en peluquería Studio Clau Miranda, San Vicente de Tagua Tagua"
             className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
         <div className="relative h-full w-full">
           <img
             src="https://images.unsplash.com/photo-1779400203057-23f445b63fc1?fm=jpg&q=80&w=1600&auto=format&fit=crop"
-            alt="Joven con vestido negro y cabello en movimiento"
+            alt="Peluquería Studio Clau Miranda — San Vicente de Tagua Tagua"
             className="absolute inset-x-0 top-0 h-[calc(100%+2.5rem)] w-full object-cover object-top"
           />
         </div>
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1521194263619-39ecc5b55c61?fm=jpg&q=80&w=800&auto=format&fit=crop"
-            alt=""
+            alt="Tratamiento capilar en salón de belleza San Vicente de Tagua Tagua"
             className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
@@ -74,10 +74,13 @@ export function Hero() {
       <div className="relative z-10 h-full" ref={titleRef}>
         {/* Mobile */}
         <div className="flex h-full items-start pt-36 px-6 md:hidden">
-          <h1 className="font-serif leading-[1.05] text-foreground">
-            <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
-            <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
-          </h1>
+          <div>
+            <h1 className="font-serif leading-[1.05] text-foreground">
+              <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
+              <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
+            </h1>
+            <p className="mt-4 text-xs tracking-[0.25em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
+          </div>
         </div>
         {/* Desktop */}
         <div className="absolute inset-0 hidden md:block">
@@ -86,6 +89,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-7xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-7xl italic" />
             </h1>
+            <p className="mt-5 text-xs tracking-[0.3em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
           </div>
         </div>
       </div>
