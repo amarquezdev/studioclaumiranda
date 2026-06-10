@@ -241,6 +241,22 @@ class AppointmentStatusUpdate(BaseModel):
     status: AppointmentStatus
 
 
+class AppointmentUpdate(BaseModel):
+    barber_id: int | None = None
+    service_id: int | None = None
+    service_ids: list[int] | None = None
+    start_datetime: datetime | None = None
+    notes: str | None = None
+
+    @model_validator(mode='after')
+    def resolve_services(self):
+        if self.service_ids and not self.service_id:
+            self.service_id = self.service_ids[0]
+        elif self.service_id and not self.service_ids:
+            self.service_ids = [self.service_id]
+        return self
+
+
 class GuestAppointmentCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=120)
     email: EmailStr

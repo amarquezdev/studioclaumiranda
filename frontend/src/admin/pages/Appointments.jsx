@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   adminGetAppointments, adminUpdateApptStatus, adminDeleteAppointment,
-  adminCreateAppointment, adminGetBarbers, adminGetServices, getAvailability,
+  adminCreateAppointment, adminUpdateAppointment, adminGetBarbers, adminGetServices, getAvailability,
 } from '../../api/client'
 import ConfirmModal from '../components/ConfirmModal'
 
@@ -239,6 +239,222 @@ function NewAppointmentModal({ onClose, onCreated }) {
   )
 }
 
+// ── Edit appointment modal ───────────────────────────────────────────────────
+
+function EditAppointmentModal({ appt, onClose, onSaved }) {
+  const [barbers, setBarbers]   = useState([])
+  const [services, setServices] = useState([])
+  const [slots, setSlots]       = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+
+  const initDate      = appt.start_datetime ? appt.start_datetime.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 10) : ''
+  const initServiceId = appt.appointment_services?.length ? String(appt.appointment_services[0]?.service_id ?? '') : String(appt.service_id ?? '')
+  const initSlot      = {
+    start: appt.start_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
+    end:   appt.end_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
+  }
+  const initOptNames  = appt.notes ? (appt.notes.match(/^Opciones:\s*(.+?)(\n|$)/) ?? [])[1]?.split(',').map(s => s.trim()).filter(Boolean) ?? [] : []
+  const initExtra     = appt.notes ? (appt.notes.replace(/^Opciones:[^\n]*\n?/, '').trim()) : ''
+
+  const [form, setForm] = useState({
+    barber_id: String(appt.barber_id ?? ''),
+    service_id: initServiceId,
+    date: initDate,
+    slot: initSlot,
+    notes: initExtra,
+  })
+  const [selectedOptions, setSelectedOptions] = useState([])
+  const [saving, setSaving]   = useState(false)
+  const [error, setError]     = useState('')
+  const [fieldErrors, setFieldErrors] = useState({ barber_id: '', service_id: '', date: '', slot: '' })
+  const didInitSlots = useRef(false)
+
+  const selectedService = services.find(s => String(s.id) === String(form.service_id)) ?? null
+  const activeOptions   = selectedService?.options?.filter(o => o.is_active) ?? []
+
+  const toggleOption = (opt) =>
+    setSelectedOptions(prev => prev.find(o => o.id === opt.id) ? prev.filter(o => o.id !== opt.id) : [...prev, opt])
+
+  useEffect(() => {
+    Promise.all([adminGetBarbers(), adminGetServices()])
+      .then(([b, s]) => { setBarbers(b.data); setServices(s.data) })
+      .catch(() => {})
+  }, [])
+
+  // Pre-select options once service list loads
+  useEffect(() => {
+    if (!services.length || !initOptNames.length) return
+    const svc = services.find(s => String(s.id) === initServiceId)
+    if (!svc?.options) return
+    setSelectedOptions(svc.options.filter(o => initOptNames.includes(o.name)))
+  }, [services]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!form.date || !form.barber_id || !form.service_id) return
+    if (didInitSlots.current) setForm(f => ({ ...f, slot: null }))
+    setLoadingSlots(true); setSlots([])
+    getAvailability(form.date, form.barber_id, form.service_id)
+      .then(r => {
+        let available = r.data.slots ?? []
+        if (!didInitSlots.current) {
+          const currentStart = initSlot.start.slice(0, 16)
+          const alreadyThere = available.some(s => s.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === currentStart)
+          if (!alreadyThere && initSlot.start) {
+            available = [...available, initSlot].sort((a, b) => a.start.localeCompare(b.start))
+          }
+          setForm(f => ({ ...f, slot: available.find(s => s.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === currentStart) ?? initSlot }))
+          didInitSlots.current = true
+        }
+        setSlots(available)
+      })
+      .catch(() => setSlots([]))
+      .finally(() => setLoadingSlots(false))
+  }, [form.date, form.barber_id, form.service_id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }))
+    setFieldErrors(f => ({ ...f, [k]: '' }))
+    if (k === 'service_id') setSelectedOptions([])
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const errors = { barber_id: '', service_id: '', date: '', slot: '' }
+    const labels = []
+    if (!form.barber_id)  { errors.barber_id = 'Debes seleccionar una estilista'; labels.push('Estilista') }
+    if (!form.service_id) { errors.service_id = 'Debes seleccionar un servicio'; labels.push('Servicio') }
+    if (!form.date)       { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
+    if (!form.slot)       { errors.slot = 'Debes seleccionar una hora'; labels.push('Hora') }
+    if (labels.length > 0) { setFieldErrors(errors); setError(`Corrige: ${labels.join(', ')}`); return }
+    setSaving(true); setError('')
+    try {
+      let notes = form.notes || null
+      if (selectedOptions.length > 0) {
+        const optLine = `Opciones: ${selectedOptions.map(o => o.name).join(', ')}`
+        notes = notes ? `${optLine}\n${notes}` : optLine
+      }
+      await adminUpdateAppointment(appt.id, {
+        barber_id: Number(form.barber_id),
+        service_id: Number(form.service_id),
+        start_datetime: form.slot.start,
+        notes,
+      })
+      onSaved()
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Error al guardar la cita'
+      const lower  = detail.toLowerCase()
+      if (lower.includes('ocup') || lower.includes('horario') || lower.includes('conflict')) {
+        setFieldErrors(f => ({ ...f, slot: detail })); setError(detail)
+      } else setError(detail)
+    } finally { setSaving(false) }
+  }
+
+  const inputCls = (field) =>
+    'w-full bg-input border px-3 py-2 text-sm rounded-sm focus:outline-none transition-colors text-foreground ' +
+    (fieldErrors[field] ? 'border-red-500 focus:border-red-400' : 'border-border focus:border-primary')
+  const labelCls = "block text-muted-foreground text-xs uppercase tracking-wider mb-1.5"
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-card border border-border rounded-sm w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="font-light text-lg text-foreground">Editar cita — {appt.user?.name ?? '—'}</h3>
+          <button onClick={onClose} className="text-xl leading-none text-muted-foreground hover:text-primary transition-colors">×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-5 space-y-4">
+          {error && <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">{error}</div>}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Estilista <span className="text-primary">*</span></label>
+              <select className={inputCls('barber_id')} value={form.barber_id} onChange={e => set('barber_id', e.target.value)}>
+                <option value="">Seleccionar...</option>
+                {barbers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+              {fieldErrors.barber_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.barber_id}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
+              <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
+                <option value="">Seleccionar...</option>
+                {services.map(s => <option key={s.id} value={s.id}>{s.name} — ${s.price.toLocaleString()}</option>)}
+              </select>
+              {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
+            </div>
+          </div>
+
+          {selectedService?.has_options && activeOptions.length > 0 && (
+            <div>
+              <label className={labelCls}>Opciones del servicio</label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {activeOptions.map(opt => {
+                  const checked = !!selectedOptions.find(o => o.id === opt.id)
+                  return (
+                    <button type="button" key={opt.id} onClick={() => toggleOption(opt)}
+                      className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                        checked ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-foreground/30'
+                      }`}>
+                      {opt.name} — ${opt.price.toLocaleString()}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className={labelCls}>Fecha <span className="text-primary">*</span></label>
+            <input type="date" className={inputCls('date')} value={form.date}
+              onChange={e => set('date', e.target.value)} />
+            {fieldErrors.date && <p className="text-red-400 text-xs mt-1">{fieldErrors.date}</p>}
+          </div>
+
+          {form.date && form.barber_id && form.service_id && (
+            <div>
+              <label className={labelCls}>Hora <span className="text-primary">*</span></label>
+              {loadingSlots && <p className="text-muted-foreground text-xs">Cargando horarios...</p>}
+              {!loadingSlots && slots.length === 0 && <p className="text-muted-foreground text-xs">No hay horas disponibles para esta fecha.</p>}
+              {!loadingSlots && slots.length > 0 && (
+                <div className={`grid grid-cols-3 sm:grid-cols-4 gap-2 mt-1 rounded-sm transition-colors ${fieldErrors.slot ? 'border border-red-500 p-2' : ''}`}>
+                  {slots.map((slot, i) => {
+                    const isSelected = form.slot && slot.start.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) === form.slot.start?.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16)
+                    return (
+                      <button type="button" key={i} onClick={() => { set('slot', slot) }}
+                        className={`py-1.5 text-xs border rounded-sm transition-all ${
+                          isSelected ? 'bg-primary text-primary-foreground border-primary font-bold' : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
+                        }`}>
+                        {formatTime(slot.start)}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              {fieldErrors.slot && <p className="text-red-400 text-xs mt-1">{fieldErrors.slot}</p>}
+            </div>
+          )}
+
+          <div>
+            <label className={labelCls}>Notas</label>
+            <textarea className={`${inputCls('notes')} resize-none`} rows={2} value={form.notes}
+              onChange={e => set('notes', e.target.value)} placeholder="Indicaciones adicionales..." />
+          </div>
+
+          <div className="flex gap-3 justify-end pt-1">
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 text-sm border border-border rounded-sm transition-colors hover:border-primary text-muted-foreground">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving} className="btn-gold disabled:opacity-50">
+              {saving ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseNotes(notes) {
@@ -364,6 +580,7 @@ export default function Appointments() {
   const [filter, setFilter]             = useState('all')
   const [confirm, setConfirm]           = useState(null)
   const [showNew, setShowNew]           = useState(false)
+  const [editAppt, setEditAppt]         = useState(null)
   const [detailAppt, setDetailAppt]     = useState(null)
   const [loading, setLoading]           = useState(true)
 
@@ -453,7 +670,8 @@ export default function Appointments() {
                     ))}
                   </select>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 flex gap-3 items-center">
+                  <button onClick={() => setEditAppt(a)} className="text-muted-foreground hover:text-primary transition-colors text-xs">Editar</button>
                   <button onClick={() => setConfirm(a.id)} className="text-muted-foreground hover:text-red-400 transition-colors text-xs">Eliminar</button>
                 </td>
               </tr>
@@ -519,7 +737,8 @@ export default function Appointments() {
                 <p className="text-muted-foreground mt-0.5 truncate">{parseTransferId(a.notes) ?? '—'}</p>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-border/50 flex justify-end">
+            <div className="mt-3 pt-3 border-t border-border/50 flex justify-end gap-4">
+              <button onClick={() => setEditAppt(a)} className="text-muted-foreground hover:text-primary transition-colors text-xs">Editar</button>
               <button onClick={() => setConfirm(a.id)} className="text-muted-foreground hover:text-red-400 transition-colors text-xs">Eliminar</button>
             </div>
           </div>
@@ -527,6 +746,7 @@ export default function Appointments() {
       </div>
 
       {showNew && <NewAppointmentModal onClose={() => setShowNew(false)} onCreated={() => { setShowNew(false); load() }} />}
+      {editAppt && <EditAppointmentModal appt={editAppt} onClose={() => setEditAppt(null)} onSaved={() => { setEditAppt(null); load() }} />}
       {confirm && <ConfirmModal message="¿Eliminar esta cita permanentemente?" onConfirm={handleDelete} onCancel={() => setConfirm(null)} />}
       {detailAppt && <AppointmentDetailsModal appt={detailAppt} onClose={() => setDetailAppt(null)} />}
     </div>

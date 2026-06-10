@@ -74,6 +74,7 @@ export const adminUpdateApptStatus   = (id, status) =>
   client.patch(`/appointments/${id}/status`, { status })
 export const adminDeleteAppointment  = (id) => client.delete(`/appointments/${id}`)
 export const adminCreateAppointment  = (data) => client.post('/appointments/guest', data)
+export const adminUpdateAppointment  = (id, data) => client.patch(`/appointments/${id}`, data)
 
 // ── Admin: Users ─────────────────────────────────────────────────────────────
 export const adminGetUsers    = () => client.get('/users')

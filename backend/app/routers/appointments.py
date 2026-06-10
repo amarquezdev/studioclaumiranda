@@ -9,7 +9,7 @@ from app.database import get_db
 from app.dependencies import get_current_active_user, require_admin
 from app.models import Appointment, AppointmentService, AppointmentStatus, Barber, Service, ServiceOption, User
 from app.auth import get_password_hash
-from app.schemas import AppointmentCreate, AppointmentRead, AppointmentStatusUpdate, GuestAppointmentCreate
+from app.schemas import AppointmentCreate, AppointmentRead, AppointmentStatusUpdate, AppointmentUpdate, GuestAppointmentCreate
 from app.email import send_confirmation_email, send_stylist_notification_email
 
 router = APIRouter()
@@ -242,6 +242,71 @@ async def update_appointment_status(
     await db.flush()
     await db.refresh(appt)
     return appt
+
+
+@router.patch("/{appointment_id}", response_model=AppointmentRead, dependencies=[Depends(require_admin)])
+async def update_appointment(
+    appointment_id: int,
+    payload: AppointmentUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    appt = await _load_appointment(db, appointment_id)
+
+    barber_id = payload.barber_id or appt.barber_id
+    start_dt  = payload.start_datetime or appt.start_datetime
+
+    if payload.barber_id:
+        barber = await db.get(Barber, payload.barber_id)
+        if not barber or not barber.is_active:
+            raise HTTPException(status_code=404, detail="Barbero no encontrado o inactivo")
+
+    services_list = None
+    if payload.service_ids:
+        services_list = []
+        for sid in payload.service_ids:
+            svc = await db.get(Service, sid)
+            if not svc or not svc.is_active:
+                raise HTTPException(status_code=404, detail=f"Servicio {sid} no encontrado o inactivo")
+            services_list.append(svc)
+
+    if services_list:
+        total_duration = sum(s.duration_minutes for s in services_list)
+        end_dt = start_dt + timedelta(minutes=total_duration)
+    else:
+        duration = appt.end_datetime - appt.start_datetime
+        end_dt = start_dt + duration
+
+    conflict = await db.execute(
+        select(Appointment).where(
+            Appointment.id != appointment_id,
+            Appointment.barber_id == barber_id,
+            Appointment.status.not_in([AppointmentStatus.cancelled]),
+            Appointment.start_datetime < end_dt,
+            Appointment.end_datetime > start_dt,
+        )
+    )
+    if conflict.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="El horario ya está reservado")
+
+    appt.barber_id     = barber_id
+    appt.start_datetime = start_dt
+    appt.end_datetime   = end_dt
+    if payload.notes is not None:
+        appt.notes = payload.notes
+
+    if services_list:
+        appt.service_id = services_list[0].id
+        existing = await db.execute(
+            select(AppointmentService).where(AppointmentService.appointment_id == appointment_id)
+        )
+        for rel in existing.scalars().all():
+            await db.delete(rel)
+        await db.flush()
+        for svc in services_list:
+            db.add(AppointmentService(appointment_id=appt.id, service_id=svc.id))
+
+    await db.flush()
+    return await _load_appointment(db, appointment_id)
 
 
 @router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
