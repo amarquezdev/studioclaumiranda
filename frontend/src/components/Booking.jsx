@@ -124,14 +124,17 @@ function OptionsModal({ service, onAdd, onCancel }) {
           </div>
         )}
 
+        {selected.length === 0 && (
+          <p className="px-6 pb-2 text-xs text-muted-foreground text-center">Debes seleccionar al menos una opción para continuar.</p>
+        )}
         <div className="px-6 py-4 border-t border-border flex justify-end gap-3 shrink-0">
           <button onClick={onCancel}
             className="px-4 py-2 text-sm border border-border rounded-sm text-muted-foreground hover:border-primary transition-colors">
             Cancelar
           </button>
-          <button onClick={() => onAdd(selected)}
-            className="btn-gold">
-            {selected.length === 0 ? 'Agregar sin opciones' : `Agregar (${selected.length} opciones)`}
+          <button onClick={() => onAdd(selected)} disabled={selected.length === 0}
+            className="btn-gold disabled:opacity-40 disabled:cursor-not-allowed">
+            {`Agregar (${selected.length} opciones)`}
           </button>
         </div>
       </div>
