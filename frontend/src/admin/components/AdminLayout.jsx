@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Scissors, Clock, CalendarDays, Users, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Scissors, Clock, CalendarDays, Users, LogOut, Menu, X, Download } from 'lucide-react'
 import { useAuth } from '../AuthContext'
 
 const navItems = [
@@ -15,6 +15,20 @@ export default function AdminLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState(null)
+
+  useEffect(() => {
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstall = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    await installPrompt.userChoice
+    setInstallPrompt(null)
+  }
 
   const handleLogout = () => { logout(); navigate('/admin') }
   const closesidebar = () => setSidebarOpen(false)
@@ -54,6 +68,15 @@ export default function AdminLayout() {
       {/* User + logout */}
       <div className="border-t border-border px-5 py-4">
         <p className="text-xs truncate mb-3 text-muted-foreground">{user?.email}</p>
+        {installPrompt && (
+          <button
+            onClick={handleInstall}
+            className="flex items-center gap-2 text-xs transition-colors text-primary hover:text-primary/80 mb-3"
+          >
+            <Download size={13} strokeWidth={1.5} />
+            Instalar app
+          </button>
+        )}
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 text-xs transition-colors text-muted-foreground hover:text-red-500"
