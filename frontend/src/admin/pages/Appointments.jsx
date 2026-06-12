@@ -498,6 +498,71 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
   )
 }
 
+// ── Inline price editor ──────────────────────────────────────────────────────
+
+function setNotePrice(notes, price) {
+  const stripped = (notes ?? '').replace(/^Precio:\s*\d+\n?/m, '').trim()
+  if (price > 0) return stripped ? `Precio: ${price}\n${stripped}` : `Precio: ${price}`
+  return stripped || null
+}
+
+function InlinePriceCell({ appt, onSaved }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue]     = useState('')
+  const [saving, setSaving]   = useState(false)
+  const inputRef = useRef(null)
+
+  const current = calcTotal(appt)
+
+  const start = () => {
+    setValue(current != null && current > 0 ? String(current) : '')
+    setEditing(true)
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const cancel = () => { setEditing(false); setValue('') }
+
+  const confirm = async () => {
+    const price = parseClp(value)
+    setSaving(true)
+    try {
+      await adminUpdateAppointment(appt.id, { notes: setNotePrice(appt.notes, price) })
+      onSaved()
+      setEditing(false)
+    } catch { /* silencioso */ } finally { setSaving(false) }
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1">
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onBlur={e => { if (!e.relatedTarget?.dataset?.priceAction) cancel() }}
+          onKeyDown={e => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') cancel() }}
+          className="w-24 bg-input border border-primary px-2 py-0.5 text-xs rounded-sm focus:outline-none text-foreground"
+          placeholder="Ej: 45000"
+        />
+        <button data-price-action onClick={confirm} disabled={saving}
+          className="text-green-400 hover:text-green-300 text-xs px-0.5">✓</button>
+        <button data-price-action onClick={cancel}
+          className="text-muted-foreground hover:text-foreground text-xs px-0.5">✕</button>
+      </div>
+    )
+  }
+
+  return (
+    <button onClick={start} title="Click para editar precio"
+      className="text-primary text-xs font-medium hover:opacity-70 transition-opacity group flex items-center gap-1">
+      {fmtTotal(current)}
+      <span className="opacity-0 group-hover:opacity-60 text-[10px] text-muted-foreground">✎</span>
+    </button>
+  )
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseNotes(notes) {
@@ -735,8 +800,8 @@ export default function Appointments() {
                     <button onClick={() => setDetailAppt(a)} className="text-primary text-xs hover:underline mt-0.5">Ver detalles</button>
                   )}
                 </td>
-                <td className="px-4 py-3 text-primary text-xs font-medium">
-                  {fmtTotal(calcTotal(a))}
+                <td className="px-4 py-3">
+                  <InlinePriceCell appt={a} onSaved={load} />
                 </td>
                 <td className="px-4 py-3">
                   <select value={a.status} onChange={e => handleStatus(a.id, e.target.value)}
@@ -806,7 +871,7 @@ export default function Appointments() {
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
-                <p className="text-primary font-medium mt-0.5">{fmtTotal(calcTotal(a))}</p>
+                <div className="mt-0.5"><InlinePriceCell appt={a} onSaved={load} /></div>
               </div>
               <div>
                 <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Transacción</p>
