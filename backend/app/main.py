@@ -55,6 +55,11 @@ async def _run_migrations(conn):
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await _run_migrations(conn)
+    try:
+        from seed_admin import seed
+        await seed()
+    except Exception as exc:
+        print(f"[seed_admin] warning: {exc}")
     yield
     await engine.dispose()
 

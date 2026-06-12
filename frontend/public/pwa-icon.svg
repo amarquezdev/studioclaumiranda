@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- fondo oscuro redondeado -->
+  <rect width="512" height="512" rx="96" fill="#0f0f0f"/>
+  <!-- tijeras: eje central -->
+  <circle cx="256" cy="256" r="18" fill="#c9a84c"/>
+  <!-- hoja superior izquierda -->
+  <path d="M256 256 L100 130" stroke="#c9a84c" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="88" cy="122" r="38" fill="none" stroke="#c9a84c" stroke-width="24"/>
+  <circle cx="88" cy="122" r="14" fill="#c9a84c"/>
+  <!-- hoja inferior izquierda -->
+  <path d="M256 256 L100 382" stroke="#c9a84c" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="88" cy="390" r="38" fill="none" stroke="#c9a84c" stroke-width="24"/>
+  <circle cx="88" cy="390" r="14" fill="#c9a84c"/>
+  <!-- hoja superior derecha -->
+  <path d="M256 256 L420 160" stroke="#c9a84c" stroke-width="20" stroke-linecap="round" opacity="0.5"/>
+  <!-- hoja inferior derecha -->
+  <path d="M256 256 L420 352" stroke="#c9a84c" stroke-width="20" stroke-linecap="round" opacity="0.5"/>
+</svg>

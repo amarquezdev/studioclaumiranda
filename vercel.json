@@ -1,0 +1,11 @@
+{
+  "experimentalServices": {
+    "studioclaumiranda-api": {
+      "type": "web",
+      "root": "backend",
+      "entrypoint": "app.main:app",
+      "routePrefix": "/",
+      "buildCommand": "pip install -r requirements.txt"
+    }
+  }
+}
