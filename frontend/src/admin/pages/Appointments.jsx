@@ -58,12 +58,11 @@ function NewAppointmentModal({ onClose, onCreated }) {
   }
 
   const validate = () => {
-    const errors = { name: '', email: '', barber_id: '', service_id: '', date: '', slot: '' }
+    const errors = { name: '', email: '', service_id: '', date: '', slot: '' }
     const labels = []
     if (!form.name.trim())  { errors.name = 'El nombre del cliente es obligatorio'; labels.push('Nombre') }
     if (!form.email.trim()) { errors.email = 'El email es obligatorio'; labels.push('Email') }
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { errors.email = 'El email no tiene un formato válido'; labels.push('Email') }
-    if (!form.barber_id)    { errors.barber_id = 'Debes seleccionar una estilista'; labels.push('Estilista') }
     if (!form.service_id)   { errors.service_id = 'Debes seleccionar un servicio'; labels.push('Servicio') }
     if (!form.date)         { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
     if (!form.slot)         { errors.slot = 'Debes seleccionar una hora disponible'; labels.push('Hora') }
@@ -72,7 +71,11 @@ function NewAppointmentModal({ onClose, onCreated }) {
 
   useEffect(() => {
     Promise.all([adminGetBarbers(), adminGetServices()])
-      .then(([b, s]) => { setBarbers(b.data); setServices(s.data) })
+      .then(([b, s]) => {
+        setBarbers(b.data)
+        setServices(s.data)
+        if (b.data.length > 0) setForm(f => ({ ...f, barber_id: String(b.data[0].id) }))
+      })
       .catch(() => setLoadError('No se pudieron cargar estilistas y servicios. Recarga la página.'))
   }, [])
 
@@ -155,23 +158,13 @@ function NewAppointmentModal({ onClose, onCreated }) {
           </div>
 
           <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium pt-2">Cita</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Estilista <span className="text-primary">*</span></label>
-              <select className={inputCls('barber_id')} value={form.barber_id} onChange={e => set('barber_id', e.target.value)}>
-                <option value="">Seleccionar...</option>
-                {barbers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-              {fieldErrors.barber_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.barber_id}</p>}
-            </div>
-            <div>
-              <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
-              <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
-                <option value="">Seleccionar...</option>
-                {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
-              </select>
-              {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
-            </div>
+          <div>
+            <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
+            <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
+              <option value="">Seleccionar...</option>
+              {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
+            </select>
+            {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
           </div>
 
           {selectedService?.has_options && activeOptions.length > 0 && (
@@ -304,9 +297,14 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
 
   useEffect(() => {
     Promise.all([adminGetBarbers(), adminGetServices()])
-      .then(([b, s]) => { setBarbers(b.data); setServices(s.data) })
+      .then(([b, s]) => {
+        setBarbers(b.data)
+        setServices(s.data)
+        if (!form.barber_id && b.data.length > 0)
+          setForm(f => ({ ...f, barber_id: String(b.data[0].id) }))
+      })
       .catch(() => {})
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pre-select options once service list loads
   useEffect(() => {
@@ -343,9 +341,8 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const errors = { barber_id: '', service_id: '', date: '', slot: '' }
+    const errors = { service_id: '', date: '', slot: '' }
     const labels = []
-    if (!form.barber_id)  { errors.barber_id = 'Debes seleccionar una estilista'; labels.push('Estilista') }
     if (!form.service_id) { errors.service_id = 'Debes seleccionar un servicio'; labels.push('Servicio') }
     if (!form.date)       { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
     if (!form.slot)       { errors.slot = 'Debes seleccionar una hora'; labels.push('Hora') }
@@ -390,23 +387,13 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
         <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-5 space-y-4">
           {error && <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">{error}</div>}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Estilista <span className="text-primary">*</span></label>
-              <select className={inputCls('barber_id')} value={form.barber_id} onChange={e => set('barber_id', e.target.value)}>
-                <option value="">Seleccionar...</option>
-                {barbers.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-              {fieldErrors.barber_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.barber_id}</p>}
-            </div>
-            <div>
-              <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
-              <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
-                <option value="">Seleccionar...</option>
-                {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
-              </select>
-              {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
-            </div>
+          <div>
+            <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
+            <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
+              <option value="">Seleccionar...</option>
+              {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
+            </select>
+            {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
           </div>
 
           {selectedService?.has_options && activeOptions.length > 0 && (
