@@ -26,7 +26,7 @@ export function About() {
 
         {/* Content */}
         <div className="flex flex-col justify-center px-8 py-16 md:px-16 md:py-24 lg:px-20">
-          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/50">NUESTRA HISTORIA</p>
+          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/70">NUESTRA HISTORIA</p>
 
           <h2 ref={headingRef} className="mt-4 font-serif text-4xl leading-tight text-foreground md:text-5xl">
             Un legado de
@@ -50,7 +50,7 @@ export function About() {
             <hr className="mt-10 border-foreground/15" />
             <div className="mt-8">
               <p className="font-serif text-xl italic text-[#c9a05a]">Claudia Miranda</p>
-              <p className="mt-1 text-[10px] tracking-[0.25em] text-foreground/45">
+              <p className="mt-1 text-[10px] tracking-[0.25em] text-foreground/70">
                 FUNDADORA &amp; ESTILISTA PRINCIPAL
               </p>
             </div>
@@ -59,15 +59,15 @@ export function About() {
           <div ref={statsRef} className="mt-10 grid grid-cols-3 gap-4">
             <div>
               <p className="font-serif text-3xl text-[#c9a05a]">20+</p>
-              <p className="mt-1 text-[10px] tracking-[0.2em] text-foreground/45">AÑOS</p>
+              <p className="mt-1 text-[10px] tracking-[0.2em] text-foreground/70">AÑOS</p>
             </div>
             <div>
               <p className="font-serif text-3xl text-[#c9a05a]">1k+</p>
-              <p className="mt-1 text-[10px] tracking-[0.2em] text-foreground/45">CLIENTAS SATISFECHAS</p>
+              <p className="mt-1 text-[10px] tracking-[0.2em] text-foreground/70">CLIENTAS SATISFECHAS</p>
             </div>
             <div>
               <p className="font-serif text-3xl text-[#c9a05a]">12</p>
-              <p className="mt-1 text-[10px] tracking-[0.2em] text-foreground/45">CERTIFICACIONES</p>
+              <p className="mt-1 text-[10px] tracking-[0.2em] text-foreground/70">CERTIFICACIONES</p>
             </div>
           </div>
         </div>

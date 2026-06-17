@@ -3,7 +3,7 @@ import gsap from 'gsap'
 
 function SplitChars({ text, className }) {
   return (
-    <span className={className} aria-label={text}>
+    <span className={className} role="group" aria-label={text}>
       {text.split('').map((char, i) => (
         <span key={i} className="gsap-char inline-block" aria-hidden="true">
           {char === ' ' ? ' ' : char}
@@ -93,7 +93,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
             </h1>
-            <p className="gsap-location mt-4 text-xs tracking-[0.25em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
+            <p className="gsap-location mt-4 text-xs tracking-[0.25em] uppercase text-foreground/70">Peluquería · San Vicente de Tagua Tagua</p>
           </div>
         </div>
         {/* Desktop */}
@@ -103,7 +103,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-7xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-7xl italic" />
             </h1>
-            <p className="gsap-location mt-5 text-xs tracking-[0.3em] uppercase text-foreground/60">Peluquería · San Vicente de Tagua Tagua</p>
+            <p className="gsap-location mt-5 text-xs tracking-[0.3em] uppercase text-foreground/70">Peluquería · San Vicente de Tagua Tagua</p>
           </div>
         </div>
       </div>

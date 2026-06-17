@@ -5,7 +5,7 @@ export function BrandSlider() {
 
   return (
     <section className="border-y border-border bg-muted py-12 md:py-16">
-      <p className="mb-8 text-center text-[11px] tracking-[0.3em] text-muted-foreground">
+      <p className="mb-8 text-center text-[11px] tracking-[0.3em] text-foreground/70">
         NUESTRAS MARCAS
       </p>
       <div className="relative overflow-hidden">

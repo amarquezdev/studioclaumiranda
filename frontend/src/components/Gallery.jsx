@@ -42,7 +42,7 @@ export function Gallery() {
     <section id="trabajos" className="bg-background">
       <div className="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
         <div className="mb-12 text-center">
-          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/50">GALERÍA</p>
+          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/70">GALERÍA</p>
           <h2 ref={headingRef} className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl text-balance">
             Nuestro Trabajo
           </h2>
@@ -109,16 +109,18 @@ export function Gallery() {
           </button>
 
           {/* Dots */}
-          <div className="absolute bottom-5 flex gap-2">
+          <div className="absolute bottom-5 flex">
             {items.map((_, i) => (
               <button
                 key={i}
                 onClick={(e) => { e.stopPropagation(); setActive(i) }}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === active ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
-                }`}
+                className="flex min-h-7 min-w-7 items-center justify-center"
                 aria-label={`Ir a imagen ${i + 1}`}
-              />
+              >
+                <span className={`block h-1.5 rounded-full transition-all ${
+                  i === active ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
+                }`} />
+              </button>
             ))}
           </div>
         </div>

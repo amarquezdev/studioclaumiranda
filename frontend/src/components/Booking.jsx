@@ -451,7 +451,7 @@ export function Booking() {
         {step === 1 && (
           <>
             <div className="mb-8 md:mb-14 text-center">
-              <p className="text-[11px] tracking-[0.3em] text-foreground/50">RESERVA</p>
+              <p className="text-[11px] tracking-[0.3em] text-foreground/70">RESERVA</p>
               <h2 className="mt-4 font-serif text-3xl md:text-5xl italic text-foreground text-balance">
                 Elige tus Servicios
               </h2>
@@ -657,7 +657,7 @@ export function Booking() {
         {step > 1 && (
           <div className="max-w-4xl mx-auto">
             <div className="mb-14 text-center">
-              <p className="text-[11px] tracking-[0.3em] text-foreground/50">RESERVA</p>
+              <p className="text-[11px] tracking-[0.3em] text-foreground/70">RESERVA</p>
               <h2 className="mt-4 font-serif text-4xl italic text-foreground md:text-5xl">
                 Reserva tu Cita
               </h2>

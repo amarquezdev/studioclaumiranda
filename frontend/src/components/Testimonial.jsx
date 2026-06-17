@@ -71,7 +71,7 @@ export function Testimonial() {
   return (
     <section id="resenas" className="bg-background">
       <div className="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center md:py-32">
-        <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/50">TESTIMONIOS</p>
+        <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/70">TESTIMONIOS</p>
         <h2 ref={headingRef} className="mt-4 font-serif text-3xl italic text-foreground md:text-4xl text-balance">
           Lo que dicen Nuestras Clientas
         </h2>
@@ -95,7 +95,7 @@ export function Testimonial() {
             <p className="mx-auto max-w-2xl font-serif text-2xl leading-relaxed text-foreground/90 md:text-[26px] md:leading-relaxed text-balance">
               {`"${reviews[index].quote}"`}
             </p>
-            <p className="mt-8 text-[11px] tracking-[0.25em] text-foreground/60">{reviews[index].name}</p>
+            <p className="mt-8 text-[11px] tracking-[0.25em] text-foreground/70">{reviews[index].name}</p>
           </div>
 
           {/* Arrows */}
@@ -107,16 +107,18 @@ export function Testimonial() {
             >
               <ArrowLeft className="size-4" />
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               {reviews.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setIndex(i)}
                   aria-label={`Ir a la reseña ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all ${
+                  className="flex min-h-7 min-w-7 items-center justify-center"
+                >
+                  <span className={`block h-1.5 rounded-full transition-all ${
                     i === index ? 'w-6 bg-foreground' : 'w-1.5 bg-foreground/30'
-                  }`}
-                />
+                  }`} />
+                </button>
               ))}
             </div>
             <button

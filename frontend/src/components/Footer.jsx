@@ -45,7 +45,7 @@ export function Footer() {
       </div>
 
       <div className="bg-background py-6 text-center">
-        <p className="text-[10px] tracking-[0.2em] text-foreground/50">
+        <p className="text-[10px] tracking-[0.2em] text-foreground/70">
           © 2026 STUDIO CLAU MIRANDA — TODOS LOS DERECHOS RESERVADOS
         </p>
       </div>
