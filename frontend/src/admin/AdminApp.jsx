@@ -1,12 +1,20 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import AdminLogin from './components/AdminLogin'
 import AdminLayout from './components/AdminLayout'
-import Dashboard from './pages/Dashboard'
-import Services from './pages/Services'
-import BusinessHours from './pages/BusinessHours'
-import Appointments from './pages/Appointments'
-import Users from './pages/Users'
+
+const Dashboard     = lazy(() => import('./pages/Dashboard'))
+const Services      = lazy(() => import('./pages/Services'))
+const BusinessHours = lazy(() => import('./pages/BusinessHours'))
+const Appointments  = lazy(() => import('./pages/Appointments'))
+const Users         = lazy(() => import('./pages/Users'))
+
+const PageFallback = (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="text-gold text-sm tracking-widest animate-pulse">Cargando...</div>
+  </div>
+)
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -30,11 +38,11 @@ function AdminRoutes() {
     <Routes>
       <Route path="/" element={user ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin />} />
       <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-        <Route path="dashboard"    element={<Dashboard />} />
-        <Route path="services"     element={<Services />} />
-        <Route path="hours"        element={<BusinessHours />} />
-        <Route path="appointments" element={<Appointments />} />
-        <Route path="users"        element={<Users />} />
+        <Route path="dashboard"    element={<Suspense fallback={PageFallback}><Dashboard /></Suspense>} />
+        <Route path="services"     element={<Suspense fallback={PageFallback}><Services /></Suspense>} />
+        <Route path="hours"        element={<Suspense fallback={PageFallback}><BusinessHours /></Suspense>} />
+        <Route path="appointments" element={<Suspense fallback={PageFallback}><Appointments /></Suspense>} />
+        <Route path="users"        element={<Suspense fallback={PageFallback}><Users /></Suspense>} />
       </Route>
     </Routes>
   )

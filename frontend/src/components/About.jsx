@@ -19,6 +19,7 @@ export function About() {
               src="/estilista-claumiranda.webp"
               alt="Claudia Miranda — Fundadora y Estilista Principal"
               className="h-full w-full object-cover object-center"
+              loading="lazy"
             />
           </div>
         </div>

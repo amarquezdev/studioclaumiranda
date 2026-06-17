@@ -60,6 +60,7 @@ export function Gallery() {
                 src={item.img}
                 alt={item.alt}
                 className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
               />
             </button>
           ))}

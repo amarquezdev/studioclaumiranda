@@ -58,6 +58,16 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          gsap: ['gsap'],
+          lenis: ['lenis'],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {

@@ -62,6 +62,7 @@ export function Hero() {
             src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?fm=jpg&q=80&w=800&auto=format&fit=crop"
             alt="Servicio de coloración en peluquería Studio Clau Miranda, San Vicente de Tagua Tagua"
             className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
           />
         </div>
         <div className="relative h-full w-full">
@@ -69,6 +70,8 @@ export function Hero() {
             src="https://images.unsplash.com/photo-1779400203057-23f445b63fc1?fm=jpg&q=80&w=1600&auto=format&fit=crop"
             alt="Peluquería Studio Clau Miranda — San Vicente de Tagua Tagua"
             className="absolute inset-x-0 top-0 h-[calc(100%+2.5rem)] w-full object-cover object-top"
+            fetchpriority="high"
+            loading="eager"
           />
         </div>
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
@@ -76,6 +79,7 @@ export function Hero() {
             src="https://images.unsplash.com/photo-1521194263619-39ecc5b55c61?fm=jpg&q=80&w=800&auto=format&fit=crop"
             alt="Tratamiento capilar en salón de belleza San Vicente de Tagua Tagua"
             className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
           />
         </div>
       </div>

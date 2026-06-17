@@ -91,7 +91,7 @@ export function Testimonial() {
 
         {/* Slider */}
         <div className="relative mt-12 w-full">
-          <div ref={reviewRef}>
+          <div ref={reviewRef} className="min-h-[14rem] md:min-h-[11rem]">
             <p className="mx-auto max-w-2xl font-serif text-2xl leading-relaxed text-foreground/90 md:text-[26px] md:leading-relaxed text-balance">
               {`"${reviews[index].quote}"`}
             </p>
