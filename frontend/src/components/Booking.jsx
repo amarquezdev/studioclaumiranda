@@ -557,7 +557,7 @@ export function Booking() {
               <>
                 {retrying && (
                   <p className="text-center text-xs text-foreground/40 tracking-widest mb-6 animate-pulse">
-                    INICIANDO SERVIDOR, UN MOMENTO…
+                    CARGANDO SERVICIOS, UN MOMENTO…
                   </p>
                 )}
                 {/* Skeleton mobile */}
