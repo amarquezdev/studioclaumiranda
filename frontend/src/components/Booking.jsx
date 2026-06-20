@@ -626,8 +626,12 @@ export function Booking() {
                           <div className="text-right shrink-0 ml-2">
                             {s.promotion ? (
                               <>
-                                <p className="text-muted-foreground text-xs line-through">${s.price.toLocaleString('es-CL')}</p>
+                                <p className="text-muted-foreground text-xs line-through">
+                                  {s.price_from && <span className="font-normal">Desde </span>}
+                                  ${s.price.toLocaleString('es-CL')}
+                                </p>
                                 <p className={cn('text-base font-medium', inCart ? 'text-primary' : 'text-amber-400')}>
+                                  {s.price_from && <span className="text-sm font-normal">Desde </span>}
                                   ${s.promotion.promo_price.toLocaleString('es-CL')}
                                 </p>
                               </>
@@ -676,8 +680,14 @@ export function Booking() {
                             <div>
                               {s.promotion ? (
                                 <>
-                                  <p className="text-muted-foreground text-xs line-through">${s.price.toLocaleString('es-CL')}</p>
-                                  <p className="text-amber-400 font-medium">${s.promotion.promo_price.toLocaleString('es-CL')}</p>
+                                  <p className="text-muted-foreground text-xs line-through">
+                                    {s.price_from && <span>Desde </span>}
+                                    ${s.price.toLocaleString('es-CL')}
+                                  </p>
+                                  <p className="text-amber-400 font-medium">
+                                    {s.price_from && <span className="text-sm font-normal mr-0.5">Desde </span>}
+                                    ${s.promotion.promo_price.toLocaleString('es-CL')}
+                                  </p>
                                 </>
                               ) : (
                                 <span>
