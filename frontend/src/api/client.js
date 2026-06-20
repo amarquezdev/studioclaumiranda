@@ -44,6 +44,12 @@ export const adminCreateService  = (data) => client.post('/services', data)
 export const adminUpdateService  = (id, data) => client.patch(`/services/${id}`, data)
 export const adminDeleteService  = (id) => client.delete(`/services/${id}`)
 
+// ── Admin: Service Promotions ────────────────────────────────────────────────
+export const adminGetServicePromotions    = (serviceId) => client.get(`/services/${serviceId}/promotions`)
+export const adminCreateServicePromotion  = (serviceId, data) => client.post(`/services/${serviceId}/promotions`, data)
+export const adminUpdateServicePromotion  = (serviceId, promoId, data) => client.patch(`/services/${serviceId}/promotions/${promoId}`, data)
+export const adminDeleteServicePromotion  = (serviceId, promoId) => client.delete(`/services/${serviceId}/promotions/${promoId}`)
+
 // ── Admin: Service Options ───────────────────────────────────────────────────
 export const adminCreateServiceOption = (serviceId, data) =>
   client.post(`/services/${serviceId}/options`, data)

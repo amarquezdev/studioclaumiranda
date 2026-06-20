@@ -34,6 +34,19 @@ async def _run_migrations(conn):
         await conn.execute(text(
             "UPDATE business_hours SET close_time = '18:00:00' WHERE close_time = '19:00:00'"
         ))
+        # Service promotions table
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS service_promotions (
+                id SERIAL PRIMARY KEY,
+                service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+                promo_price FLOAT,
+                discount_percent FLOAT,
+                label VARCHAR(120),
+                date_from DATE NOT NULL,
+                date_to DATE NOT NULL,
+                is_active BOOLEAN NOT NULL DEFAULT TRUE
+            )
+        """))
     else:
         # SQLite: check via pragma then alter
         result = await conn.execute(text("PRAGMA table_info(services)"))

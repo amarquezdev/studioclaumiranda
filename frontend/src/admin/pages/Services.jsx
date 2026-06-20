@@ -3,6 +3,7 @@ import {
   adminGetServices, adminCreateService, adminUpdateService, adminDeleteService,
   adminCreateServiceOption, adminUpdateServiceOption, adminDeleteServiceOption,
   getServiceTypes, adminCreateServiceType, adminDeleteServiceType,
+  adminGetServicePromotions, adminCreateServicePromotion, adminDeleteServicePromotion,
 } from '../../api/client'
 import ConfirmModal from '../components/ConfirmModal'
 
@@ -13,6 +14,8 @@ const EMPTY_FORM = {
   price: 0, is_active: true, has_options: false, price_from: false, deposit_amount: 0,
   service_type_id: null,
 }
+
+const EMPTY_PROMO = { promo_type: 'manual', promo_price: '', discount_percent: '', label: '', date_from: '', date_to: '' }
 
 const fmtClp = (n) => (!n || n === 0) ? '' : Math.round(Number(n)).toLocaleString('es-CL')
 const parseClp = (str) => {
@@ -29,13 +32,64 @@ const HAIR_LENGTHS = [
 ]
 
 function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
-  const [form, setForm]       = useState(initial)
-  const [options, setOptions] = useState(initial.options || [])
-  const [newOpts, setNewOpts] = useState([])
-  const [deleted, setDeleted] = useState([])
-  const [saving, setSaving]   = useState(false)
-  const [error, setError]     = useState('')
+  const [form, setForm]           = useState(initial)
+  const [options, setOptions]     = useState(initial.options || [])
+  const [newOpts, setNewOpts]     = useState([])
+  const [deleted, setDeleted]     = useState([])
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState('')
   const dragIdx = useRef(null)
+
+  // Promotions state
+  const [promotions, setPromotions]       = useState([])
+  const [showPromoForm, setShowPromoForm] = useState(false)
+  const [promoForm, setPromoForm]         = useState(EMPTY_PROMO)
+  const [promoError, setPromoError]       = useState('')
+  const [savingPromo, setSavingPromo]     = useState(false)
+
+  useEffect(() => {
+    if (initial.id) {
+      adminGetServicePromotions(initial.id).then(r => setPromotions(r.data)).catch(() => {})
+    }
+  }, [initial.id])
+
+  const setPromo = (k, v) => setPromoForm(f => ({ ...f, [k]: v }))
+
+  const handleSavePromo = async () => {
+    setPromoError('')
+    if (!promoForm.date_from || !promoForm.date_to) { setPromoError('Indica el rango de fechas.'); return }
+    if (promoForm.date_to < promoForm.date_from) { setPromoError('La fecha de término debe ser posterior al inicio.'); return }
+    const payload = {
+      label: promoForm.label || null,
+      date_from: promoForm.date_from,
+      date_to: promoForm.date_to,
+      is_active: true,
+    }
+    if (promoForm.promo_type === 'manual') {
+      const p = parseClp(promoForm.promo_price)
+      if (!p || p <= 0) { setPromoError('Ingresa un precio válido.'); return }
+      payload.promo_price = p
+    } else {
+      const pct = Number(promoForm.discount_percent)
+      if (!pct || pct <= 0 || pct > 100) { setPromoError('Ingresa un porcentaje entre 1 y 100.'); return }
+      payload.discount_percent = pct
+    }
+    try {
+      setSavingPromo(true)
+      await adminCreateServicePromotion(initial.id, payload)
+      const r = await adminGetServicePromotions(initial.id)
+      setPromotions(r.data)
+      setShowPromoForm(false)
+      setPromoForm(EMPTY_PROMO)
+    } catch (e) { setPromoError(e.response?.data?.detail || 'Error al guardar la promoción') }
+    finally { setSavingPromo(false) }
+  }
+
+  const handleDeletePromo = async (promoId) => {
+    await adminDeleteServicePromotion(initial.id, promoId).catch(() => {})
+    const r = await adminGetServicePromotions(initial.id)
+    setPromotions(r.data)
+  }
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const addNewOpt = () => setNewOpts(o => [...o, { ...EMPTY_OPTION }])
@@ -215,6 +269,145 @@ function ServiceModal({ title, initial, serviceTypes, onClose, onSaved }) {
               <button type="button" onClick={addNewOpt} className="text-primary text-xs uppercase tracking-wider hover:opacity-80 transition-opacity">+ Agregar opción</button>
             </div>
           )}
+          {/* ── Promociones (solo al editar) ── */}
+          {initial.id && (
+            <div className="border border-amber-500/30 rounded-sm p-4 space-y-3 bg-amber-500/5">
+              <div className="flex items-center justify-between">
+                <p className="text-amber-400 text-xs uppercase tracking-wider">Promociones</p>
+                {!showPromoForm && (
+                  <button type="button" onClick={() => setShowPromoForm(true)}
+                    className="text-xs text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-sm hover:bg-amber-500/10 transition-colors">
+                    + Agregar
+                  </button>
+                )}
+              </div>
+
+              {promotions.length === 0 && !showPromoForm && (
+                <p className="text-muted-foreground text-xs">Sin promociones configuradas</p>
+              )}
+
+              {promotions.map(p => {
+                const today = new Date().toISOString().slice(0, 10)
+                const isActive = p.is_active && p.date_from <= today && today <= p.date_to
+                const isFuture = p.date_from > today
+                return (
+                  <div key={p.id} className="flex items-start justify-between gap-3 py-2 border-t border-amber-500/20">
+                    <div className="text-xs space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${isActive ? 'bg-green-500/20 text-green-400' : isFuture ? 'bg-blue-500/20 text-blue-300' : 'bg-foreground/10 text-muted-foreground'}`}>
+                          {isActive ? 'Activa' : isFuture ? 'Próxima' : 'Vencida'}
+                        </span>
+                        {p.label && <span className="text-amber-300/80">{p.label}</span>}
+                      </div>
+                      <p className="text-muted-foreground">
+                        {p.date_from} → {p.date_to}
+                      </p>
+                      <p className="text-foreground">
+                        {p.promo_price != null
+                          ? `$${Math.round(p.promo_price).toLocaleString('es-CL')}`
+                          : `${p.discount_percent}% descuento`}
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => handleDeletePromo(p.id)}
+                      className="text-muted-foreground hover:text-red-400 transition-colors text-lg leading-none shrink-0">&times;</button>
+                  </div>
+                )
+              })}
+
+              {showPromoForm && (
+                <div className="space-y-3 pt-2 border-t border-amber-500/20">
+                  <div>
+                    <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Tipo de precio</label>
+                    <div className="flex gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+                        <input type="radio" name="promo_type" value="manual"
+                          checked={promoForm.promo_type === 'manual'}
+                          onChange={() => setPromo('promo_type', 'manual')}
+                          className="accent-amber-400" />
+                        Precio manual
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+                        <input type="radio" name="promo_type" value="percent"
+                          checked={promoForm.promo_type === 'percent'}
+                          onChange={() => setPromo('promo_type', 'percent')}
+                          className="accent-amber-400" />
+                        % Descuento
+                      </label>
+                    </div>
+                  </div>
+
+                  {promoForm.promo_type === 'manual' ? (
+                    <div>
+                      <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Precio promocional ($)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                        <input type="text" inputMode="numeric"
+                          value={fmtClp(promoForm.promo_price)}
+                          onChange={e => setPromo('promo_price', parseClp(e.target.value))}
+                          placeholder="0"
+                          className={`${inputBase} pl-7`} />
+                      </div>
+                      {form.price > 0 && promoForm.promo_price > 0 && (
+                        <p className="text-muted-foreground text-xs mt-1">
+                          Precio original: ${fmtClp(form.price)} → Promo: ${fmtClp(promoForm.promo_price)}
+                          {' '}({Math.round((1 - promoForm.promo_price / form.price) * 100)}% descuento)
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Porcentaje de descuento (%)</label>
+                      <div className="relative">
+                        <input type="number" min={1} max={100}
+                          value={promoForm.discount_percent}
+                          onChange={e => setPromo('discount_percent', e.target.value)}
+                          placeholder="Ej: 20"
+                          className={`${inputBase} pr-7`} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                      </div>
+                      {form.price > 0 && promoForm.discount_percent > 0 && (
+                        <p className="text-muted-foreground text-xs mt-1">
+                          Precio original: ${fmtClp(form.price)} → Promo: ${fmtClp(Math.round(form.price * (1 - promoForm.discount_percent / 100)))}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Desde</label>
+                      <input type="date" value={promoForm.date_from} onChange={e => setPromo('date_from', e.target.value)} className={inputBase} />
+                    </div>
+                    <div>
+                      <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Hasta</label>
+                      <input type="date" value={promoForm.date_to} onChange={e => setPromo('date_to', e.target.value)} className={inputBase} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-muted-foreground text-xs uppercase tracking-wider mb-1">Etiqueta (opcional)</label>
+                    <input type="text" value={promoForm.label} onChange={e => setPromo('label', e.target.value)}
+                      placeholder="Ej: Promo de invierno"
+                      className={inputBase} />
+                  </div>
+
+                  {promoError && <p className="text-red-400 text-xs">{promoError}</p>}
+
+                  <div className="flex gap-2 pt-1">
+                    <button type="button" onClick={handleSavePromo} disabled={savingPromo}
+                      className="px-4 py-1.5 text-xs bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-sm hover:bg-amber-500/30 transition-colors disabled:opacity-50">
+                      {savingPromo ? 'Guardando...' : 'Guardar promoción'}
+                    </button>
+                    <button type="button" onClick={() => { setShowPromoForm(false); setPromoForm(EMPTY_PROMO); setPromoError('') }}
+                      className="px-4 py-1.5 text-xs border border-border rounded-sm text-muted-foreground hover:border-primary transition-colors">
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {error && <p className="text-red-400 text-xs">{error}</p>}
         </form>
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-border shrink-0">

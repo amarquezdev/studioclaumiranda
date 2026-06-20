@@ -105,6 +105,61 @@ class ServiceTypeRead(OrmBase):
 # Service
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Service Promotions
+# ---------------------------------------------------------------------------
+
+class ServicePromotionCreate(BaseModel):
+    promo_price: float | None = Field(None, ge=0)
+    discount_percent: float | None = Field(None, ge=0, le=100)
+    label: str | None = Field(None, max_length=120)
+    date_from: date
+    date_to: date
+    is_active: bool = True
+
+    @model_validator(mode='after')
+    def check_price_or_percent(self):
+        if self.promo_price is None and self.discount_percent is None:
+            raise ValueError("Se requiere promo_price o discount_percent")
+        if self.date_to < self.date_from:
+            raise ValueError("date_to debe ser posterior a date_from")
+        return self
+
+
+class ServicePromotionUpdate(BaseModel):
+    promo_price: float | None = Field(None, ge=0)
+    discount_percent: float | None = Field(None, ge=0, le=100)
+    label: str | None = Field(None, max_length=120)
+    date_from: date | None = None
+    date_to: date | None = None
+    is_active: bool | None = None
+
+
+class ServicePromotionAdminRead(OrmBase):
+    id: int
+    service_id: int
+    promo_price: float | None
+    discount_percent: float | None
+    label: str | None
+    date_from: date
+    date_to: date
+    is_active: bool
+
+
+class ServicePromotionPublic(BaseModel):
+    """Active promotion returned in the public service list — effective price already computed."""
+    id: int
+    promo_price: float
+    discount_percent: float | None
+    label: str | None
+    date_from: date
+    date_to: date
+
+
+# ---------------------------------------------------------------------------
+# Service
+# ---------------------------------------------------------------------------
+
 class ServiceOptionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     price: float = Field(..., ge=0)
@@ -166,6 +221,7 @@ class ServiceRead(OrmBase):
     service_type_id: int | None = None
     service_type: ServiceTypeRead | None = None
     options: list[ServiceOptionRead] = []
+    promotion: ServicePromotionPublic | None = None
 
 
 # ---------------------------------------------------------------------------

@@ -92,6 +92,9 @@ class Service(Base):
         order_by="ServiceOption.sort_order",
     )
     service_type: Mapped["ServiceType | None"] = relationship("ServiceType", back_populates="services")
+    promotions: Mapped[list["ServicePromotion"]] = relationship(
+        "ServicePromotion", back_populates="service", cascade="all, delete-orphan"
+    )
 
 
 class ServiceOption(Base):
@@ -108,6 +111,23 @@ class ServiceOption(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default='0')
 
     service: Mapped["Service"] = relationship("Service", back_populates="options")
+
+
+class ServicePromotion(Base):
+    __tablename__ = "service_promotions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    service_id: Mapped[int] = mapped_column(
+        ForeignKey("services.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    promo_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    discount_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
+    label: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    date_from: Mapped[date_type] = mapped_column(Date, nullable=False)
+    date_to: Mapped[date_type] = mapped_column(Date, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    service: Mapped["Service"] = relationship("Service", back_populates="promotions")
 
 
 class BusinessHours(Base):

@@ -279,7 +279,8 @@ export function Booking() {
   const totalDuration = cart.reduce((s, item) => s + item.service.duration_minutes, 0)
   const totalPrice    = cart.reduce((s, item) => {
     const optPrice = item.options.reduce((a, o) => a + o.price, 0)
-    return s + (item.options.length > 0 ? optPrice : item.service.price)
+    const basePrice = item.service.promotion?.promo_price ?? item.service.price
+    return s + (item.options.length > 0 ? optPrice : basePrice)
   }, 0)
   const totalDeposit  = cart.reduce((s, item) => s + (item.service.deposit_amount || 0), 0)
 
@@ -579,10 +580,19 @@ export function Booking() {
                             )}
                           </div>
                           <div className="text-right shrink-0 ml-2">
-                            <p className={cn('text-base font-medium', inCart ? 'text-primary' : 'text-foreground')}>
-                              {s.price_from && <span className="text-sm font-normal">Desde </span>}
-                              ${s.price.toLocaleString('es-CL')}
-                            </p>
+                            {s.promotion ? (
+                              <>
+                                <p className="text-muted-foreground text-xs line-through">${s.price.toLocaleString('es-CL')}</p>
+                                <p className={cn('text-base font-medium', inCart ? 'text-primary' : 'text-amber-400')}>
+                                  ${s.promotion.promo_price.toLocaleString('es-CL')}
+                                </p>
+                              </>
+                            ) : (
+                              <p className={cn('text-base font-medium', inCart ? 'text-primary' : 'text-foreground')}>
+                                {s.price_from && <span className="text-sm font-normal">Desde </span>}
+                                ${s.price.toLocaleString('es-CL')}
+                              </p>
+                            )}
                             <p className="text-muted-foreground text-sm">{s.duration_minutes} min</p>
                           </div>
                         </button>
@@ -608,16 +618,30 @@ export function Booking() {
                               <Check className="w-3.5 h-3.5 text-primary-foreground" />
                             </div>
                           )}
+                          {s.promotion && !inCart && (
+                            <div className="absolute top-3 left-3 px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] uppercase tracking-wider">
+                              {s.promotion.label || 'Promo'}
+                            </div>
+                          )}
                           <Icon className={cn('size-7', inCart ? 'text-primary' : 'text-foreground/80')} strokeWidth={1.25} />
                           <h3 className={cn('mt-6 font-serif text-3xl transition-colors', inCart ? 'text-primary' : 'text-foreground group-hover:text-primary')}>
                             {s.name}
                           </h3>
                           <p className="mt-3 flex-1 text-base leading-relaxed text-muted-foreground">{s.description}</p>
-                          <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-sm tracking-wide text-foreground/70">
-                            <span>
-                              {s.price_from && <span className="mr-0.5">Desde </span>}
-                              ${s.price.toLocaleString('es-CL')}
-                            </span>
+                          <div className="mt-6 flex items-end justify-between border-t border-border pt-4 text-sm tracking-wide text-foreground/70">
+                            <div>
+                              {s.promotion ? (
+                                <>
+                                  <p className="text-muted-foreground text-xs line-through">${s.price.toLocaleString('es-CL')}</p>
+                                  <p className="text-amber-400 font-medium">${s.promotion.promo_price.toLocaleString('es-CL')}</p>
+                                </>
+                              ) : (
+                                <span>
+                                  {s.price_from && <span className="mr-0.5">Desde </span>}
+                                  ${s.price.toLocaleString('es-CL')}
+                                </span>
+                              )}
+                            </div>
                             <span>{s.duration_minutes} min</span>
                           </div>
                         </button>
