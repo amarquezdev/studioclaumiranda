@@ -18,6 +18,20 @@ function getServiceIcon(service) {
 }
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
+// Computes the promo price for an option given the service's active promotion.
+// For % discount: applies it directly. For manual price: derives the same ratio from the base price.
+function calcPromoOptPrice(optPrice, service) {
+  const promo = service.promotion
+  if (!promo) return null
+  if (promo.discount_percent != null) {
+    return Math.round(optPrice * (1 - promo.discount_percent / 100))
+  }
+  if (service.price > 0) {
+    return Math.round(optPrice * (promo.promo_price / service.price))
+  }
+  return null
+}
+
 function toISO(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
 }
@@ -71,11 +85,15 @@ function Steps({ current, hasDeposit }) {
 function OptionsModal({ service, onAdd, onCancel }) {
   const [selected, setSelected] = useState([])
   const activeOpts = service.options?.filter(o => o.is_active) ?? []
+  const promo = service.promotion
 
   const toggle = (opt) =>
     setSelected(prev => prev.find(o => o.id === opt.id) ? [] : [opt])
 
-  const optTotal = selected.reduce((s, o) => s + o.price, 0)
+  const optTotal = selected.reduce((s, o) => {
+    const p = calcPromoOptPrice(o.price, service)
+    return s + (p ?? o.price)
+  }, 0)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
@@ -88,9 +106,22 @@ function OptionsModal({ service, onAdd, onCancel }) {
           <button onClick={onCancel} className="text-muted-foreground hover:text-primary transition-colors text-xl leading-none ml-4 shrink-0">&times;</button>
         </div>
 
+        {promo && (
+          <div className="mx-6 mt-4 px-3 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center gap-2">
+            <span className="font-medium uppercase tracking-wider">{promo.label || 'Promoción'}</span>
+            <span className="text-amber-400/70">·</span>
+            <span>
+              {promo.discount_percent != null
+                ? `${promo.discount_percent}% de descuento aplicado`
+                : 'precio especial aplicado'}
+            </span>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
           {activeOpts.map(opt => {
             const checked = !!selected.find(o => o.id === opt.id)
+            const promoPrice = calcPromoOptPrice(opt.price, service)
             return (
               <button key={opt.id} type="button" onClick={() => toggle(opt)}
                 className={cn(
@@ -108,10 +139,19 @@ function OptionsModal({ service, onAdd, onCancel }) {
                     {opt.name}
                   </span>
                 </div>
-                <span className="text-primary font-medium text-base">
-                  {opt.price_from && <span className="text-sm font-normal mr-0.5">desde </span>}
-                  ${opt.price.toLocaleString()}
-                </span>
+                <div className="text-right">
+                  {promoPrice != null ? (
+                    <>
+                      <p className="text-muted-foreground text-xs line-through">${opt.price.toLocaleString('es-CL')}</p>
+                      <p className="text-amber-400 font-medium text-base">${promoPrice.toLocaleString('es-CL')}</p>
+                    </>
+                  ) : (
+                    <span className="text-primary font-medium text-base">
+                      {opt.price_from && <span className="text-sm font-normal mr-0.5">desde </span>}
+                      ${opt.price.toLocaleString('es-CL')}
+                    </span>
+                  )}
+                </div>
               </button>
             )
           })}
@@ -120,7 +160,7 @@ function OptionsModal({ service, onAdd, onCancel }) {
         {selected.length > 0 && (
           <div className="px-6 py-3 border-t border-border/50 flex justify-between items-center">
             <span className="text-muted-foreground text-xs uppercase tracking-wider">Total</span>
-            <span className="text-primary font-medium">${optTotal.toLocaleString()}</span>
+            <span className={promo ? 'text-amber-400 font-medium' : 'text-primary font-medium'}>${optTotal.toLocaleString('es-CL')}</span>
           </div>
         )}
 
@@ -278,9 +318,13 @@ export function Booking() {
 
   const totalDuration = cart.reduce((s, item) => s + item.service.duration_minutes, 0)
   const totalPrice    = cart.reduce((s, item) => {
-    const optPrice = item.options.reduce((a, o) => a + o.price, 0)
-    const basePrice = item.service.promotion?.promo_price ?? item.service.price
-    return s + (item.options.length > 0 ? optPrice : basePrice)
+    if (item.options.length > 0) {
+      return s + item.options.reduce((a, o) => {
+        const p = calcPromoOptPrice(o.price, item.service)
+        return a + (p ?? o.price)
+      }, 0)
+    }
+    return s + (item.service.promotion?.promo_price ?? item.service.price)
   }, 0)
   const totalDeposit  = cart.reduce((s, item) => s + (item.service.deposit_amount || 0), 0)
 
