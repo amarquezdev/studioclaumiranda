@@ -1,4 +1,5 @@
 from datetime import date, datetime, time as time_t, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +10,8 @@ from app.models import Appointment, AppointmentStatus, Barber, BlockedDate, Busi
 from app.schemas import AvailabilityResponse, TimeSlot
 
 router = APIRouter()
+
+SALON_TZ = ZoneInfo("America/Santiago")
 
 
 @router.get("/", response_model=AvailabilityResponse)
@@ -77,11 +80,15 @@ async def get_availability(
         day_close = datetime.combine(date, bh.close_time)
     duration  = timedelta(minutes=total_duration)
 
+    # Use timezone-aware datetimes for the DB query so PostgreSQL (TIMESTAMPTZ) compares correctly.
+    day_open_tz  = day_open.replace(tzinfo=SALON_TZ)
+    day_close_tz = day_close.replace(tzinfo=SALON_TZ)
+
     conflict_filters = [
         Appointment.barber_id == barber_id,
         Appointment.status.not_in([AppointmentStatus.cancelled]),
-        Appointment.start_datetime >= day_open,
-        Appointment.start_datetime <= day_close,
+        Appointment.start_datetime >= day_open_tz,
+        Appointment.start_datetime <= day_close_tz,
     ]
     if exclude_appointment_id:
         conflict_filters.append(Appointment.id != exclude_appointment_id)
@@ -91,21 +98,22 @@ async def get_availability(
     )
     bookings = existing_result.scalars().all()
 
-    def naive(dt: datetime) -> datetime:
-        return dt.replace(tzinfo=None) if dt.tzinfo else dt
+    def to_local_naive(dt: datetime) -> datetime:
+        """Convert a timezone-aware UTC datetime to a naive local (salon) datetime."""
+        return dt.astimezone(SALON_TZ).replace(tzinfo=None) if dt.tzinfo else dt
 
-    booked_ranges = [(naive(a.start_datetime), naive(a.end_datetime)) for a in bookings]
+    booked_ranges = [(to_local_naive(a.start_datetime), to_local_naive(a.end_datetime)) for a in bookings]
 
     STEP   = timedelta(minutes=15)
     slots: list[TimeSlot] = []
     cursor = day_open
-    now    = datetime.now()
+    # Use salon local time so slots are filtered correctly regardless of server timezone.
+    now    = datetime.now(SALON_TZ).replace(tzinfo=None)
 
-    # Slots are valid as long as they START within the booking window (close_time = last start time).
-    # A service may extend past close_time; only the start must fall within 09:00–18:00.
     while cursor <= day_close:
         slot_end = cursor + duration
-        if slot_end > now:
+        # Filter by slot START time, not end time, to prevent showing already-started slots.
+        if cursor > now:
             overlap = any(
                 cursor < b_end and slot_end > b_start
                 for b_start, b_end in booked_ranges
