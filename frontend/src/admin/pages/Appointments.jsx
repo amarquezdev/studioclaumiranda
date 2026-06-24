@@ -298,9 +298,11 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
   const [slots, setSlots]       = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
 
-  const initDate      = appt.start_datetime ? appt.start_datetime.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 10) : ''
-  const initServiceId = appt.appointment_services?.length ? String(appt.appointment_services[0]?.service_id ?? '') : String(appt.service_id ?? '')
-  const initSlot      = {
+  const initDate       = appt.start_datetime ? appt.start_datetime.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 10) : ''
+  const initServiceIds = appt.appointment_services?.length
+    ? appt.appointment_services.map(as_ => String(as_.service_id ?? as_.service?.id ?? '')).filter(Boolean)
+    : appt.service_id ? [String(appt.service_id)] : []
+  const initSlot       = {
     start: appt.start_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
     end:   appt.end_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
   }
@@ -311,7 +313,7 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
 
   const [form, setForm] = useState({
     barber_id: String(appt.barber_id ?? ''),
-    service_id: initServiceId,
+    service_ids: initServiceIds,
     date: initDate,
     slot: initSlot,
     notes: initExtra,
@@ -320,11 +322,25 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
   const [selectedOptions, setSelectedOptions] = useState([])
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
-  const [fieldErrors, setFieldErrors] = useState({ barber_id: '', service_id: '', date: '', slot: '' })
+  const [fieldErrors, setFieldErrors] = useState({ barber_id: '', service_ids: '', date: '', slot: '' })
   const didInitSlots = useRef(false)
 
-  const selectedService = services.find(s => String(s.id) === String(form.service_id)) ?? null
-  const activeOptions   = selectedService?.options?.filter(o => o.is_active) ?? []
+  const selectedServices    = services.filter(s => form.service_ids.includes(String(s.id)))
+  const totalDuration       = selectedServices.reduce((sum, s) => sum + s.duration_minutes, 0)
+  const servicesWithOptions = selectedServices.filter(s => s.has_options && s.options?.some(o => o.is_active))
+
+  const toggleService = (id) => {
+    const sid = String(id)
+    setForm(f => ({
+      ...f,
+      service_ids: f.service_ids.includes(sid)
+        ? f.service_ids.filter(x => x !== sid)
+        : [...f.service_ids, sid],
+      slot: null,
+    }))
+    setSelectedOptions([])
+    setFieldErrors(f => ({ ...f, service_ids: '' }))
+  }
 
   const toggleOption = (opt) =>
     setSelectedOptions(prev => prev.find(o => o.id === opt.id) ? prev.filter(o => o.id !== opt.id) : [...prev, opt])
@@ -343,16 +359,18 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
   // Pre-select options once service list loads
   useEffect(() => {
     if (!services.length || !initOptNames.length) return
-    const svc = services.find(s => String(s.id) === initServiceId)
-    if (!svc?.options) return
-    setSelectedOptions(svc.options.filter(o => initOptNames.includes(o.name)))
+    const allOptions = initServiceIds
+      .map(sid => services.find(s => String(s.id) === sid))
+      .filter(Boolean)
+      .flatMap(svc => svc.options ?? [])
+    setSelectedOptions(allOptions.filter(o => initOptNames.includes(o.name)))
   }, [services]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!form.date || !form.barber_id || !form.service_id) return
+    if (!form.date || !form.barber_id || form.service_ids.length === 0) return
     if (didInitSlots.current) setForm(f => ({ ...f, slot: null }))
     setLoadingSlots(true); setSlots([])
-    getAvailability(form.date, form.barber_id, form.service_id, { excludeId: appt.id, showAll: true })
+    getAvailability(form.date, form.barber_id, form.service_ids, { excludeId: appt.id, showAll: true })
       .then(r => {
         const available = r.data.slots ?? []
         if (!didInitSlots.current) {
@@ -365,21 +383,20 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
       })
       .catch(() => setSlots([]))
       .finally(() => setLoadingSlots(false))
-  }, [form.date, form.barber_id, form.service_id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [form.date, form.barber_id, form.service_ids]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }))
     setFieldErrors(f => ({ ...f, [k]: '' }))
-    if (k === 'service_id') setSelectedOptions([])
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const errors = { service_id: '', date: '', slot: '' }
+    const errors = { service_ids: '', date: '', slot: '' }
     const labels = []
-    if (!form.service_id) { errors.service_id = 'Debes seleccionar un servicio'; labels.push('Servicio') }
-    if (!form.date)       { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
-    if (!form.slot)       { errors.slot = 'Debes seleccionar una hora'; labels.push('Hora') }
+    if (form.service_ids.length === 0) { errors.service_ids = 'Debes seleccionar al menos un servicio'; labels.push('Servicio') }
+    if (!form.date)                    { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
+    if (!form.slot)                    { errors.slot = 'Debes seleccionar una hora'; labels.push('Hora') }
     if (labels.length > 0) { setFieldErrors(errors); setError(`Corrige: ${labels.join(', ')}`); return }
     setSaving(true); setError('')
     try {
@@ -391,7 +408,7 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
       const notes = parts.length > 0 ? parts.join('\n') : null
       await adminUpdateAppointment(appt.id, {
         barber_id: Number(form.barber_id),
-        service_id: Number(form.service_id),
+        service_ids: form.service_ids.map(Number),
         start_datetime: form.slot.start,
         notes,
       })
@@ -422,32 +439,53 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
           {error && <div className="bg-red-900/30 border border-red-800 text-red-400 text-xs px-3 py-2 rounded-sm">{error}</div>}
 
           <div>
-            <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
-            <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
-              <option value="">Seleccionar...</option>
-              {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
-            </select>
-            {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
+            <label className={labelCls}>
+              Servicios <span className="text-primary">*</span>
+              {selectedServices.length > 0 && (
+                <span className="ml-2 normal-case tracking-normal font-normal text-muted-foreground">
+                  {selectedServices.length} seleccionado{selectedServices.length > 1 ? 's' : ''} · {totalDuration} min
+                </span>
+              )}
+            </label>
+            <div className={`flex flex-wrap gap-2 mt-1 ${fieldErrors.service_ids ? 'p-2 border border-red-500 rounded-sm' : ''}`}>
+              {services.map(s => {
+                const checked = form.service_ids.includes(String(s.id))
+                return (
+                  <button type="button" key={s.id} onClick={() => toggleService(s.id)}
+                    className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-muted-foreground hover:border-foreground/30'
+                    }`}>
+                    {s.name} · {s.duration_minutes}min
+                  </button>
+                )
+              })}
+            </div>
+            {fieldErrors.service_ids && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_ids}</p>}
           </div>
 
-          {selectedService?.has_options && activeOptions.length > 0 && (
-            <div>
-              <label className={labelCls}>Opciones del servicio</label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {activeOptions.map(opt => {
-                  const checked = !!selectedOptions.find(o => o.id === opt.id)
-                  return (
-                    <button type="button" key={opt.id} onClick={() => toggleOption(opt)}
-                      className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
-                        checked ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-foreground/30'
-                      }`}>
-                      {opt.name} — ${opt.price.toLocaleString()}
-                    </button>
-                  )
-                })}
+          {servicesWithOptions.map(svc => {
+            const opts = svc.options.filter(o => o.is_active)
+            return (
+              <div key={svc.id}>
+                <label className={labelCls}>Opciones — {svc.name}</label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {opts.map(opt => {
+                    const checked = !!selectedOptions.find(o => o.id === opt.id)
+                    return (
+                      <button type="button" key={opt.id} onClick={() => toggleOption(opt)}
+                        className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                          checked ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-foreground/30'
+                        }`}>
+                        {opt.name} — ${opt.price.toLocaleString()}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })}
 
           <div>
             <label className={labelCls}>Fecha <span className="text-primary">*</span></label>
@@ -456,7 +494,7 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
             {fieldErrors.date && <p className="text-red-400 text-xs mt-1">{fieldErrors.date}</p>}
           </div>
 
-          {form.date && form.barber_id && form.service_id && (
+          {form.date && form.barber_id && form.service_ids.length > 0 && (
             <div>
               <label className={labelCls}>Hora <span className="text-primary">*</span></label>
               {loadingSlots && <p className="text-muted-foreground text-xs">Cargando horarios...</p>}
