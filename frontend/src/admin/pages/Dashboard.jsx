@@ -28,39 +28,50 @@ function parseOptNames(notes) {
 }
 
 function calcTotal(a) {
-  // Custom price overrides everything
   if (a.notes) {
     const pm = a.notes.match(/(?:^|\n)Precio:\s*(\d+)/)
     if (pm) return parseInt(pm[1], 10)
   }
-  const optNames = parseOptNames(a.notes)
   const svcs = a.appointment_services?.length
     ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
     : a.service ? [a.service] : []
-  const allOptions = svcs.flatMap(sv => sv.options ?? [])
-  const norm = s => s.trim().toLowerCase()
+  if (svcs.length === 0) return null
 
-  // Pass 1: "Opciones:" format
-  if (optNames.length > 0 && allOptions.length > 0) {
-    const matched = optNames
-      .map(name => allOptions.find(o => o.name === name) ?? allOptions.find(o => norm(o.name) === norm(name)))
-      .filter(Boolean)
-    if (matched.length > 0) return matched.reduce((s, o) => s + o.price, 0)
-  }
-  // Pass 2: old public-booking "Service: option" token scan
-  if (allOptions.length > 0 && a.notes) {
-    const tokens = a.notes
-      .replace(/Comprobante transferencia:[^\n]*/g, '')
-      .split(/[:,\n]+/).map(s => s.trim()).filter(Boolean)
-    const seen = new Map()
-    for (const token of tokens) {
-      const opt = allOptions.find(o => o.name === token) ?? allOptions.find(o => norm(o.name) === norm(token))
-      if (opt && !seen.has(opt.id)) seen.set(opt.id, opt)
+  const optNames = parseOptNames(a.notes)
+  const norm = s => s.trim().toLowerCase()
+  const tokens = (a.notes ?? '')
+    .replace(/(?:^|\n)Precio:[^\n]*/g, '')
+    .replace(/Comprobante transferencia:[^\n]*/g, '')
+    .split(/[:,\n]+/).map(s => s.trim()).filter(Boolean)
+
+  let total = 0
+  for (const svc of svcs) {
+    const opts = svc.options ?? []
+    let svcPrice = null
+    if (opts.length > 0) {
+      // Pass 1: "Opciones:" format matched against this service's options only
+      const matched = optNames
+        .map(name => opts.find(o => o.name === name) ?? opts.find(o => norm(o.name) === norm(name)))
+        .filter(Boolean)
+      if (matched.length > 0) {
+        svcPrice = matched.reduce((s, o) => s + o.price, 0)
+      } else {
+        // Pass 2: token scan against this service's options only
+        const seen = new Map()
+        for (const token of tokens) {
+          const opt = opts.find(o => o.name === token) ?? opts.find(o => norm(o.name) === norm(token))
+          if (opt && !seen.has(opt.id)) seen.set(opt.id, opt)
+        }
+        if (seen.size > 0) svcPrice = [...seen.values()].reduce((s, o) => s + o.price, 0)
+      }
     }
-    if (seen.size > 0) return [...seen.values()].reduce((s, o) => s + o.price, 0)
+    if (svcPrice === null) {
+      if (svc.price_from) return null
+      svcPrice = svc.price ?? 0
+    }
+    total += svcPrice
   }
-  if (svcs.some(sv => sv.price_from)) return null
-  return svcs.reduce((s, sv) => s + (sv?.price ?? 0), 0)
+  return total
 }
 
 function fmtTotal(t) {
