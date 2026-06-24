@@ -222,7 +222,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
 
           <div>
             <label className={labelCls}>Fecha <span className="text-primary">*</span></label>
-            <input type="date" className={inputCls('date')} value={form.date} min={today}
+            <input type="date" className={inputCls('date')} value={form.date}
               onChange={e => set('date', e.target.value)} />
             {fieldErrors.date && <p className="text-red-400 text-xs mt-1">{fieldErrors.date}</p>}
           </div>

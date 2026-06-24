@@ -112,16 +112,15 @@ async def get_availability(
 
     while cursor <= day_close:
         slot_end = cursor + duration
-        # Filter by slot START time, not end time, to prevent showing already-started slots.
-        if cursor > now:
-            overlap = any(
-                cursor < b_end and slot_end > b_start
-                for b_start, b_end in booked_ranges
-            )
-            if show_all:
-                slots.append(TimeSlot(start=cursor, end=slot_end, available=not overlap))
-            elif not overlap:
-                slots.append(TimeSlot(start=cursor, end=slot_end, available=True))
+        overlap = any(
+            cursor < b_end and slot_end > b_start
+            for b_start, b_end in booked_ranges
+        )
+        if show_all:
+            # Admin: show all slots for the day regardless of current time.
+            slots.append(TimeSlot(start=cursor, end=slot_end, available=not overlap))
+        elif cursor > now and not overlap:
+            slots.append(TimeSlot(start=cursor, end=slot_end, available=True))
         cursor += STEP
 
     return AvailabilityResponse(
