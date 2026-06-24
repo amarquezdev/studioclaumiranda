@@ -38,18 +38,32 @@ function NewAppointmentModal({ onClose, onCreated }) {
 
   const [form, setForm] = useState({
     name: '', email: '', phone: '',
-    barber_id: '', service_id: '', date: '', slot: null, notes: '', customPrice: '',
+    barber_id: '', service_ids: [], date: '', slot: null, notes: '', customPrice: '',
   })
   const [selectedOptions, setSelectedOptions] = useState([])
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState('')
   const [loadError, setLoadError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({
-    name: '', email: '', barber_id: '', service_id: '', date: '', slot: '',
+    name: '', email: '', service_ids: '', date: '', slot: '',
   })
 
-  const selectedService = services.find(s => String(s.id) === String(form.service_id)) ?? null
-  const activeOptions   = selectedService?.options?.filter(o => o.is_active) ?? []
+  const selectedServices    = services.filter(s => form.service_ids.includes(String(s.id)))
+  const totalDuration       = selectedServices.reduce((sum, s) => sum + s.duration_minutes, 0)
+  const servicesWithOptions = selectedServices.filter(s => s.has_options && s.options?.some(o => o.is_active))
+
+  const toggleService = (id) => {
+    const sid = String(id)
+    setForm(f => ({
+      ...f,
+      service_ids: f.service_ids.includes(sid)
+        ? f.service_ids.filter(x => x !== sid)
+        : [...f.service_ids, sid],
+      slot: null,
+    }))
+    setSelectedOptions([])
+    setFieldErrors(f => ({ ...f, service_ids: '' }))
+  }
 
   const toggleOption = (opt) => {
     setSelectedOptions(prev =>
@@ -58,14 +72,14 @@ function NewAppointmentModal({ onClose, onCreated }) {
   }
 
   const validate = () => {
-    const errors = { name: '', email: '', service_id: '', date: '', slot: '' }
+    const errors = { name: '', email: '', service_ids: '', date: '', slot: '' }
     const labels = []
-    if (!form.name.trim())  { errors.name = 'El nombre del cliente es obligatorio'; labels.push('Nombre') }
-    if (!form.email.trim()) { errors.email = 'El email es obligatorio'; labels.push('Email') }
+    if (!form.name.trim())           { errors.name = 'El nombre del cliente es obligatorio'; labels.push('Nombre') }
+    if (!form.email.trim())          { errors.email = 'El email es obligatorio'; labels.push('Email') }
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { errors.email = 'El email no tiene un formato válido'; labels.push('Email') }
-    if (!form.service_id)   { errors.service_id = 'Debes seleccionar un servicio'; labels.push('Servicio') }
-    if (!form.date)         { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
-    if (!form.slot)         { errors.slot = 'Debes seleccionar una hora disponible'; labels.push('Hora') }
+    if (form.service_ids.length === 0) { errors.service_ids = 'Debes seleccionar al menos un servicio'; labels.push('Servicio') }
+    if (!form.date)                  { errors.date = 'Debes elegir una fecha'; labels.push('Fecha') }
+    if (!form.slot)                  { errors.slot = 'Debes seleccionar una hora disponible'; labels.push('Hora') }
     return { errors, hasErrors: labels.length > 0, message: labels.length ? `Corrige los siguientes campos: ${labels.join(', ')}` : '' }
   }
 
@@ -80,18 +94,17 @@ function NewAppointmentModal({ onClose, onCreated }) {
   }, [])
 
   useEffect(() => {
-    if (!form.date || !form.barber_id || !form.service_id) return
+    if (!form.date || !form.barber_id || form.service_ids.length === 0) return
     setLoadingSlots(true); setSlots([]); setForm(f => ({ ...f, slot: null }))
-    getAvailability(form.date, form.barber_id, form.service_id, { showAll: true })
+    getAvailability(form.date, form.barber_id, form.service_ids, { showAll: true })
       .then(r => setSlots(r.data.slots))
       .catch(() => setSlots([]))
       .finally(() => setLoadingSlots(false))
-  }, [form.date, form.barber_id, form.service_id])
+  }, [form.date, form.barber_id, form.service_ids])
 
   const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }))
     setFieldErrors(f => ({ ...f, [k]: '' }))
-    if (k === 'service_id') setSelectedOptions([])
   }
 
   const handleSubmit = async (e) => {
@@ -108,7 +121,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
       const notes = parts.length > 0 ? parts.join('\n') : null
       await adminCreateAppointment({
         name: form.name, email: form.email, phone: form.phone || null,
-        barber_id: Number(form.barber_id), service_id: Number(form.service_id),
+        barber_id: Number(form.barber_id), service_ids: form.service_ids.map(Number),
         start_datetime: form.slot.start, notes,
       })
       onCreated()
@@ -159,32 +172,53 @@ function NewAppointmentModal({ onClose, onCreated }) {
 
           <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium pt-2">Cita</p>
           <div>
-            <label className={labelCls}>Servicio <span className="text-primary">*</span></label>
-            <select className={inputCls('service_id')} value={form.service_id} onChange={e => set('service_id', e.target.value)}>
-              <option value="">Seleccionar...</option>
-              {services.map(s => <option key={s.id} value={s.id}>{s.name} — {s.price_from ? 'Desde ' : ''}${s.price.toLocaleString()}</option>)}
-            </select>
-            {fieldErrors.service_id && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_id}</p>}
+            <label className={labelCls}>
+              Servicios <span className="text-primary">*</span>
+              {selectedServices.length > 0 && (
+                <span className="ml-2 normal-case tracking-normal font-normal text-muted-foreground">
+                  {selectedServices.length} seleccionado{selectedServices.length > 1 ? 's' : ''} · {totalDuration} min
+                </span>
+              )}
+            </label>
+            <div className={`flex flex-wrap gap-2 mt-1 ${fieldErrors.service_ids ? 'p-2 border border-red-500 rounded-sm' : ''}`}>
+              {services.map(s => {
+                const checked = form.service_ids.includes(String(s.id))
+                return (
+                  <button type="button" key={s.id} onClick={() => toggleService(s.id)}
+                    className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                      checked
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-muted-foreground hover:border-foreground/30'
+                    }`}>
+                    {s.name} · {s.duration_minutes}min
+                  </button>
+                )
+              })}
+            </div>
+            {fieldErrors.service_ids && <p className="text-red-400 text-xs mt-1">{fieldErrors.service_ids}</p>}
           </div>
 
-          {selectedService?.has_options && activeOptions.length > 0 && (
-            <div>
-              <label className={labelCls}>Opciones del servicio</label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {activeOptions.map(opt => {
-                  const checked = !!selectedOptions.find(o => o.id === opt.id)
-                  return (
-                    <button type="button" key={opt.id} onClick={() => toggleOption(opt)}
-                      className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
-                        checked ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-foreground/30'
-                      }`}>
-                      {opt.name} — ${opt.price.toLocaleString()}
-                    </button>
-                  )
-                })}
+          {servicesWithOptions.map(svc => {
+            const opts = svc.options.filter(o => o.is_active)
+            return (
+              <div key={svc.id}>
+                <label className={labelCls}>Opciones — {svc.name}</label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {opts.map(opt => {
+                    const checked = !!selectedOptions.find(o => o.id === opt.id)
+                    return (
+                      <button type="button" key={opt.id} onClick={() => toggleOption(opt)}
+                        className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                          checked ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-foreground/30'
+                        }`}>
+                        {opt.name} — ${opt.price.toLocaleString()}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })}
 
           <div>
             <label className={labelCls}>Fecha <span className="text-primary">*</span></label>
@@ -193,7 +227,7 @@ function NewAppointmentModal({ onClose, onCreated }) {
             {fieldErrors.date && <p className="text-red-400 text-xs mt-1">{fieldErrors.date}</p>}
           </div>
 
-          {form.date && form.barber_id && form.service_id && (
+          {form.date && form.barber_id && form.service_ids.length > 0 && (
             <div>
               <label className={labelCls}>Hora disponible <span className="text-primary">*</span></label>
               {loadingSlots && <p className="text-muted-foreground text-xs">Cargando horarios...</p>}

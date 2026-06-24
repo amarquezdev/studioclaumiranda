@@ -290,6 +290,8 @@ export function Booking() {
   const [blockedDates, setBlockedDates]     = useState([])
   const [loadingInit, setLoadingInit]       = useState(true)
   const [loadingSlots, setLoadingSlots]     = useState(false)
+  const [validatingSlot, setValidatingSlot] = useState(false)
+  const [slotsRefreshKey, setSlotsRefreshKey] = useState(0)
   const [retrying, setRetrying]             = useState(false)
   const [error, setError]                   = useState('')
 
@@ -380,7 +382,7 @@ export function Booking() {
       .then(r => setSlots(r.data.slots))
       .catch(() => setSlots([]))
       .finally(() => setLoadingSlots(false))
-  }, [selectedDate, selectedBarber, cart])
+  }, [selectedDate, selectedBarber, cart, slotsRefreshKey])
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -414,7 +416,14 @@ export function Booking() {
       })
       setBooked(true)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Error al reservar. Intenta nuevamente.')
+      if (err.response?.status === 409) {
+        setError('Este horario ya fue reservado. Elige otra hora.')
+        setSelectedSlot(null)
+        setSlotsRefreshKey(k => k + 1)
+        setStep(3)
+      } else {
+        setError(err.response?.data?.detail || 'Error al reservar. Intenta nuevamente.')
+      }
     } finally { setSubmitting(false) }
   }
 
@@ -431,6 +440,29 @@ export function Booking() {
     setGuestFirstName(''); setGuestLastName('')
     setGuestEmail(''); setGuestPhone(''); setGuestNotes(''); setTransferId('')
     setError('')
+  }
+
+  // Validates that the slot is still free before moving to step 4.
+  const handleSlotSelect = async (slot) => {
+    setValidatingSlot(true)
+    setError('')
+    try {
+      const r = await getAvailability(selectedDate, selectedBarber.id, cart.map(i => i.service.id))
+      const freshSlots = r.data.slots
+      setSlots(freshSlots)
+      if (freshSlots.some(s => s.start === slot.start)) {
+        setSelectedSlot(slot)
+        setStep(4)
+      } else {
+        setError('Este horario ya fue reservado. Por favor elige otra hora.')
+      }
+    } catch {
+      // If the check fails (network), proceed — the server will validate on submit.
+      setSelectedSlot(slot)
+      setStep(4)
+    } finally {
+      setValidatingSlot(false)
+    }
   }
 
   // ── Confirmación ──────────────────────────────────────────────────────────
@@ -762,7 +794,7 @@ export function Booking() {
                   businessHours={businessHours}
                   blockedDates={blockedDates}
                   selected={selectedDate}
-                  onSelect={date => { setSelectedDate(date); setStep(3) }}
+                  onSelect={date => { setSelectedDate(date); setSlotsRefreshKey(k => k + 1); setStep(3) }}
                 />
                 <button onClick={() => setStep(1)}
                   className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
@@ -790,19 +822,27 @@ export function Booking() {
                   </p>
                 )}
                 {!loadingSlots && slots.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-md mx-auto">
-                    {slots.map((slot, i) => (
-                      <button key={i} onClick={() => { setSelectedSlot(slot); setStep(4) }}
-                        className={cn(
-                          'py-2.5 text-sm border transition-all duration-150 tracking-wider',
-                          selectedSlot === slot
-                            ? 'bg-primary text-primary-foreground border-primary font-medium'
-                            : 'border-border text-foreground hover:border-primary hover:text-primary'
-                        )}>
-                        {formatTime(slot.start)}
-                      </button>
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-md mx-auto">
+                      {slots.map((slot, i) => (
+                        <button key={i} onClick={() => handleSlotSelect(slot)}
+                          disabled={validatingSlot}
+                          className={cn(
+                            'py-2.5 text-sm border transition-all duration-150 tracking-wider',
+                            validatingSlot
+                              ? 'opacity-50 cursor-not-allowed border-border text-muted-foreground'
+                              : 'border-border text-foreground hover:border-primary hover:text-primary'
+                          )}>
+                          {formatTime(slot.start)}
+                        </button>
+                      ))}
+                    </div>
+                    {validatingSlot && (
+                      <p className="text-muted-foreground text-xs text-center mt-4 tracking-wider">
+                        Verificando disponibilidad...
+                      </p>
+                    )}
+                  </>
                 )}
                 <button onClick={() => setStep(2)}
                   className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
@@ -869,7 +909,7 @@ export function Booking() {
                     {submitting ? 'Confirmando...' : totalDeposit > 0 ? 'Siguiente →' : 'Confirmar Reserva'}
                   </button>
                 </form>
-                <button onClick={() => setStep(3)}
+                <button onClick={() => { setSlotsRefreshKey(k => k + 1); setStep(3) }}
                   className="mt-6 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
                   <ChevronLeft className="w-3 h-3" /> Volver
                 </button>

@@ -93,6 +93,10 @@ export default function Dashboard() {
   const todayAppts   = appointments.filter(a => new Date(a.start_datetime).toDateString() === today)
   const pendingAppts = appointments.filter(a => a.status === 'pending')
 
+  const todaySchedule = [...appointments]
+    .filter(a => new Date(a.start_datetime).toDateString() === today && a.status !== 'cancelled')
+    .sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime))
+
   const upcoming = [...appointments]
     .filter(a => new Date(a.start_datetime) >= now && a.status !== 'cancelled')
     .sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime))
@@ -132,6 +136,101 @@ export default function Dashboard() {
         <StatCard icon="💰" label="Ingreso hoy"        value={fmt(revenueToday)}   sub="estimado" accent />
         <StatCard icon="📈" label="Ingreso mensual"    value={fmt(revenueMonth)}   sub={now.toLocaleDateString('es-CL',{month:'long'})} accent />
       </div>
+
+      {/* Today's appointments */}
+      {!loading && todaySchedule.length > 0 && (
+        <div className="mb-8 md:mb-10">
+          <h2 className="text-foreground font-light tracking-widest text-xs uppercase mb-4">
+            Citas de hoy
+            <span className="ml-3 normal-case tracking-normal font-normal text-muted-foreground">
+              {now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </span>
+          </h2>
+
+          {/* Desktop table */}
+          <div className="hidden md:block bg-card border border-border rounded-sm overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Hora', 'Cliente', 'Contacto', 'Servicio', 'Valor', 'Estado'].map(h => (
+                    <th key={h} className="text-left text-muted-foreground text-xs uppercase tracking-wider px-4 py-3 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {todaySchedule.map(a => {
+                  const isPast = a.end_datetime && new Date(a.end_datetime) < now
+                  const svcs = a.appointment_services?.length
+                    ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                    : a.service ? [a.service] : []
+                  return (
+                    <tr key={a.id} className={`border-b border-border/50 transition-colors ${isPast ? 'opacity-50' : 'hover:bg-foreground/5'}`}>
+                      <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap font-medium">
+                        {fmtDt(a.start_datetime, { timeStyle: 'short' })}
+                        {a.end_datetime && (
+                          <span className="text-muted-foreground/60"> → {fmtDt(a.end_datetime, { timeStyle: 'short' })}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-foreground font-medium">{a.user?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">
+                        <p>{a.user?.email ?? '—'}</p>
+                        {a.user?.phone && <p>{a.user.phone}</p>}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {svcs.length ? svcs.map(s => s.name).join(', ') : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-primary text-xs font-medium">
+                        {fmtTotal(calcTotal(a))}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[a.status]}`}>
+                          {STATUS_LABELS[a.status]}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {todaySchedule.map(a => {
+              const isPast = a.end_datetime && new Date(a.end_datetime) < now
+              const svcs = a.appointment_services?.length
+                ? a.appointment_services.map(as_ => as_.service).filter(Boolean)
+                : a.service ? [a.service] : []
+              return (
+                <div key={a.id} className={`bg-card border border-border rounded-sm p-4 ${isPast ? 'opacity-50' : ''}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="text-foreground font-medium text-sm">{a.user?.name ?? '—'}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {fmtDt(a.start_datetime, { timeStyle: 'short' })}
+                        {a.end_datetime && ` → ${fmtDt(a.end_datetime, { timeStyle: 'short' })}`}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[a.status]}`}>
+                      {STATUS_LABELS[a.status]}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-border/50 text-xs">
+                    <div>
+                      <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Servicio</p>
+                      <p className="text-foreground mt-0.5">{svcs.length ? svcs.map(s => s.name).join(', ') : '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground uppercase tracking-wider" style={{fontSize:'9px'}}>Valor</p>
+                      <p className="text-primary font-medium mt-0.5">{fmtTotal(calcTotal(a))}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Upcoming appointments */}
       <div>
