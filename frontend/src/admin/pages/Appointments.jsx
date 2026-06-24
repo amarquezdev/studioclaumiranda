@@ -662,10 +662,12 @@ function calcTotal(a) {
     const opts = svc.options ?? []
     let svcPrice = null
     if (opts.length > 0) {
-      // Pass 1: "Opciones:" format matched against this service's options only
-      const matched = optNames
-        .map(name => opts.find(o => o.name === name) ?? opts.find(o => norm(o.name) === norm(name)))
-        .filter(Boolean)
+      // Pass 1: filter THIS service's options to those whose name appears in notes.
+      // Using filter (not map) avoids counting the same option multiple times when
+      // several services share the same option name (e.g. all have "Largo").
+      const matched = opts.filter(o =>
+        optNames.some(name => o.name === name || norm(o.name) === norm(name))
+      )
       if (matched.length > 0) {
         svcPrice = matched.reduce((s, o) => s + o.price, 0)
       } else {
