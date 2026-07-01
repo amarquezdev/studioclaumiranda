@@ -420,6 +420,7 @@ export function Booking() {
         setError('Este horario ya fue reservado. Elige otra hora.')
         setSelectedSlot(null)
         setSlotsRefreshKey(k => k + 1)
+        setLoadingSlots(true)
         setStep(3)
       } else {
         setError(err.response?.data?.detail || 'Error al reservar. Intenta nuevamente.')
@@ -794,7 +795,7 @@ export function Booking() {
                   businessHours={businessHours}
                   blockedDates={blockedDates}
                   selected={selectedDate}
-                  onSelect={date => { setSelectedDate(date); setSlotsRefreshKey(k => k + 1); setStep(3) }}
+                  onSelect={date => { setSelectedDate(date); setSlotsRefreshKey(k => k + 1); setLoadingSlots(true); setStep(3) }}
                 />
                 <button onClick={() => setStep(1)}
                   className="mt-8 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
@@ -811,7 +812,7 @@ export function Booking() {
                 </p>
                 <p className="text-primary text-sm text-center mb-8 tracking-wider">{selectedDate}</p>
                 {loadingSlots && (
-                  <p className="text-muted-foreground text-sm text-center">Cargando horarios disponibles...</p>
+                  <p className="text-muted-foreground text-sm text-center py-6">Buscando horas disponibles...</p>
                 )}
                 {!loadingSlots && slots.length === 0 && (
                   <p className="text-muted-foreground text-sm text-center py-6">
@@ -909,7 +910,7 @@ export function Booking() {
                     {submitting ? 'Confirmando...' : totalDeposit > 0 ? 'Siguiente →' : 'Confirmar Reserva'}
                   </button>
                 </form>
-                <button onClick={() => { setSlotsRefreshKey(k => k + 1); setStep(3) }}
+                <button onClick={() => { setSlotsRefreshKey(k => k + 1); setLoadingSlots(true); setStep(3) }}
                   className="mt-6 flex items-center gap-1 text-muted-foreground hover:text-foreground text-xs uppercase tracking-wider transition-colors mx-auto">
                   <ChevronLeft className="w-3 h-3" /> Volver
                 </button>
