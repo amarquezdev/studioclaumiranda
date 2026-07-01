@@ -22,6 +22,7 @@ async def get_availability(
     service_ids: str | None = Query(None, description="IDs separados por coma: 1,2,3"),
     exclude_appointment_id: int | None = Query(None, description="ID de cita a excluir del chequeo de conflictos (usado al editar)"),
     show_all: bool = Query(False, description="Si es true, devuelve todos los slots marcando los ocupados con available=false"),
+    debug: bool = Query(False, description="Si es true, incluye información de diagnóstico en la respuesta"),
     db: AsyncSession = Depends(get_db),
 ):
     # Resolve which service IDs to use
@@ -55,10 +56,13 @@ async def get_availability(
             BlockedDate.date_to   >= date,
         )
     )
-    if blocked_result.scalar_one_or_none():
+    blocked_record = blocked_result.scalar_one_or_none()
+    if blocked_record:
+        debug_info = {"reason": "blocked_date", "blocked_date_id": blocked_record.id, "reason_text": blocked_record.reason} if debug else None
         return AvailabilityResponse(
             date=str(date), barber_id=barber_id,
             service_id=primary_id, duration_minutes=total_duration, slots=[],
+            debug=debug_info,
         )
 
     if show_all:
@@ -72,9 +76,11 @@ async def get_availability(
         )
         bh = bh_result.scalar_one_or_none()
         if not bh or not bh.is_open:
+            debug_info = {"reason": "business_hours_closed", "day_of_week": day_of_week, "bh_found": bh is not None, "is_open": bh.is_open if bh else None} if debug else None
             return AvailabilityResponse(
                 date=str(date), barber_id=barber_id,
                 service_id=primary_id, duration_minutes=total_duration, slots=[],
+                debug=debug_info,
             )
         day_open  = datetime.combine(date, bh.open_time)
         day_close = datetime.combine(date, bh.close_time)
@@ -125,7 +131,33 @@ async def get_availability(
             slots.append(TimeSlot(start=cursor_tz, end=slot_end_tz, available=True))
         cursor += STEP
 
+    debug_info = None
+    if debug:
+        debug_info = {
+            "day_open": str(day_open),
+            "day_close": str(day_close),
+            "duration_minutes": total_duration,
+            "services": [{"id": s.id, "name": s.name, "duration_minutes": s.duration_minutes} for s in services_list],
+            "appointments_found": [
+                {
+                    "id": a.id,
+                    "start_utc": str(a.start_datetime),
+                    "end_utc": str(a.end_datetime),
+                    "start_local": str(to_local_naive(a.start_datetime)),
+                    "end_local": str(to_local_naive(a.end_datetime)),
+                    "status": str(a.status),
+                }
+                for a in bookings
+            ],
+            "booked_ranges_local": [
+                {"start": str(b_start), "end": str(b_end)}
+                for b_start, b_end in booked_ranges
+            ],
+            "slots_returned": len(slots),
+        }
+
     return AvailabilityResponse(
         date=str(date), barber_id=barber_id,
         service_id=primary_id, duration_minutes=total_duration, slots=slots,
+        debug=debug_info,
     )

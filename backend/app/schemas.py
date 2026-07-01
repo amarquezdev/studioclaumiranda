@@ -372,3 +372,5 @@ class AvailabilityResponse(BaseModel):
     service_id: int
     duration_minutes: int
     slots: list[TimeSlot]
+    # Debug fields — only populated when debug=true is passed to the endpoint
+    debug: dict | None = None
