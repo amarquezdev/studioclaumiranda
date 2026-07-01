@@ -36,7 +36,7 @@ function toISO(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
 }
 function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hour12:false })
+  return new Date(iso).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone: 'America/Santiago' })
 }
 
 // ── Step indicator ─────────────────────────────────────────────────────────

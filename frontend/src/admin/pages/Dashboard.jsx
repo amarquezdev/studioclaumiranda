@@ -16,8 +16,7 @@ function StatCard({ icon, label, value, sub, accent }) {
 
 function fmtDt(iso, opts) {
   if (!iso) return '—'
-  const local = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
-  return new Date(local).toLocaleString('es-CL', opts)
+  return new Date(iso).toLocaleString('es-CL', { timeZone: 'America/Santiago', ...opts })
 }
 
 function parseOptNames(notes) {

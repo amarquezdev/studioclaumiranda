@@ -87,8 +87,8 @@ async def get_availability(
     conflict_filters = [
         Appointment.barber_id == barber_id,
         Appointment.status.not_in([AppointmentStatus.cancelled]),
-        Appointment.start_datetime >= day_open_tz,
-        Appointment.start_datetime <= day_close_tz,
+        Appointment.start_datetime < day_close_tz,
+        Appointment.end_datetime > day_open_tz,
     ]
     if exclude_appointment_id:
         conflict_filters.append(Appointment.id != exclude_appointment_id)
@@ -116,11 +116,13 @@ async def get_availability(
             cursor < b_end and slot_end > b_start
             for b_start, b_end in booked_ranges
         )
+        cursor_tz   = cursor.replace(tzinfo=SALON_TZ)
+        slot_end_tz = slot_end.replace(tzinfo=SALON_TZ)
         if show_all:
             # Admin: show all slots for the day regardless of current time.
-            slots.append(TimeSlot(start=cursor, end=slot_end, available=not overlap))
+            slots.append(TimeSlot(start=cursor_tz, end=slot_end_tz, available=not overlap))
         elif cursor > now and not overlap:
-            slots.append(TimeSlot(start=cursor, end=slot_end, available=True))
+            slots.append(TimeSlot(start=cursor_tz, end=slot_end_tz, available=True))
         cursor += STEP
 
     return AvailabilityResponse(

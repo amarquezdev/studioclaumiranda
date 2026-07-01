@@ -18,12 +18,15 @@ function toISO(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
 }
 function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hour12:false })
+  return new Date(iso).toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone: 'America/Santiago' })
 }
 function fmtDt(iso, opts) {
   if (!iso) return '—'
-  const local = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
-  return new Date(local).toLocaleString('es-CL', opts)
+  return new Date(iso).toLocaleString('es-CL', { timeZone: 'America/Santiago', ...opts })
+}
+function toSantiagoNaive(isoStr) {
+  if (!isoStr) return ''
+  return new Date(isoStr).toLocaleString('sv-SE', { timeZone: 'America/Santiago' }).replace(' ', 'T')
 }
 const fmtClp  = v => { const n = parseInt(String(v).replace(/\D/g,''),10); return isNaN(n)||n===0 ? '' : `$${n.toLocaleString('es-CL')}` }
 const parseClp = s => { const n = parseInt(String(s).replace(/\D/g,''),10); return isNaN(n) ? 0 : n }
@@ -298,13 +301,13 @@ function EditAppointmentModal({ appt, onClose, onSaved }) {
   const [slots, setSlots]       = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
 
-  const initDate       = appt.start_datetime ? appt.start_datetime.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 10) : ''
+  const initDate       = appt.start_datetime ? toSantiagoNaive(appt.start_datetime).slice(0, 10) : ''
   const initServiceIds = appt.appointment_services?.length
     ? appt.appointment_services.map(as_ => String(as_.service_id ?? as_.service?.id ?? '')).filter(Boolean)
     : appt.service_id ? [String(appt.service_id)] : []
   const initSlot       = {
-    start: appt.start_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
-    end:   appt.end_datetime?.replace(/([+-]\d{2}:\d{2}|Z)$/, '') ?? '',
+    start: appt.start_datetime ? toSantiagoNaive(appt.start_datetime) : '',
+    end:   appt.end_datetime   ? toSantiagoNaive(appt.end_datetime)   : '',
   }
   const initCustomPriceRaw = appt.notes ? (appt.notes.match(/(?:^|\n)Precio:\s*(\d+)/)?.[1] ?? '') : ''
   const initCustomPrice    = initCustomPriceRaw ? fmtClp(initCustomPriceRaw) : ''
