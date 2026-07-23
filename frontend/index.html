@@ -62,7 +62,14 @@
     <link
       rel="preload"
       as="image"
-      href="https://images.unsplash.com/photo-1779400203057-23f445b63fc1?fm=jpg&q=80&w=1600&auto=format&fit=crop"
+      href="https://images.unsplash.com/photo-1779400203057-23f445b63fc1?q=80&w=1080&auto=format&fit=crop"
+      imagesrcset="
+        https://images.unsplash.com/photo-1779400203057-23f445b63fc1?q=75&w=640&auto=format&fit=crop 640w,
+        https://images.unsplash.com/photo-1779400203057-23f445b63fc1?q=75&w=828&auto=format&fit=crop 828w,
+        https://images.unsplash.com/photo-1779400203057-23f445b63fc1?q=80&w=1080&auto=format&fit=crop 1080w,
+        https://images.unsplash.com/photo-1779400203057-23f445b63fc1?q=80&w=1600&auto=format&fit=crop 1600w
+      "
+      imagesizes="(max-width: 767px) 100vw, 43vw"
       fetchpriority="high"
     />
   </head>
