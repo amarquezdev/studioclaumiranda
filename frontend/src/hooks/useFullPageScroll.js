@@ -24,6 +24,7 @@ export function useFullPageScroll() {
 
       // Keep GSAP ScrollTrigger in sync with Lenis scroll position
       lenis.on('scroll', ScrollTrigger.update)
+      window.__lenis = lenis
 
       onFrame = (time) => lenis.raf(time * 1000)
       gsap.ticker.add(onFrame)
@@ -40,6 +41,7 @@ export function useFullPageScroll() {
       else clearTimeout(idleId)
       if (onFrame) gsap.ticker.remove(onFrame)
       lenis?.destroy()
+      if (window.__lenis === lenis) delete window.__lenis
     }
   }, [])
 }
