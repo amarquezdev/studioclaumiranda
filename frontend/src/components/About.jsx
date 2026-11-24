@@ -35,9 +35,10 @@ export function About() {
 
           <p ref={textRef} className="mt-6 text-sm leading-relaxed text-foreground/70">
             Con más de 20 años de experiencia, Claudia Miranda ha hecho del color su sello.
-            Especialista en coloración, mechas y tratamientos capilares, se ha formado y
-            certificado constantemente para trabajar con técnicas actuales que realzan tu estilo
-            y, al mismo tiempo, cuidan la salud de tu cabello.
+            Especialista en coloración, mechas y tratamientos capilares, trabajó como estilista
+            para la comunidad chilena en Suecia y hoy suma certificaciones internacionales
+            recientes en Argentina, que la mantienen al día con las técnicas más actuales sin
+            descuidar la salud de tu cabello.
           </p>
 
           <p ref={text2Ref} className="mt-4 text-sm leading-relaxed text-foreground/70">
