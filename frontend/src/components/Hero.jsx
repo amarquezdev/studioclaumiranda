@@ -60,7 +60,7 @@ export function Hero() {
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1522123472015-2d9f7ee5608d?q=75&w=800&auto=format&fit=crop"
-            alt="Servicio de coloración en peluquería Studio Clau Miranda, San Vicente de Tagua Tagua"
+            alt="Coloración a domicilio por la estilista Claudia Miranda"
             className="absolute inset-0 h-full w-full object-cover"
             loading="lazy"
           />
@@ -75,7 +75,7 @@ export function Hero() {
               https://images.unsplash.com/photo-1779400203057-23f445b63fc1?q=80&w=1600&auto=format&fit=crop 1600w
             "
             sizes="(max-width: 767px) 100vw, 43vw"
-            alt="Peluquería Studio Clau Miranda — San Vicente de Tagua Tagua"
+            alt="Studio Clau Miranda — estilista a domicilio en la Zona Central"
             className="absolute inset-x-0 top-0 h-[calc(100%+2.5rem)] w-full object-cover object-top"
             fetchpriority="high"
             loading="eager"
@@ -84,7 +84,7 @@ export function Hero() {
         <div className="relative hidden h-full w-full md:block" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1521194263619-39ecc5b55c61?q=75&w=800&auto=format&fit=crop"
-            alt="Tratamiento capilar en salón de belleza San Vicente de Tagua Tagua"
+            alt="Tratamiento capilar a domicilio por Claudia Miranda"
             className="absolute inset-0 h-full w-full object-cover"
             loading="lazy"
           />
@@ -100,7 +100,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-5xl sm:text-6xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-5xl italic sm:text-6xl" />
             </h1>
-            <p className="gsap-location mt-4 text-xs tracking-[0.25em] uppercase text-foreground/70">Peluquería · San Vicente de Tagua Tagua</p>
+            <p className="gsap-location mt-4 text-xs leading-relaxed tracking-[0.25em] uppercase text-foreground/70">Peluquería a domicilio<br />Zona Central</p>
           </div>
         </div>
         {/* Desktop */}
@@ -110,7 +110,7 @@ export function Hero() {
               <SplitChars text="Un Cabello Sano" className="block text-7xl" />
               <SplitChars text="En Manos Expertas" className="mt-2 block text-7xl italic" />
             </h1>
-            <p className="gsap-location mt-5 text-xs tracking-[0.3em] uppercase text-foreground/70">Peluquería · San Vicente de Tagua Tagua</p>
+            <p className="gsap-location mt-5 text-xs tracking-[0.3em] uppercase text-foreground/70">Peluquería a domicilio · Zona Central</p>
           </div>
         </div>
       </div>

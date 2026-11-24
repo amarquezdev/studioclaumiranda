@@ -73,7 +73,7 @@ export function Testimonial() {
       <div className="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center md:py-32">
         <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/70">TESTIMONIOS</p>
         <h2 ref={headingRef} className="mt-4 font-serif text-3xl italic text-foreground md:text-4xl text-balance">
-          Lo que dicen Nuestras Clientas
+          Lo que dicen Sus Clientas
         </h2>
 
         {/* Rating */}

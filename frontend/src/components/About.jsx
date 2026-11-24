@@ -17,7 +17,7 @@ export function About() {
           <div className="absolute inset-0 md:left-12 lg:left-16">
             <img
               src="/estilista-claumiranda.webp"
-              alt="Claudia Miranda — Fundadora y Estilista Principal"
+              alt="Claudia Miranda, estilista y colorista a domicilio"
               className="h-full w-full object-cover object-center"
               loading="lazy"
             />
@@ -26,24 +26,25 @@ export function About() {
 
         {/* Content */}
         <div className="flex flex-col justify-center px-8 py-16 md:px-16 md:py-24 lg:px-20">
-          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/70">NUESTRA HISTORIA</p>
+          <p ref={labelRef} className="text-[11px] tracking-[0.3em] text-foreground/70">SOBRE CLAUDIA</p>
 
           <h2 ref={headingRef} className="mt-4 font-serif text-4xl leading-tight text-foreground md:text-5xl">
-            Un legado de
-            <span className="block italic">belleza y detalle</span>
+            Belleza y detalle,
+            <span className="block italic">donde tú estés</span>
           </h2>
 
           <p ref={textRef} className="mt-6 text-sm leading-relaxed text-foreground/70">
-            Fundado en 2014, Studio Clau Miranda nació de una idea simple: que cada visita a la
-            peluquería debía sentirse como un ritual. Lo que comenzó como un pequeño estudio en
-            San Vicente de Tagua Tagua se ha convertido en un referente de estilo, donde la
-            artesanía se encuentra con el cuidado personalizado.
+            Con más de 20 años de experiencia, Claudia Miranda ha hecho del color su sello.
+            Especialista en coloración, mechas y tratamientos capilares, se ha formado y
+            certificado constantemente para trabajar con técnicas actuales que realzan tu estilo
+            y, al mismo tiempo, cuidan la salud de tu cabello.
           </p>
 
           <p ref={text2Ref} className="mt-4 text-sm leading-relaxed text-foreground/70">
-            Creemos que el cabello es una extensión de quién eres. Por eso cada corte, coloración y
-            tratamiento se diseña a tu medida, utilizando técnicas refinadas y productos de la más
-            alta calidad — disponible para ti en San Vicente de Tagua Tagua.
+            Hoy lleva esa experiencia directamente a tu casa. Atiende a domicilio en Santiago,
+            Viña del Mar, Concón y San Vicente de Tagua Tagua, con la dedicación de un servicio
+            profesional y la comodidad de tu propio espacio. Cada coloración y tratamiento se
+            diseña a tu medida, con productos de la más alta calidad.
           </p>
 
           <div ref={claudiaRef}>
@@ -51,7 +52,7 @@ export function About() {
             <div className="mt-8">
               <p className="font-serif text-xl italic text-[#c9a05a]">Claudia Miranda</p>
               <p className="mt-1 text-[10px] tracking-[0.25em] text-foreground/70">
-                FUNDADORA &amp; ESTILISTA PRINCIPAL
+                ESTILISTA &amp; COLORISTA
               </p>
             </div>
           </div>
